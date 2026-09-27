@@ -1,15 +1,17 @@
 // Generated from contracts/openapi.json by apps/ios/scripts/generate.py.
 // Never edited by hand: change the source and run `make generate`.
-// source-sha256: 6480664bda353c4d7df8cd689f2eb64e9e49851c3dc23286b747584a5801c811
+// source-sha256: aee0db27962f10ef3c88f64dd44018806f2bdb9ab372aaaec4d243be067025a0
 
 import Foundation
 
 public enum HTTPMethod: String, Hashable, Sendable {
     case get = "GET"
     case post = "POST"
+    case delete = "DELETE"
+    case put = "PUT"
 }
 
-/// Every route of the contract, named by its operation id.
+/// Every route of the contract that the app asks, named by its operation id.
 public enum APIRoute: String, Hashable, Sendable, CaseIterable {
     case compare = "compare"
     case createShare = "create_share"
@@ -225,5 +227,153 @@ extension BurroAPI where Self: RouteSending {
 
     public func searchPlaces(_ body: PlaceSearchBody) async -> Answer<PlacesData> {
         await send(.searchPlaces, parameter: nil, body: body)
+    }
+}
+
+extension Accounts {
+    /// Every route of accounts, named by its operation id. The app asks none of them.
+    public enum Route: String, Hashable, Sendable, CaseIterable {
+        /// `POST /v1/auth/link`. Send a link to sign in with. The answer is the same whether or not the address is known.
+        /// It takes `LinkBody` and gives `LinkAsked`.
+        case askForLink = "ask_for_link"
+        /// `DELETE /v1/me`. Delete the account and everything of it. It asks for a sign-in in the last ten minutes.
+        /// It takes nothing and gives `Session`.
+        case deleteMe = "delete_me"
+        /// `DELETE /v1/me/sessions`. Sign out of one browser, or of every one.
+        /// It takes `SignOutBody` and gives `Sessions`.
+        case endSessions = "end_sessions"
+        /// `GET /v1/me/export`. Everything Burro holds of the account.
+        /// It takes nothing and gives `Export`.
+        case exportMe = "export_me"
+        /// `DELETE /v1/me/recent`. Take every one of the last searches away.
+        /// It takes nothing and gives `RecentSearches`.
+        case forgetRecent = "forget_recent"
+        /// `DELETE /v1/me/searches`. Take one search away, and give back those that are left.
+        /// It takes `ForgetBody` and gives `KeptSearches`.
+        case forgetSearch = "forget_search"
+        /// `GET /v1/me`. The address of the account and its preferences.
+        /// It takes nothing and gives `Me`.
+        case getMe = "get_me"
+        /// `GET /v1/auth/session`. Whether the browser is signed in, and as whom. It is answered 200 either way.
+        /// It takes nothing and gives `Session`.
+        case getSession = "get_session"
+        /// `POST /v1/me/recent`. Put a search among the last ten, where the person lets Burro keep them.
+        /// It takes `KeepBody` and gives `RecentSearches`.
+        case keepRecent = "keep_recent"
+        /// `POST /v1/me/searches`. Keep a search. What is kept is the spec, and a name worked out from it.
+        /// It takes `KeepBody` and gives `KeptSearch`.
+        case keepSearch = "keep_search"
+        /// `GET /v1/me/recent`. The last ten searches, where the person lets Burro keep them.
+        /// It takes nothing and gives `RecentSearches`.
+        case listRecent = "list_recent"
+        /// `GET /v1/me/searches`. The searches a person has kept, the newest first.
+        /// It takes nothing and gives `KeptSearches`.
+        case listSearches = "list_searches"
+        /// `GET /v1/me/sessions`. Where a person is signed in.
+        /// It takes nothing and gives `Sessions`.
+        case listSessions = "list_sessions"
+        /// `PUT /v1/me/preferences`. Set a preference, and give back every preference as it now stands.
+        /// It takes `PreferencesBody` and gives `Preferences`.
+        case setPreferences = "set_preferences"
+        /// `POST /v1/auth/session`. Use a link up and sign the browser in. The first time, it makes the account.
+        /// It takes `SignInBody` and gives `SignedIn`.
+        case signIn = "sign_in"
+        /// `DELETE /v1/auth/session`. Sign the browser out. Its session is revoked, and not only forgotten.
+        /// It takes nothing and gives `Session`.
+        case signOut = "sign_out"
+        /// `POST /v1/auth/link/whose`. Whose link this is, for a page to show before it signs anybody in. It uses nothing up.
+        /// It takes `TokenBody` and gives `WhoseLink`.
+        case whoseLink = "whose_link"
+
+        public var method: HTTPMethod {
+            switch self {
+            case .askForLink: return .post
+            case .deleteMe: return .delete
+            case .endSessions: return .delete
+            case .exportMe: return .get
+            case .forgetRecent: return .delete
+            case .forgetSearch: return .delete
+            case .getMe: return .get
+            case .getSession: return .get
+            case .keepRecent: return .post
+            case .keepSearch: return .post
+            case .listRecent: return .get
+            case .listSearches: return .get
+            case .listSessions: return .get
+            case .setPreferences: return .put
+            case .signIn: return .post
+            case .signOut: return .delete
+            case .whoseLink: return .post
+            }
+        }
+
+        /// The path as the contract writes it. No route of accounts has a parameter.
+        public var template: String {
+            switch self {
+            case .askForLink: return "/v1/auth/link"
+            case .deleteMe: return "/v1/me"
+            case .endSessions: return "/v1/me/sessions"
+            case .exportMe: return "/v1/me/export"
+            case .forgetRecent: return "/v1/me/recent"
+            case .forgetSearch: return "/v1/me/searches"
+            case .getMe: return "/v1/me"
+            case .getSession: return "/v1/auth/session"
+            case .keepRecent: return "/v1/me/recent"
+            case .keepSearch: return "/v1/me/searches"
+            case .listRecent: return "/v1/me/recent"
+            case .listSearches: return "/v1/me/searches"
+            case .listSessions: return "/v1/me/sessions"
+            case .setPreferences: return "/v1/me/preferences"
+            case .signIn: return "/v1/auth/session"
+            case .signOut: return "/v1/auth/session"
+            case .whoseLink: return "/v1/auth/link/whose"
+            }
+        }
+
+        /// The status the route answers with where all goes well.
+        public var answers: Int {
+            switch self {
+            case .askForLink: return 202
+            case .deleteMe: return 200
+            case .endSessions: return 200
+            case .exportMe: return 200
+            case .forgetRecent: return 200
+            case .forgetSearch: return 200
+            case .getMe: return 200
+            case .getSession: return 200
+            case .keepRecent: return 200
+            case .keepSearch: return 200
+            case .listRecent: return 200
+            case .listSearches: return 200
+            case .listSessions: return 200
+            case .setPreferences: return 200
+            case .signIn: return 200
+            case .signOut: return 200
+            case .whoseLink: return 200
+            }
+        }
+
+        /// The statuses the contract says the route can fail with.
+        public var failures: [Int] {
+            switch self {
+            case .askForLink: return [400, 403, 413, 415, 422, 429, 500, 503]
+            case .deleteMe: return [401, 403, 413, 415, 422, 500]
+            case .endSessions: return [400, 401, 403, 404, 413, 415, 422, 500]
+            case .exportMe: return [401, 403, 422, 500]
+            case .forgetRecent: return [401, 403, 413, 415, 422, 500]
+            case .forgetSearch: return [400, 401, 403, 404, 413, 415, 422, 500]
+            case .getMe: return [401, 403, 422, 500]
+            case .getSession: return [403, 422, 500]
+            case .keepRecent: return [400, 401, 403, 413, 415, 422, 500]
+            case .keepSearch: return [400, 401, 403, 409, 413, 415, 422, 500]
+            case .listRecent: return [401, 403, 422, 500]
+            case .listSearches: return [401, 403, 422, 500]
+            case .listSessions: return [401, 403, 422, 500]
+            case .setPreferences: return [400, 401, 403, 413, 415, 422, 500]
+            case .signIn: return [400, 403, 409, 410, 413, 415, 422, 429, 500]
+            case .signOut: return [403, 413, 415, 422, 500]
+            case .whoseLink: return [400, 403, 410, 413, 415, 422, 429, 500]
+            }
+        }
     }
 }

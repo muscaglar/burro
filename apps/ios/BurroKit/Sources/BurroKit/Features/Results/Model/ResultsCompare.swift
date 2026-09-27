@@ -136,6 +136,7 @@ extension Results {
         switch state.spec.tenure {
         case .rent: return ResultsCopy.Compare.fromDefaultsRent
         case .buy: return ResultsCopy.Compare.fromDefaultsBuy
+        case .visit: return ResultsCopy.Compare.fromDefaultsVisit
         case .unlisted: return nil
         }
     }

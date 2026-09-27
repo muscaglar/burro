@@ -4,6 +4,9 @@ import Foundation
 ///
 /// The tests read the recorded answers, the contract and the website's tokens
 /// by their path. They run on a Mac, from the source tree, and nowhere else.
+///
+/// The website's look and words are read from the copy of them that the app
+/// keeps, and not from `apps/web`: `apps/ios/AGENTS.md` says why, and until when.
 enum Repository {
     /// `apps/ios/BurroKit/Tests/BurroKitTests`
     static let tests = URL(fileURLWithPath: #filePath)
@@ -15,13 +18,15 @@ enum Repository {
     static let ios = package.deletingLastPathComponent()
     /// The root of the repository.
     static let root = ios.deletingLastPathComponent().deletingLastPathComponent()
+    /// `apps/ios/website`: the copy, laid out as `apps/web` is.
+    static let website = ios.appendingPathComponent("website")
 
     static let sources = package.appendingPathComponent("Sources/BurroKit")
     static let app = ios.appendingPathComponent("App")
     static let recorded = tests.appendingPathComponent("Recorded")
     static let webRecorded = root.appendingPathComponent("apps/web/test/recorded")
     static let contract = root.appendingPathComponent("contracts/openapi.json")
-    static let tokens = root.appendingPathComponent("apps/web/src/styles/tokens.css")
+    static let tokens = website.appendingPathComponent("src/styles/tokens.css")
 
     /// Every file under a folder, by its path from that folder, in order.
     static func files(under folder: URL, ending: String) -> [String] {

@@ -57,7 +57,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "4423",
+    "content-length": "4593",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "true",
@@ -67,7 +67,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": true
     },
@@ -151,7 +151,7 @@
             "start": 0,
             "end": 40
           },
-          "follows": "What it counts: homes away from main roads, from heavy traffic and from clusters of pubs and bars, with little transport noise. It cannot see: one street or one home. An area is many streets.",
+          "follows": "This vibe counts homes away from main roads, from heavy traffic and from clusters of pubs and bars, with little transport noise. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
@@ -198,12 +198,14 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "feature:park_proximity",
           "label": "Nearer a park",
-          "does": "Nearer a park: count it, or stop counting it?",
+          "does": "Nearer a park: do you want Burro to count this, or to stop counting it?",
           "spans": [
             {
               "start": 35,
@@ -214,7 +216,7 @@
             "start": 0,
             "end": 40
           },
-          "follows": "What Burro counts: straight-line distance to the nearest marked way into a park of 2 ha or more.",
+          "follows": "This is what Burro measures for it: distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line.",
           "said": [],
           "choices": [
             {
@@ -284,7 +286,9 @@
           "needs": "nearer a park",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "tenure",
@@ -348,7 +352,9 @@
           "needs": "buying",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         }
       ],
       "unread": [
@@ -359,10 +365,6 @@
         {
           "start": 78,
           "end": 107
-        },
-        {
-          "start": 122,
-          "end": 138
         }
       ],
       "not_in_release": [
@@ -392,7 +394,7 @@
           "spans": [
             {
               "start": 116,
-              "end": 121
+              "end": 138
             }
           ]
         }

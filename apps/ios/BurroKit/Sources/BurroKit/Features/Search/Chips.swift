@@ -208,7 +208,8 @@ enum SearchChips {
                 chip(.tenure, tenure, assumed: notChosen(spec.tenureFrom) || has(.tenure, .tenure)))
         }
 
-        if let amount = spec.budget.amount {
+        // A visit holds no budget and no kind of home, whatever the record of its budget holds.
+        if !spec.visiting, let amount = spec.budget.amount {
             chips.append(
                 chip(
                     .budget, budget(amount, spec.tenure),

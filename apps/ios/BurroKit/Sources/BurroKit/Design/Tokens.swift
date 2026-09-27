@@ -2,8 +2,9 @@ import SwiftUI
 
 /// Every colour, size and space the app uses is named here and nowhere else.
 ///
-/// The values are the website's, generated from `apps/web/src/styles/tokens.css`
-/// into `TokenValues`. docs/design/web.md section 8 says what each is for and
+/// The values are the website's as the app keeps them, generated from
+/// `apps/ios/website/src/styles/tokens.css` into `TokenValues`.
+/// docs/design/web.md section 8 says what each is for and
 /// what it must contrast with, and a test works the contrast out again.
 ///
 /// Text has no fixed size. Each style below is one of the system's, so it

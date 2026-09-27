@@ -75,7 +75,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "30154",
+    "content-length": "31336",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -85,7 +85,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -104,14 +104,6 @@
           },
           "reasons": [
             {
-              "text": "Straight-line distance to the nearest way in to a station: 320 m, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
-              "fact_ids": [
-                "syn-n0004/feature/station_walk"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
               "text": "The middle rent for a 1-bedroom home in postcode district QA2 is £500 under your budget of £1,400 a month.",
               "fact_ids": [
                 "syn-n0004/budget_fit/rent.bed_1"
@@ -120,7 +112,15 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 600 m, closer than 66% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest station entrance, in a straight line: 320 m, which is closer than 50% of the 22 areas Burro compared, and the same as 5 others.",
+              "fact_ids": [
+                "syn-n0004/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 600 m, which is closer than 66% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0004/feature/park_proximity"
               ],
@@ -143,7 +143,7 @@
           },
           "reasons": [
             {
-              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 160 m, which is closer than 77% of the 22 areas Burro compared, and the same as 4 others.",
               "fact_ids": [
                 "syn-n0002/feature/station_walk"
               ],
@@ -151,7 +151,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 480 m, closer than 85% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 480 m, which is closer than 85% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0002/feature/park_proximity"
               ],
@@ -159,7 +159,7 @@
               "replaced": false
             },
             {
-              "text": "Lines within a 10-minute walk: 1, more than 31% of the 22 areas compared in this release, and the same as 11 others.",
+              "text": "Lines within a 10-minute walk: 1, which is more than 31% of the 22 areas Burro compared, and the same as 11 others.",
               "fact_ids": [
                 "syn-n0002/feature/station_lines"
               ],
@@ -189,14 +189,6 @@
           },
           "reasons": [
             {
-              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
-              "fact_ids": [
-                "syn-n0018/feature/station_walk"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
               "text": "The middle rent for a 1-bedroom home in postcode district QA8 is £225 under your budget of £1,400 a month.",
               "fact_ids": [
                 "syn-n0018/budget_fit/rent.bed_1"
@@ -205,7 +197,15 @@
               "replaced": false
             },
             {
-              "text": "Lines within a 10-minute walk: 4, more than 95% of the 22 areas compared in this release.",
+              "text": "Distance to the nearest station entrance, in a straight line: 160 m, which is closer than 77% of the 22 areas Burro compared, and the same as 4 others.",
+              "fact_ids": [
+                "syn-n0018/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Lines within a 10-minute walk: 4, which is more than 95% of the 22 areas Burro compared.",
               "fact_ids": [
                 "syn-n0018/feature/station_lines"
               ],
@@ -214,7 +214,7 @@
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 1,300 m, further than 95% of the 21 areas compared in this release.",
+            "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 1,300 m, which is further than 95% of the 21 areas Burro compared.",
             "fact_ids": [
               "syn-n0018/feature/park_proximity"
             ],
@@ -235,14 +235,6 @@
           },
           "reasons": [
             {
-              "text": "Straight-line distance to the nearest way in to a station: 320 m, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
-              "fact_ids": [
-                "syn-n0015/feature/station_walk"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
               "text": "The middle rent for a 1-bedroom home in postcode district QA7 is £150 under your budget of £1,400 a month.",
               "fact_ids": [
                 "syn-n0015/budget_fit/rent.bed_1"
@@ -251,7 +243,15 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest town centre boundary: 1,210 m, closer than 57% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest station entrance, in a straight line: 320 m, which is closer than 50% of the 22 areas Burro compared, and the same as 5 others.",
+              "fact_ids": [
+                "syn-n0015/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Distance to the edge of the nearest town centre, in a straight line: 1,210 m, which is closer than 57% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0015/feature/highstreet_access"
               ],
@@ -274,7 +274,7 @@
           },
           "reasons": [
             {
-              "text": "Straight-line distance to the nearest way in to a station: 320 m, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 320 m, which is closer than 50% of the 22 areas Burro compared, and the same as 5 others.",
               "fact_ids": [
                 "syn-n0005/feature/station_walk"
               ],
@@ -282,7 +282,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 710 m, closer than 61% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 710 m, which is closer than 61% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0005/feature/park_proximity"
               ],
@@ -290,7 +290,7 @@
               "replaced": false
             },
             {
-              "text": "Lines within a 10-minute walk: 1, more than 31% of the 22 areas compared in this release, and the same as 11 others.",
+              "text": "Lines within a 10-minute walk: 1, which is more than 31% of the 22 areas Burro compared, and the same as 11 others.",
               "fact_ids": [
                 "syn-n0005/feature/station_lines"
               ],
@@ -358,13 +358,13 @@
             "of_name": "QA2",
             "of": "postcode district QA2",
             "name": "Dulcimer Green",
-            "is_of": "This is of postcode district QA2, and not of Dulcimer Green alone.",
+            "is_of": "These rents are for postcode district QA2, and not for Dulcimer Green alone.",
             "since": "April 2025",
             "as_of": "March 2026",
             "period": "April 2025 to March 2026",
             "rents": "30",
             "half_let": "About half of the rents recorded there were under £900.",
-            "caution": "These rents are a sample that was not drawn at random. Their publisher advises against comparing one area with another on them. Burro uses them as a rough guide to what a home lets for."
+            "caution": "These rents come from a sample that was not drawn at random, and their publisher advises against using them to compare one area with another. Because of that, Burro uses them to give a general idea of what a home lets for."
           },
           "numbers": [
             "£1400",
@@ -399,18 +399,18 @@
           "area_id": "syn-n0004",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "600 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "66",
-            "standing": "closer than 66% of the 21 areas compared in this release",
+            "standing": "closer than 66% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "28",
-            "standing_worse": "further than 28% of the 21 areas compared in this release",
+            "standing_worse": "further than 28% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -437,18 +437,18 @@
           "area_id": "syn-n0004",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "320 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "50",
-            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "standing": "closer than 50% of the 22 areas Burro compared, and the same as 5 others",
             "comparative_worse": "further than",
             "pct_worse": "22",
-            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "standing_worse": "further than 22% of the 22 areas Burro compared, and the same as 5 others",
             "compared": "22",
             "level": "5"
           },
@@ -492,8 +492,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -536,8 +536,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -607,13 +607,13 @@
             "of_name": "QA1",
             "of": "postcode district QA1",
             "name": "Brackenhythe",
-            "is_of": "This is of postcode district QA1, and not of Brackenhythe alone.",
+            "is_of": "These rents are for postcode district QA1, and not for Brackenhythe alone.",
             "since": "April 2025",
             "as_of": "March 2026",
             "period": "April 2025 to March 2026",
             "rents": "30",
             "half_let": "About half of the rents recorded there were under £1,675.",
-            "caution": "These rents are a sample that was not drawn at random. Their publisher advises against comparing one area with another on them. Burro uses them as a rough guide to what a home lets for."
+            "caution": "These rents come from a sample that was not drawn at random, and their publisher advises against using them to compare one area with another. Because of that, Burro uses them to give a general idea of what a home lets for."
           },
           "numbers": [
             "£1400",
@@ -648,18 +648,18 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "480 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "85",
-            "standing": "closer than 85% of the 21 areas compared in this release",
+            "standing": "closer than 85% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "9",
-            "standing_worse": "further than 9% of the 21 areas compared in this release",
+            "standing_worse": "further than 9% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -694,10 +694,10 @@
             "band": "2",
             "comparative": "more than",
             "pct": "31",
-            "standing": "more than 31% of the 22 areas compared in this release, and the same as 11 others",
+            "standing": "more than 31% of the 22 areas Burro compared, and the same as 11 others",
             "comparative_worse": "fewer than",
             "pct_worse": "13",
-            "standing_worse": "fewer than 13% of the 22 areas compared in this release, and the same as 11 others",
+            "standing_worse": "fewer than 13% of the 22 areas Burro compared, and the same as 11 others",
             "compared": "22",
             "level": "11"
           },
@@ -726,16 +726,16 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "160 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "77",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
-            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
             "compared": "22",
             "level": "4"
           },
@@ -779,8 +779,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -822,8 +822,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -893,13 +893,13 @@
             "of_name": "QA8",
             "of": "postcode district QA8",
             "name": "Pellam Cross",
-            "is_of": "This is of postcode district QA8, and not of Pellam Cross alone.",
+            "is_of": "These rents are for postcode district QA8, and not for Pellam Cross alone.",
             "since": "April 2025",
             "as_of": "March 2026",
             "period": "April 2025 to March 2026",
             "rents": "30",
             "half_let": "About half of the rents recorded there were under £1,175.",
-            "caution": "These rents are a sample that was not drawn at random. Their publisher advises against comparing one area with another on them. Burro uses them as a rough guide to what a home lets for."
+            "caution": "These rents come from a sample that was not drawn at random, and their publisher advises against using them to compare one area with another. Because of that, Burro uses them to give a general idea of what a home lets for."
           },
           "numbers": [
             "£1400",
@@ -934,17 +934,17 @@
           "area_id": "syn-n0018",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "1,300 m",
             "band": "5",
-            "standing": "closer than none of the 20 other areas compared in this release",
+            "standing": "further than all 20 other areas Burro compared",
             "comparative": "closer than",
             "comparative_worse": "further than",
             "pct_worse": "95",
-            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "standing_worse": "further than 95% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -979,8 +979,8 @@
             "band": "5",
             "comparative": "more than",
             "pct": "95",
-            "standing": "more than 95% of the 22 areas compared in this release",
-            "standing_worse": "fewer than none of the 21 other areas compared in this release",
+            "standing": "more than 95% of the 22 areas Burro compared",
+            "standing_worse": "more than all 21 other areas Burro compared",
             "comparative_worse": "fewer than",
             "compared": "22"
           },
@@ -1008,16 +1008,16 @@
           "area_id": "syn-n0018",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "160 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "77",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
-            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
             "compared": "22",
             "level": "4"
           },
@@ -1060,9 +1060,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1104,9 +1104,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1178,13 +1178,13 @@
             "of_name": "QA7",
             "of": "postcode district QA7",
             "name": "Osierholm",
-            "is_of": "This is of postcode district QA7, and not of Osierholm alone.",
+            "is_of": "These rents are for postcode district QA7, and not for Osierholm alone.",
             "since": "April 2025",
             "as_of": "March 2026",
             "period": "April 2025 to March 2026",
             "rents": "30",
             "half_let": "About half of the rents recorded there were under £1,250.",
-            "caution": "These rents are a sample that was not drawn at random. Their publisher advises against comparing one area with another on them. Burro uses them as a rough guide to what a home lets for."
+            "caution": "These rents come from a sample that was not drawn at random, and their publisher advises against using them to compare one area with another. Because of that, Burro uses them to give a general idea of what a home lets for."
           },
           "numbers": [
             "£1400",
@@ -1219,18 +1219,18 @@
           "area_id": "syn-n0015",
           "kind": "feature",
           "key": "highstreet_access",
-          "label": "Straight-line distance to the nearest town centre boundary",
+          "label": "Distance to the edge of the nearest town centre, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest town centre boundary",
+            "label": "Distance to the edge of the nearest town centre, in a straight line",
             "value": "1,210 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "57",
-            "standing": "closer than 57% of the 21 areas compared in this release",
+            "standing": "closer than 57% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "38",
-            "standing_worse": "further than 38% of the 21 areas compared in this release",
+            "standing_worse": "further than 38% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1257,18 +1257,18 @@
           "area_id": "syn-n0015",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "320 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "50",
-            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "standing": "closer than 50% of the 22 areas Burro compared, and the same as 5 others",
             "comparative_worse": "further than",
             "pct_worse": "22",
-            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "standing_worse": "further than 22% of the 22 areas Burro compared, and the same as 5 others",
             "compared": "22",
             "level": "5"
           },
@@ -1312,8 +1312,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1356,8 +1356,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1427,13 +1427,13 @@
             "of_name": "QA3",
             "of": "postcode district QA3",
             "name": "Eskerfold",
-            "is_of": "This is of postcode district QA3, and not of Eskerfold alone.",
+            "is_of": "These rents are for postcode district QA3, and not for Eskerfold alone.",
             "since": "April 2025",
             "as_of": "March 2026",
             "period": "April 2025 to March 2026",
             "rents": "30",
             "half_let": "About half of the rents recorded there were under £1,525.",
-            "caution": "These rents are a sample that was not drawn at random. Their publisher advises against comparing one area with another on them. Burro uses them as a rough guide to what a home lets for."
+            "caution": "These rents come from a sample that was not drawn at random, and their publisher advises against using them to compare one area with another. Because of that, Burro uses them to give a general idea of what a home lets for."
           },
           "numbers": [
             "£1400",
@@ -1468,18 +1468,18 @@
           "area_id": "syn-n0005",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "710 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "61",
-            "standing": "closer than 61% of the 21 areas compared in this release",
+            "standing": "closer than 61% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "33",
-            "standing_worse": "further than 33% of the 21 areas compared in this release",
+            "standing_worse": "further than 33% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1514,10 +1514,10 @@
             "band": "2",
             "comparative": "more than",
             "pct": "31",
-            "standing": "more than 31% of the 22 areas compared in this release, and the same as 11 others",
+            "standing": "more than 31% of the 22 areas Burro compared, and the same as 11 others",
             "comparative_worse": "fewer than",
             "pct_worse": "13",
-            "standing_worse": "fewer than 13% of the 22 areas compared in this release, and the same as 11 others",
+            "standing_worse": "fewer than 13% of the 22 areas Burro compared, and the same as 11 others",
             "compared": "22",
             "level": "11"
           },
@@ -1546,18 +1546,18 @@
           "area_id": "syn-n0005",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "320 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "50",
-            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "standing": "closer than 50% of the 22 areas Burro compared, and the same as 5 others",
             "comparative_worse": "further than",
             "pct_worse": "22",
-            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "standing_worse": "further than 22% of the 22 areas Burro compared, and the same as 5 others",
             "compared": "22",
             "level": "5"
           },
@@ -1601,8 +1601,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -1645,8 +1645,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",

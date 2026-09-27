@@ -16,7 +16,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "2435",
+    "content-length": "2496",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -26,7 +26,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -130,8 +130,8 @@
           },
           "follows": "Areas further off rank lower.",
           "said": [
-            "You named no way of travelling: Burro took public transport.",
-            "You gave no number of minutes: Burro took 45."
+            "You did not say how you would travel, so Burro has assumed public transport.",
+            "You gave no number of minutes, so Burro has used 45."
           ],
           "choices": [
             {
@@ -179,7 +179,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         }
       ],
       "unread": [

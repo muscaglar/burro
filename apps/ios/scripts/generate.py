@@ -12,8 +12,15 @@ Three things come of it:
     BurroKit/Tests/BurroKitTests/Recorded/                        the recorded answers, copied
 
 The contract, contracts/openapi.json, is the only source of the first two.
-apps/web/src/styles/tokens.css is the only source of the third, and
+A route that the contract marks as one of accounts is asked by the website, and by
+the app not at all. So it is listed apart, as `Accounts.Route`, and is given no method
+of `BurroAPI`. A record that only such routes take or give is written inside
+`Accounts`, where its name meets no name of the app's own.
+apps/ios/website/src/styles/tokens.css is the only source of the third, and
 apps/web/test/recorded/ of the fourth. Nothing in the app writes one by hand.
+
+The tokens are read from the copy of the website's that the app keeps, and not
+from the website: apps/ios/AGENTS.md says why, and until when.
 
 It fails on a schema it does not understand. It never guesses.
 Standard library only, and Python 3.9.
@@ -31,7 +38,7 @@ from typing import Any
 IOS = Path(__file__).resolve().parent.parent
 REPO = IOS.parent.parent
 CONTRACT = REPO / "contracts" / "openapi.json"
-TOKENS = REPO / "apps" / "web" / "src" / "styles" / "tokens.css"
+TOKENS = IOS / "website" / "src" / "styles" / "tokens.css"
 RECORDED = REPO / "apps" / "web" / "test" / "recorded"
 
 KIT = IOS / "BurroKit"
@@ -532,6 +539,92 @@ public struct Envelope<Payload: Decodable & Sendable>: Decodable, Sendable {
 """
 
 
+# The mark the contract gives a route of accounts, and the name that what is theirs is
+# written under. A person signs in on the website, so the app asks none of these routes.
+ACCOUNTS_MARK = "accounts"
+ACCOUNTS = "Accounts"
+INSIDE = "    "
+
+
+def operations_of(contract: Schema) -> list[tuple[str, str, Schema]]:
+    """Every route of the contract: where it is asked, as `GET /path`, its method, and itself."""
+    return [
+        (f"{method.upper()} {path}", method, operation)
+        for path in sorted(contract["paths"])
+        for method, operation in sorted(contract["paths"][path].items())
+    ]
+
+
+def of_accounts(operation: Schema, where: str) -> bool:
+    """True of a route the contract marks as one of accounts. No other mark has a rule."""
+    marks = operation.get("tags", [])
+    if marks not in ([], [ACCOUNTS_MARK]):
+        raise Unsupported(f"{where}: marked {marks}, which the client has no rule for")
+    return bool(marks)
+
+
+def went_well(operation: Schema, where: str) -> tuple[str, Schema]:
+    """The answer a route gives where all goes well: its number, and the record it holds.
+
+    The number is whatever the contract says, 200 or another of the two hundreds. A route
+    with no such answer, or with two, or with one that holds no record, is refused.
+    """
+    found = [status for status in operation["responses"] if re.fullmatch(r"2\d\d", status)]
+    if len(found) != 1:
+        raise Unsupported(f"{where}: {len(found)} answers that say all went well")
+    content: Schema = operation["responses"][found[0]].get("content", {})
+    answer: Schema | None = content.get("application/json", {}).get("schema")
+    if answer is None or "$ref" not in answer:
+        raise Unsupported(f"{where}: an answer of {found[0]} that holds no record")
+    return found[0], answer
+
+
+def named_in(schema: Any) -> list[str]:
+    """Every record that is named in a part of the contract, however deep."""
+    if isinstance(schema, dict):
+        found = [ref_name(schema)] if isinstance(schema.get("$ref"), str) else []
+        return found + [name for one in schema.values() for name in named_in(one)]
+    if isinstance(schema, list):
+        return [name for one in schema for name in named_in(one)]
+    return []
+
+
+def reached(schemas: dict[str, Schema], named: set[str]) -> set[str]:
+    """The records that are named, and every record that one of them names."""
+    found: set[str] = set()
+    edge = sorted(named)
+    while edge:
+        name = edge.pop()
+        if name not in found:
+            found.add(name)
+            edge.extend(named_in(schemas[name]))
+    return found
+
+
+def apart(contract: Schema) -> frozenset[str]:
+    """The records that only a route of accounts takes or gives.
+
+    A record that a route of the app's names too stays where it was: the app reads it.
+    """
+    theirs: set[str] = set()
+    others: set[str] = set()
+    for where, _, operation in operations_of(contract):
+        named = named_in(operation.get("requestBody", {})) + named_in(operation["responses"])
+        (theirs if of_accounts(operation, where) else others).update(named)
+    schemas: dict[str, Schema] = contract["components"]["schemas"]
+    return frozenset(reached(schemas, theirs) - reached(schemas, others))
+
+
+def has_accounts(contract: Schema) -> bool:
+    return any(of_accounts(operation, where) for where, _, operation in operations_of(contract))
+
+
+def further_in(made: str) -> str:
+    """What was made, each line of it further in. A line that holds nothing stays empty."""
+    lines = made.splitlines(keepends=True)
+    return "".join(INSIDE + line if line.strip() else line for line in lines)
+
+
 def body_of(operation: Schema) -> Schema | None:
     """What a route is sent, as the contract describes it. None where it is sent nothing."""
     content: Schema = operation.get("requestBody", {}).get("content", {})
@@ -546,11 +639,24 @@ def bodies_of(contract: Schema) -> frozenset[str]:
     return frozenset(ref_name(body) for body in found if body is not None)
 
 
+ABOUT_ACCOUNTS = """
+Everything of accounts: the records that only a route of accounts takes or gives, and
+in `APIRoutes.swift` the routes themselves.
+
+A person signs in on the website, which asks these routes of its own origin. The app
+asks none of them, so `BurroAPI` has no method for one. They are here so that what is
+generated is the whole of the contract. A name in here is `Accounts.Name` to the rest of
+the app, so that it meets no name the app has already.
+"""
+
+
 def models(contract: Schema, digest: str) -> str:
     schemas: dict[str, Schema] = contract["components"]["schemas"]
     types = Types(schemas)
     sent = bodies_of(contract)
+    theirs = apart(contract)
     parts: list[str] = []
+    inside: list[str] = []
     for name in sorted(schemas):
         schema = schemas[name]
         if not re.fullmatch(r"[A-Z][A-Za-z0-9_]*", name):
@@ -561,13 +667,19 @@ def models(contract: Schema, digest: str) -> str:
             continue
         if "_" in name:
             raise Unsupported(f"{name}: a generic record that is not an envelope")
-        if "enum" in schema:
-            parts.append(enum_of(name, schema))
-        else:
-            parts.append(struct_of(types, name, schema, name in sent))
+        made = (
+            enum_of(name, schema)
+            if "enum" in schema
+            else struct_of(types, name, schema, name in sent)
+        )
+        (inside if name in theirs else parts).append(made)
     for name in sorted(types.unions):
         cases, kinds = types.unions[name]
         parts.append(union_of(name, cases, kinds))
+    if has_accounts(contract):
+        # Written wherever a route of accounts is, so that the list of them has where to stand.
+        inside_it = further_in("\n".join(inside))
+        parts.append(doc(ABOUT_ACCOUNTS) + f"public enum {ACCOUNTS} {{\n{inside_it}}}\n")
     info = contract["info"]
     head = banner("contracts/openapi.json", digest) + PREAMBLE % {
         "digest": digest,
@@ -580,51 +692,132 @@ def models(contract: Schema, digest: str) -> str:
 # --- Routes ----------------------------------------------------------------
 
 
+# The methods of the routes the app asks, which are named whatever the contract holds.
+ASKED_BY = ("get", "post")
+# The methods a route of accounts may bear beside them. Each is named once a route bears it.
+LISTED_BY = ("delete", "put")
+
+
+def failures_of(operation: Schema, where: str) -> list[int]:
+    """Every number a route may answer with but the one it gives where all goes well."""
+    well, _ = went_well(operation, where)
+    return sorted(int(status) for status in operation["responses"] if status != well)
+
+
+def listed_apart(contract: Schema) -> list[dict[str, Any]]:
+    """The routes of accounts, by their ids. Nothing is made that asks one."""
+    schemas: dict[str, Schema] = contract["components"]["schemas"]
+    found: list[dict[str, Any]] = []
+    for where, method, operation in operations_of(contract):
+        if not of_accounts(operation, where):
+            continue
+        if method not in ASKED_BY + LISTED_BY:
+            raise Unsupported(f"{where}: a method the client has no rule for")
+        if operation.get("parameters"):
+            # No id of accounts is in a path, and none is in what follows a question mark.
+            raise Unsupported(f"{where}: a route of accounts with a parameter")
+        well, answer = went_well(operation, where)
+        wrapped = schemas[ref_name(answer)]
+        if not is_envelope(ref_name(answer), wrapped):
+            raise Unsupported(f"{where}: an answer of accounts with no `meta` around it")
+        body = body_of(operation)
+        found.append(
+            {
+                "id": operation["operationId"],
+                "case": camel(operation["operationId"]),
+                "method": method,
+                "path": where.split(" ", 1)[1],
+                "description": operation.get("description", ""),
+                "payload": ref_name(wrapped["properties"]["data"]),
+                "body": None if body is None else ref_name(body),
+                "answers": int(well),
+                "failures": failures_of(operation, where),
+            }
+        )
+    return sorted(found, key=lambda one: one["id"])
+
+
+def accounts_of(found: list[dict[str, Any]]) -> str:
+    """The list of the routes of accounts, written inside their name."""
+    out = ["/// Every route of accounts, named by its operation id. The app asks none of them.\n"]
+    out.append("public enum Route: String, Hashable, Sendable, CaseIterable {\n")
+    for one in found:
+        takes = "nothing" if one["body"] is None else f"`{one['body']}`"
+        out.append(doc(f"`{one['method'].upper()} {one['path']}`. {one['description']}", "    "))
+        out.append(f"    /// It takes {takes} and gives `{one['payload']}`.\n")
+        out.append(f"    case {quoted(one['case'])} = {swift_string(one['id'])}\n")
+    out.append("\n    public var method: HTTPMethod {\n        switch self {\n")
+    for one in found:
+        out.append(f"        case .{one['case']}: return .{one['method']}\n")
+    out.append("        }\n    }\n\n")
+    out.append(
+        "    /// The path as the contract writes it. No route of accounts has a parameter.\n"
+    )
+    out.append("    public var template: String {\n        switch self {\n")
+    for one in found:
+        out.append(f"        case .{one['case']}: return {swift_string(one['path'])}\n")
+    out.append("        }\n    }\n\n")
+    out.append("    /// The status the route answers with where all goes well.\n")
+    out.append("    public var answers: Int {\n        switch self {\n")
+    for one in found:
+        out.append(f"        case .{one['case']}: return {one['answers']}\n")
+    out.append("        }\n    }\n\n")
+    out.append("    /// The statuses the contract says the route can fail with.\n")
+    out.append("    public var failures: [Int] {\n        switch self {\n")
+    for one in found:
+        out.append(f"        case .{one['case']}: return {one['failures']}\n")
+    out.append("        }\n    }\n}\n")
+    return "".join(out)
+
+
 def routes(contract: Schema, digest: str) -> str:
     schemas: dict[str, Schema] = contract["components"]["schemas"]
     found = []
-    for path in sorted(contract["paths"]):
-        for method, operation in sorted(contract["paths"][path].items()):
-            if method not in ("get", "post"):
-                raise Unsupported(f"{method.upper()} {path}: a method the client has no rule for")
-            answer = operation["responses"]["200"]["content"]["application/json"]["schema"]
-            wrapped = schemas[ref_name(answer)]
-            enveloped = is_envelope(ref_name(answer), wrapped)
-            payload = ref_name(wrapped["properties"]["data"]) if enveloped else ref_name(answer)
-            body = body_of(operation)
-            parameters = operation.get("parameters", [])
-            if len(parameters) > 1 or any(
-                one["in"] != "path"
-                or one["schema"] != {"title": one["schema"].get("title"), "type": "string"}
-                for one in parameters
-            ):
-                raise Unsupported(f"{method.upper()} {path}: parameters the client has no rule for")
-            if body is not None and parameters:
-                raise Unsupported(f"{method.upper()} {path}: a body and a parameter")
-            if (method == "post") != (body is not None):
-                raise Unsupported(f"{method.upper()} {path}: a POST has a body and a GET has none")
-            found.append(
-                {
-                    "id": operation["operationId"],
-                    "case": camel(operation["operationId"]),
-                    "method": method,
-                    "path": path,
-                    "description": operation.get("description", ""),
-                    "payload": payload,
-                    "enveloped": enveloped,
-                    "body": None if body is None else ref_name(body),
-                    "parameter": parameters[0]["name"] if parameters else None,
-                    "failures": sorted(
-                        int(code) for code in operation["responses"] if code != "200"
-                    ),
-                }
-            )
+    for where, method, operation in operations_of(contract):
+        if of_accounts(operation, where):
+            continue
+        if method not in ASKED_BY:
+            raise Unsupported(f"{where}: a method the client has no rule for")
+        _, answer = went_well(operation, where)
+        wrapped = schemas[ref_name(answer)]
+        enveloped = is_envelope(ref_name(answer), wrapped)
+        payload = ref_name(wrapped["properties"]["data"]) if enveloped else ref_name(answer)
+        body = body_of(operation)
+        parameters = operation.get("parameters", [])
+        if len(parameters) > 1 or any(
+            one["in"] != "path"
+            or one["schema"] != {"title": one["schema"].get("title"), "type": "string"}
+            for one in parameters
+        ):
+            raise Unsupported(f"{where}: parameters the client has no rule for")
+        if body is not None and parameters:
+            raise Unsupported(f"{where}: a body and a parameter")
+        if (method == "post") != (body is not None):
+            raise Unsupported(f"{where}: a POST has a body and a GET has none")
+        found.append(
+            {
+                "id": operation["operationId"],
+                "case": camel(operation["operationId"]),
+                "method": method,
+                "path": where.split(" ", 1)[1],
+                "description": operation.get("description", ""),
+                "payload": payload,
+                "enveloped": enveloped,
+                "body": None if body is None else ref_name(body),
+                "parameter": parameters[0]["name"] if parameters else None,
+                "failures": failures_of(operation, where),
+            }
+        )
     found.sort(key=lambda one: one["id"])
+    theirs = listed_apart(contract)
+    borne = {one["method"] for one in theirs}
 
     out = [banner("contracts/openapi.json", digest), "\nimport Foundation\n\n"]
     out.append("public enum HTTPMethod: String, Hashable, Sendable {\n")
-    out.append('    case get = "GET"\n    case post = "POST"\n}\n\n')
-    out.append("/// Every route of the contract, named by its operation id.\n")
+    for method in ASKED_BY + tuple(one for one in LISTED_BY if one in borne):
+        out.append(f"    case {method} = {swift_string(method.upper())}\n")
+    out.append("}\n\n")
+    out.append("/// Every route of the contract that the app asks, named by its operation id.\n")
     out.append("public enum APIRoute: String, Hashable, Sendable, CaseIterable {\n")
     for one in found:
         out.append(f"    case {quoted(one['case'])} = {swift_string(one['id'])}\n")
@@ -704,6 +897,8 @@ def routes(contract: Schema, digest: str) -> str:
             out.append(f"        await send(.{one['case']}, parameter: nil, body: nil)\n")
         out.append("    }\n")
     out.append("}\n")
+    if theirs:
+        out.append(f"\nextension {ACCOUNTS} {{\n{further_in(accounts_of(theirs))}}}\n")
     return "".join(out)
 
 
@@ -743,7 +938,7 @@ def tokens(css: str, digest: str) -> str:
     if set(still) != set(moving) or any(value != "0" for value in still.values()):
         raise Unsupported("tokens.css: motion that is not nought until it is welcome")
 
-    out = [banner("apps/web/src/styles/tokens.css", digest), "\n"]
+    out = [banner("apps/ios/website/src/styles/tokens.css", digest), "\n"]
     out.append("/// Every colour, space and time of the website's tokens, as it names them.\n")
     out.append("///\n/// `Tokens` gives each its Swift name. Use that, and not this.\n")
     out.append("public enum TokenValues {\n")

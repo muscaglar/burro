@@ -24,7 +24,7 @@
         },
         "commutes": [
           {
-            "place_id": "syn-p0017",
+            "place_id": "syn-p0012",
             "mode": "pt",
             "max_minutes": 30,
             "strictness": "soft",
@@ -112,7 +112,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "39954",
+    "content-length": "42689",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -122,7 +122,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -440,7 +440,7 @@
         },
         {
           "component": "feature:park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "weight": 0.5,
           "place": null,
           "cells": [
@@ -517,13 +517,13 @@
           ]
         },
         {
-          "component": "commute.syn-p0017.pt",
+          "component": "commute.syn-p0012.pt",
           "label": "Journey",
           "weight": 0.4,
           "place": {
-            "place_id": "syn-p0017",
-            "name": "Pellam Exchange",
-            "kind": "district"
+            "place_id": "syn-p0012",
+            "name": "Pellam Cross",
+            "kind": "station"
           },
           "cells": [
             {
@@ -532,7 +532,7 @@
               "percentile": null,
               "utility": 1.0,
               "contribution": null,
-              "fact_id": "syn-n0005/travel/syn-p0017.pt",
+              "fact_id": "syn-n0005/travel/syn-p0012.pt",
               "estimate": null
             },
             {
@@ -541,7 +541,7 @@
               "percentile": null,
               "utility": 1.0,
               "contribution": null,
-              "fact_id": "syn-n0002/travel/syn-p0017.pt",
+              "fact_id": "syn-n0002/travel/syn-p0012.pt",
               "estimate": null
             }
           ]
@@ -604,7 +604,7 @@
         },
         {
           "component": "feature:station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "weight": 0.1,
           "place": null,
           "cells": [
@@ -630,7 +630,7 @@
         },
         {
           "component": "feature:air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "weight": 0.05,
           "place": null,
           "cells": [
@@ -743,18 +743,18 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "16.5 µg/m³",
             "band": "1",
             "comparative": "lower than",
             "pct": "80",
-            "standing": "lower than 80% of the 20 areas compared in this release",
+            "standing": "lower than 80% of the 20 areas Burro compared",
             "comparative_worse": "higher than",
             "pct_worse": "15",
-            "standing_worse": "higher than 15% of the 20 areas compared in this release",
+            "standing_worse": "higher than 15% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -789,10 +789,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "86",
-            "standing": "more than 86% of the 22 areas compared in this release",
+            "standing": "more than 86% of the 22 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "9",
-            "standing_worse": "less than 9% of the 22 areas compared in this release",
+            "standing_worse": "less than 9% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -827,10 +827,10 @@
             "band": "2",
             "comparative": "quieter than",
             "pct": "75",
-            "standing": "quieter than 75% of the 20 areas compared in this release",
+            "standing": "quieter than 75% of the 20 areas Burro compared",
             "comparative_worse": "noisier than",
             "pct_worse": "20",
-            "standing_worse": "noisier than 20% of the 20 areas compared in this release",
+            "standing_worse": "noisier than 20% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -857,18 +857,18 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "480 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "85",
-            "standing": "closer than 85% of the 21 areas compared in this release",
+            "standing": "closer than 85% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "9",
-            "standing_worse": "further than 9% of the 21 areas compared in this release",
+            "standing_worse": "further than 9% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -903,10 +903,10 @@
             "band": "2",
             "comparative": "more than",
             "pct": "31",
-            "standing": "more than 31% of the 22 areas compared in this release, and the same as 11 others",
+            "standing": "more than 31% of the 22 areas Burro compared, and the same as 11 others",
             "comparative_worse": "fewer than",
             "pct_worse": "13",
-            "standing_worse": "fewer than 13% of the 22 areas compared in this release, and the same as 11 others",
+            "standing_worse": "fewer than 13% of the 22 areas Burro compared, and the same as 11 others",
             "compared": "22",
             "level": "11"
           },
@@ -935,16 +935,16 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "160 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "77",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
-            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
             "compared": "22",
             "level": "4"
           },
@@ -988,8 +988,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1030,9 +1030,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1076,8 +1076,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -1119,8 +1119,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1161,9 +1161,9 @@
             "known": "2",
             "parts": "3",
             "share": "80",
-            "partly": "Worked out from 2 of its 3 parts, 80 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 80 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1207,9 +1207,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -1253,8 +1253,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1296,8 +1296,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -1340,8 +1340,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1383,8 +1383,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -1427,8 +1427,8 @@
             "parts": "6",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1471,8 +1471,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1514,8 +1514,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -1558,8 +1558,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1582,15 +1582,15 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0002/travel/syn-p0017.pt",
+          "fact_id": "syn-n0002/travel/syn-p0012.pt",
           "area_id": "syn-n0002",
           "kind": "travel",
-          "key": "syn-p0017.pt",
+          "key": "syn-p0012.pt",
           "label": "Journey",
           "template": "travel_pt",
           "slots": {
             "mode": "By public transport",
-            "place": "Pellam Exchange",
+            "place": "Pellam Cross",
             "limit": "30",
             "margin": "18",
             "margin_unit": "minutes",
@@ -1604,7 +1604,7 @@
             "18"
           ],
           "names": [
-            "Pellam Exchange"
+            "Pellam Cross"
           ],
           "sources": [
             {
@@ -1690,18 +1690,18 @@
           "area_id": "syn-n0005",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "18.1 µg/m³",
             "band": "2",
             "comparative": "lower than",
             "pct": "75",
-            "standing": "lower than 75% of the 20 areas compared in this release",
+            "standing": "lower than 75% of the 20 areas Burro compared",
             "comparative_worse": "higher than",
             "pct_worse": "20",
-            "standing_worse": "higher than 20% of the 20 areas compared in this release",
+            "standing_worse": "higher than 20% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -1736,10 +1736,10 @@
             "band": "4",
             "comparative": "more than",
             "pct": "68",
-            "standing": "more than 68% of the 22 areas compared in this release",
+            "standing": "more than 68% of the 22 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "27",
-            "standing_worse": "less than 27% of the 22 areas compared in this release",
+            "standing_worse": "less than 27% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -1774,10 +1774,10 @@
             "band": "2",
             "comparative": "quieter than",
             "pct": "65",
-            "standing": "quieter than 65% of the 20 areas compared in this release",
+            "standing": "quieter than 65% of the 20 areas Burro compared",
             "comparative_worse": "noisier than",
             "pct_worse": "30",
-            "standing_worse": "noisier than 30% of the 20 areas compared in this release",
+            "standing_worse": "noisier than 30% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -1804,18 +1804,18 @@
           "area_id": "syn-n0005",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "710 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "61",
-            "standing": "closer than 61% of the 21 areas compared in this release",
+            "standing": "closer than 61% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "33",
-            "standing_worse": "further than 33% of the 21 areas compared in this release",
+            "standing_worse": "further than 33% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1850,10 +1850,10 @@
             "band": "2",
             "comparative": "more than",
             "pct": "31",
-            "standing": "more than 31% of the 22 areas compared in this release, and the same as 11 others",
+            "standing": "more than 31% of the 22 areas Burro compared, and the same as 11 others",
             "comparative_worse": "fewer than",
             "pct_worse": "13",
-            "standing_worse": "fewer than 13% of the 22 areas compared in this release, and the same as 11 others",
+            "standing_worse": "fewer than 13% of the 22 areas Burro compared, and the same as 11 others",
             "compared": "22",
             "level": "11"
           },
@@ -1882,18 +1882,18 @@
           "area_id": "syn-n0005",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "320 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "50",
-            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "standing": "closer than 50% of the 22 areas Burro compared, and the same as 5 others",
             "comparative_worse": "further than",
             "pct_worse": "22",
-            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "standing_worse": "further than 22% of the 22 areas Burro compared, and the same as 5 others",
             "compared": "22",
             "level": "5"
           },
@@ -1937,8 +1937,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -1980,9 +1980,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -2026,8 +2026,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -2069,8 +2069,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -2111,9 +2111,9 @@
             "known": "2",
             "parts": "3",
             "share": "80",
-            "partly": "Worked out from 2 of its 3 parts, 80 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 80 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -2156,9 +2156,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -2202,8 +2202,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -2246,8 +2246,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -2290,8 +2290,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -2333,8 +2333,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -2376,8 +2376,8 @@
             "parts": "6",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -2420,8 +2420,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -2464,8 +2464,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -2508,8 +2508,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -2533,15 +2533,15 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0005/travel/syn-p0017.pt",
+          "fact_id": "syn-n0005/travel/syn-p0012.pt",
           "area_id": "syn-n0005",
           "kind": "travel",
-          "key": "syn-p0017.pt",
+          "key": "syn-p0012.pt",
           "label": "Journey",
           "template": "travel_pt",
           "slots": {
             "mode": "By public transport",
-            "place": "Pellam Exchange",
+            "place": "Pellam Cross",
             "limit": "30",
             "margin": "15",
             "margin_unit": "minutes",
@@ -2554,7 +2554,7 @@
             "30"
           ],
           "names": [
-            "Pellam Exchange"
+            "Pellam Cross"
           ],
           "sources": [
             {

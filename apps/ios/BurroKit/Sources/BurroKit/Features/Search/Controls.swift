@@ -23,6 +23,7 @@ struct ControlContext {
 
 /// Renting or buying. Before anything is asked for, the choice swaps in the
 /// other default the API served, and sends nothing. After, it is an edit like any other.
+/// Of a visit neither is the one that is chosen, and either makes it a search for a home.
 struct TenureControl: View {
     let tenure: Tenure
     let version: Int
@@ -46,7 +47,8 @@ struct TenureControl: View {
     }
 }
 
-/// What a person can pay, for what kind of home, and how much that counts.
+/// What a person can pay, for what kind of home, and how much that counts. Of a visit,
+/// which holds none of them, one line that says why nothing is asked.
 struct BudgetControl: View {
     let context: ControlContext
 
@@ -54,11 +56,22 @@ struct BudgetControl: View {
     @State private var firm = Draft<Bool>()
 
     var body: some View {
+        FormGroup(SettingsCopy.Budget.legend) {
+            if SettingsForm.asksForABudget(context.spec) {
+                asked
+            } else {
+                HintLine(SettingsCopy.Budget.notForAVisit)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var asked: some View {
         let budget = context.spec.budget
         let tenure = context.spec.tenure
         let version = context.version
         let kinds = SettingsForm.segments(for: tenure)
-        FormGroup(SettingsCopy.Budget.legend) {
+        Group {
             if context.state.meta.holds.costs {
                 amount(budget, tenure, version)
             } else {

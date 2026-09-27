@@ -577,18 +577,21 @@ extension Results {
                         journeys: card.journeys, note: card.journeysNote, openSources: hands.openSources)
                 }
             }
-            part(ResultsCopy.Cost.title) {
-                switch card.cost {
-                case .here(let cost):
-                    CostView(cost: cost, openSources: hands.openSources)
-                case .waiting:
-                    Skeleton(lines: 2)
-                case .failed:
-                    words(ResultsCopy.Card.detailsFailed, failed: true)
-                case .none:
-                    words(ResultsCopy.Cost.none)
-                case .hidden:
-                    EmptyView()
+            // Of a visit there is no cost to show, and the part is not drawn, nor its title.
+            if card.cost != .hidden {
+                part(ResultsCopy.Cost.title) {
+                    switch card.cost {
+                    case .here(let cost):
+                        CostView(cost: cost, openSources: hands.openSources)
+                    case .waiting:
+                        Skeleton(lines: 2)
+                    case .failed:
+                        words(ResultsCopy.Card.detailsFailed, failed: true)
+                    case .none:
+                        words(ResultsCopy.Cost.none)
+                    case .hidden:
+                        EmptyView()
+                    }
                 }
             }
             if !card.breakdown.isEmpty {

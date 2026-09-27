@@ -45,20 +45,56 @@ final class GeneratedTests: XCTestCase {
         #endif
     }
 
-    func test_every_route_of_the_contract_has_a_method_and_no_other_route_has() throws {
+    /// A route the contract marks as one of accounts is asked by the website, and by the app
+    /// not at all. So it is listed apart, and `BurroAPI` has a method for every other route.
+    func test_every_route_the_app_asks_has_a_method_and_the_routes_of_accounts_are_listed_apart() throws {
         let paths = try XCTUnwrap(contract()["paths"] as? [String: [String: [String: Any]]])
-        var inContract: [String: String] = [:]
+        var asked: [String: String] = [:]
+        var ofAccounts: [String: String] = [:]
         for (path, methods) in paths {
             for (method, operation) in methods {
                 let id = try XCTUnwrap(operation["operationId"] as? String)
-                inContract[id] = "\(method.uppercased()) \(path)"
+                let marks = operation["tags"] as? [String] ?? []
+                if marks == ["accounts"] {
+                    ofAccounts[id] = "\(method.uppercased()) \(path)"
+                } else {
+                    XCTAssertEqual(marks, [], "\(id) bears a mark the app has no rule for.")
+                    asked[id] = "\(method.uppercased()) \(path)"
+                }
             }
         }
 
         let inTheApp = Dictionary(
             uniqueKeysWithValues: APIRoute.allCases.map { ($0.rawValue, "\($0.method.rawValue) \($0.template)") })
+        let listedApart = Dictionary(
+            uniqueKeysWithValues: Accounts.Route.allCases.map {
+                ($0.rawValue, "\($0.method.rawValue) \($0.template)")
+            })
 
-        XCTAssertEqual(inTheApp, inContract)
+        XCTAssertEqual(inTheApp, asked)
+        XCTAssertEqual(listedApart, ofAccounts)
+        XCTAssertEqual(Set(inTheApp.keys).intersection(listedApart.keys), [])
+    }
+
+    func test_a_route_of_accounts_says_what_it_answers_with_where_all_goes_well() throws {
+        let paths = try XCTUnwrap(contract()["paths"] as? [String: [String: [String: Any]]])
+        var inContract: [String: [Int]] = [:]
+        for methods in paths.values {
+            for operation in methods.values where operation["tags"] as? [String] == ["accounts"] {
+                let id = try XCTUnwrap(operation["operationId"] as? String)
+                let answers = try XCTUnwrap(operation["responses"] as? [String: Any])
+                inContract[id] = answers.keys.compactMap(Int.init).filter { (200..<300).contains($0) }
+            }
+        }
+
+        let listed = Dictionary(uniqueKeysWithValues: Accounts.Route.allCases.map { ($0.rawValue, [$0.answers]) })
+
+        XCTAssertEqual(listed, inContract)
+        // Asking for a link is answered before the letter is sent, so it says that it took the asking in.
+        XCTAssertEqual(Accounts.Route.askForLink.answers, 202)
+        for route in Accounts.Route.allCases {
+            XCTAssertFalse(route.failures.contains(route.answers), route.rawValue)
+        }
     }
 
     func test_every_schema_of_the_contract_has_a_model_of_its_name() throws {

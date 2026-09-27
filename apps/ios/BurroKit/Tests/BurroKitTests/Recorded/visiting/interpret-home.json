@@ -1,0 +1,266 @@
+{
+  "scenario": "visiting/interpret-home",
+  "shows": "A home and an amount typed into a visit: each is said, and nothing is set",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "a 2 bed flat, up to £2,000",
+      "spec": {
+        "schema_version": 1,
+        "tenure": "visit",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.0,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "culture_venues_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_evening_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_food_drink_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "ui_edit",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      }
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "2881",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "81faa3f6-f402-4530-8dfa-9d201bfca22e"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.19.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "status": "ok",
+      "operations": {
+        "budget_ops": [],
+        "commute_ops": [],
+        "weight_ops": [],
+        "tag_ops": [],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "visit",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.0,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "culture_venues_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_evening_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_food_drink_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "ui_edit",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "269b5ee1e2e15245dbbf53372ddb40b9fdeba4c8819d7b3a88e978e2c46edacc",
+      "applied": [],
+      "rejected": [],
+      "assumptions": [],
+      "unmet": [],
+      "clarify": [],
+      "notice": "none",
+      "notice_text": "",
+      "interpreter": "rule",
+      "degraded": false,
+      "model_refused": false,
+      "rests_on": [],
+      "suggestions": [
+        {
+          "target": "budget",
+          "label": "A flat",
+          "does": "Burro could not use these words in your search.",
+          "spans": [
+            {
+              "start": 0,
+              "end": 12
+            }
+          ],
+          "shown": {
+            "start": 0,
+            "end": 12
+          },
+          "follows": "",
+          "said": [],
+          "choices": [
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "A search for somewhere to stay is not a search for a home, so it has no number of bedrooms and no kind of home. If you are looking for a home to live in, say whether you are renting or buying.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
+        },
+        {
+          "target": "budget",
+          "label": "A budget of £2,000",
+          "does": "Burro could not use these words in your search.",
+          "spans": [
+            {
+              "start": 14,
+              "end": 26
+            }
+          ],
+          "shown": {
+            "start": 14,
+            "end": 26
+          },
+          "follows": "",
+          "said": [],
+          "choices": [
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "Burro does not know what it costs to stay in an area, so a search for somewhere to stay has no budget. This means Burro has left this amount out of your search.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
+        }
+      ],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
+    }
+  }
+}

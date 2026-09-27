@@ -4,7 +4,7 @@ import Foundation
 // the same event give the same state, and the state that was is not changed.
 //
 // It builds no spec. Every spec in the state is one the API returned, or one
-// of the two defaults the API served.
+// of the defaults the API served: what a search to rent, to buy or to visit starts from.
 
 /// The state a search is in after an event.
 public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
@@ -16,6 +16,7 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
         switch tenure {
         case .rent: next.spec = state.meta.defaults.rent
         case .buy: next.spec = state.meta.defaults.buy
+        case .visit: next.spec = state.meta.defaults.visit
         case .unlisted: return state
         }
         next.specHash = nil

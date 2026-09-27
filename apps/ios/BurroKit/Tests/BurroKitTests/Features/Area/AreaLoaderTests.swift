@@ -63,7 +63,7 @@ final class AreaLoaderTests: XCTestCase {
 
         guard case .failed(let failure) = loader.shown else { return XCTFail("The page was shown.") }
         XCTAssertEqual(failure.code, .areaNotFound)
-        XCTAssertEqual(ShellCopy.words(for: failure), "There is no such area in this release.")
+        XCTAssertEqual(ShellCopy.words(for: failure), "Burro has no area by that name.")
         XCTAssertNotNil(failure.requestId)
     }
 

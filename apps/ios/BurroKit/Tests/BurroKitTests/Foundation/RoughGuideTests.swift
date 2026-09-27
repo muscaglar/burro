@@ -10,8 +10,9 @@ final class RoughGuideTests: XCTestCase {
     private let meta = Answers.meta
     /// What route 11 serves of Village feel, in one line.
     private let said =
-        "Rough guide. Of the areas it puts highest, about half read as villages to people, "
-        + "and it takes some busy main roads and some grand inner streets for villages."
+        "Rough guide. This vibe is less sure than the others, because only about half of the areas it "
+        + "puts highest seemed like villages to the people who were asked, and it also takes some "
+        + "busy main roads and some grand streets near the centre of the city for villages."
 
     private func tag(_ tagId: TagId) throws -> Tag {
         try XCTUnwrap(meta.tags.first { $0.tagId == tagId })

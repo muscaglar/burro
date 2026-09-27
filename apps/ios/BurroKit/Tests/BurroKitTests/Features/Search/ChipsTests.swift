@@ -180,7 +180,7 @@ final class ChipsTests: XCTestCase {
 
         XCTAssertEqual(
             off?.reads,
-            "Straight-line distance to the nearest town centre boundary, does not count")
+            "Distance to the edge of the nearest town centre, in a straight line, does not count")
         XCTAssertNil(off?.removal)
         XCTAssertEqual(off?.assumed, false)
         XCTAssertFalse(SearchChips.counts(0))

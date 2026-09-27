@@ -1,4 +1,4 @@
-// Generated from apps/web/src/styles/tokens.css by apps/ios/scripts/generate.py.
+// Generated from apps/ios/website/src/styles/tokens.css by apps/ios/scripts/generate.py.
 // Never edited by hand: change the source and run `make generate`.
 // source-sha256: a1cd4235e4bf2873396eec3c40d9c241bbb2f5963d51249f43ef7ca9ba5b22d2
 

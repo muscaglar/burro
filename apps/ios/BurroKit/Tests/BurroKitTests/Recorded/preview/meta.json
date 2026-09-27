@@ -13,9 +13,9 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-cache",
-    "content-length": "26114",
+    "content-length": "27573",
     "content-type": "application/json",
-    "etag": "\"syn-2026-09-23-01.0abc8435\"",
+    "etag": "\"syn-2026-09-23-01.faf1d8bd\"",
     "vary": "Origin",
     "x-burro-preview": "true",
     "x-burro-synthetic": "true",
@@ -24,7 +24,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": true
     },
@@ -33,8 +33,8 @@
       "built_at": "2026-09-23T00:00:00Z",
       "synthetic": true,
       "preview": true,
-      "engine_version": "1.15.0",
-      "catalogue_version": 15,
+      "engine_version": "1.19.0",
+      "catalogue_version": 17,
       "counts": {
         "neighbourhoods": 24,
         "rankable": 22,
@@ -62,7 +62,7 @@
       "features": [
         {
           "feature_id": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "short_label": "Cleaner air",
           "dimension": "air_noise",
           "unit": "µg/m³",
@@ -105,7 +105,7 @@
           "label": "Homes per hectare",
           "short_label": "Homes close together",
           "dimension": "homes",
-          "unit": "per ha",
+          "unit": "per hectare",
           "polarity": "either",
           "kind": "taste",
           "describes": "buildings",
@@ -182,7 +182,7 @@
         },
         {
           "feature_id": "park_large_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 20 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 20 hectares or more, in a straight line",
           "short_label": "Nearer a large park",
           "dimension": "green_water",
           "unit": "m",
@@ -202,7 +202,7 @@
         },
         {
           "feature_id": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "short_label": "Nearer a park",
           "dimension": "green_water",
           "unit": "m",
@@ -222,7 +222,7 @@
         },
         {
           "feature_id": "road_major_exposure",
-          "label": "Share of homes within 100 m of a main road",
+          "label": "Homes within 100 m of a main road, as a share of all homes",
           "short_label": "Away from main roads",
           "dimension": "air_noise",
           "unit": "%",
@@ -242,7 +242,7 @@
         },
         {
           "feature_id": "road_traffic_nearby",
-          "label": "Traffic past the busiest count point within 500 m of home, in a straight line",
+          "label": "Traffic past the busiest counting point within 500 m of home, in a straight line",
           "short_label": "Less traffic nearby",
           "dimension": "air_noise",
           "unit": "motor vehicles a day",
@@ -272,11 +272,11 @@
           "high_end": null,
           "meaning": "Gardens, woodland and trees, and a public park near home",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
+            "What one street or one home is like, because an area is made up of many streets.",
             "Trees under 3 m.",
             "Planting or felling since the map was made.",
             "Street trees.",
-            "A wood that is a public park is counted twice, by woodland and by public parks."
+            "Whether a wood is also a public park: a wood that is one is counted twice, by woodland and by public parks."
           ],
           "lens": true,
           "strip": true,
@@ -313,7 +313,7 @@
           "high_end": null,
           "meaning": "A high street in a conservation area, homes that stand apart, period homes and protected streets",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
+            "What one street or one home is like, because an area is made up of many streets.",
             "How much traffic runs along a high street.",
             "Whether the high street nearest a home is the centre of a village.",
             "Whether a park makes the homes beside it read as standing apart.",
@@ -359,11 +359,11 @@
           "high_end": "Buzzy",
           "meaning": "How much there is to eat, drink and go out to within reach of homes",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
+            "What one street or one home is like, because an area is made up of many streets.",
             "How a weekday differs from a weekend.",
             "Who the venues serve.",
-            "Opening hours.",
-            "What is on."
+            "When places are open.",
+            "What is on at a venue."
           ],
           "lens": true,
           "strip": true,
@@ -405,10 +405,10 @@
           "high_end": null,
           "meaning": "Homes away from main roads, from heavy traffic and from clusters of pubs and bars, with little transport noise",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
+            "What one street or one home is like, because an area is made up of many streets.",
             "Noise from neighbours, venues or works.",
             "Which noise is from roads and which from aircraft.",
-            "How busy a street is where no count point stands near: an area with no figure of traffic is placed on its other parts, and is not taken to have none.",
+            "How busy a street is where no traffic is counted near it: for an area with no figure for traffic, Burro works this vibe out from its other measurements, and does not take the area to have no traffic.",
             "How late a pub or a bar is open."
           ],
           "lens": true,
@@ -451,10 +451,10 @@
           "high_end": "Historic",
           "meaning": "Homes built since 2000 at one end. Period homes, listed buildings and protected streets at the other",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
+            "What one street or one home is like, because an area is made up of many streets.",
             "The state of a building.",
-            "Its inside.",
-            "An area the conservation data does not cover is unknown, not zero."
+            "What a building is like inside.",
+            "Whether an area has protected streets where the conservation data does not cover it: Burro treats that as not known, and never as none."
           ],
           "lens": true,
           "strip": true,
@@ -496,14 +496,14 @@
           "high_end": null,
           "meaning": "A food shop, a town centre, a station, a GP and a pharmacy close to home",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
-            "It is mostly a map of how built up a place is.",
+            "What one street or one home is like, because an area is made up of many streets.",
+            "Much more than how built up a place is, which is mostly what this vibe shows.",
             "How long the walk is: each distance is a straight line.",
             "Which side of a railway a home is on.",
             "How large a food shop is, and what it sells.",
             "Whether a surgery takes new patients.",
-            "Opening hours.",
-            "Step-free access at every station."
+            "When places are open.",
+            "Whether every station has step-free access."
           ],
           "lens": true,
           "strip": true,
@@ -550,11 +550,11 @@
           "high_end": null,
           "meaning": "A park within a walk, a large one not far, and things to do in it",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
-            "Upkeep.",
+            "What one street or one home is like, because an area is made up of many streets.",
+            "How well a park is kept.",
             "Whether a park is busy.",
-            "Opening hours.",
-            "No open rating of parks exists."
+            "When a park is open.",
+            "How good a park is, because no rating of parks is published for anyone to use."
           ],
           "lens": true,
           "strip": true,
@@ -591,7 +591,7 @@
           "high_end": "Flats",
           "meaning": "Houses with outdoor space, or flats close together",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
+            "What one street or one home is like, because an area is made up of many streets.",
             "The size of a home inside.",
             "Balconies and front gardens.",
             "Whether one home has a garden."
@@ -631,11 +631,11 @@
           "high_end": null,
           "meaning": "Many places to eat and drink, many of them independent",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
+            "What one street or one home is like, because an area is made up of many streets.",
             "Whether the food is good.",
-            "Prices.",
+            "What a meal or a drink costs.",
             "Whether a place is still open.",
-            "Hygiene ratings are never shown."
+            "How clean a kitchen is: Burro never shows hygiene ratings."
           ],
           "lens": true,
           "strip": true,
@@ -670,11 +670,11 @@
           "shape": "one_way",
           "low_end": null,
           "high_end": null,
-          "meaning": "Primary schools, play space and parks nearby. It counts places alone",
+          "meaning": "Primary schools, play space and parks nearby. It counts places, and nothing about who lives there",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
-            "Catchments.",
-            "School places.",
+            "What one street or one home is like, because an area is made up of many streets.",
+            "Which school catchment a home is in.",
+            "Whether a school has places.",
             "What childcare costs.",
             "Who lives there."
           ],
@@ -713,7 +713,7 @@
           "high_end": null,
           "meaning": "An Underground or DLR station, an Overground or Elizabeth line station, a National Rail station or tram stop, and bus routes close to home",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
+            "What one street or one home is like, because an area is made up of many streets.",
             "How often anything runs, where it goes, or how long a journey takes: it counts how near stops are, and nothing more.",
             "Which lines call at a station.",
             "Whether a station has steps."
@@ -758,7 +758,7 @@
           "high_end": "Gritty",
           "meaning": "Works and warehouses, main roads and transport noise, with recorded criminal damage and anti-social behaviour",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
+            "What one street or one home is like, because an area is made up of many streets.",
             "Whether streets are clean or run down.",
             "Empty shops.",
             "Graffiti.",
@@ -813,13 +813,13 @@
           "shape": "one_way",
           "low_end": null,
           "high_end": null,
-          "meaning": "Households with dependent children at Census 2021, with primary schools, play space and a park nearby. It counts who lived there beside what is there",
+          "meaning": "Households with dependent children at Census 2021, with primary schools, play space and a park nearby. It counts who lived there as well as what is there",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
+            "What one street or one home is like, because an area is made up of many streets.",
             "Who has moved in or out since the census was taken, on 21 March 2021, during a lockdown.",
             "How many children there are, and how old.",
-            "Catchments.",
-            "School places.",
+            "Which school catchment a home is in.",
+            "Whether a school has places.",
             "What childcare costs."
           ],
           "lens": true,
@@ -860,13 +860,13 @@
           "shape": "one_way",
           "low_end": null,
           "high_end": null,
-          "meaning": "Residents aged 20 to 34 at Census 2021, with a station, places to eat and drink and culture nearby. It counts who lived there beside what is there",
+          "meaning": "Residents aged 20 to 34 at Census 2021, with a station, places to eat and drink and culture nearby. It counts who lived there as well as what is there",
           "cannot_see": [
-            "One street or one home. An area is many streets.",
+            "What one street or one home is like, because an area is made up of many streets.",
             "What anyone does for work: it counts residents by their age alone.",
             "Who has moved in or out since the census was taken, on 21 March 2021, during a lockdown.",
             "Who is a student.",
-            "Opening hours and what is on."
+            "When places are open, and what is on at them."
           ],
           "lens": true,
           "strip": false,
@@ -931,7 +931,7 @@
             },
             {
               "feature_id": "conservation_cover",
-              "label": "Share of the area in a conservation area",
+              "label": "Land in a conservation area, as a share of the area",
               "hundredths": 10
             }
           ]
@@ -954,7 +954,7 @@
             },
             {
               "feature_id": "highstreet_access",
-              "label": "Straight-line distance to the nearest town centre boundary",
+              "label": "Distance to the edge of the nearest town centre, in a straight line",
               "hundredths": 20
             },
             {
@@ -972,7 +972,7 @@
           "waits_on": [
             {
               "feature_id": "evening_cluster_exposure",
-              "label": "Share of homes with three or more pubs or bars within 150 m, in a straight line",
+              "label": "Homes with three or more pubs or bars within 150 m, in a straight line, as a share of all homes",
               "hundredths": 30
             }
           ]
@@ -985,7 +985,7 @@
           "waits_on": [
             {
               "feature_id": "conservation_cover",
-              "label": "Share of the area in a conservation area",
+              "label": "Land in a conservation area, as a share of the area",
               "hundredths": 25
             },
             {
@@ -1008,27 +1008,27 @@
           "waits_on": [
             {
               "feature_id": "grocery_walk",
-              "label": "Straight-line distance to the nearest food shop",
+              "label": "Distance to the nearest food shop, in a straight line",
               "hundredths": 25
             },
             {
               "feature_id": "highstreet_access",
-              "label": "Straight-line distance to the nearest town centre boundary",
+              "label": "Distance to the edge of the nearest town centre, in a straight line",
               "hundredths": 25
             },
             {
               "feature_id": "station_walk",
-              "label": "Straight-line distance to the nearest way in to a station",
+              "label": "Distance to the nearest station entrance, in a straight line",
               "hundredths": 20
             },
             {
               "feature_id": "gp_walk",
-              "label": "Straight-line distance to the nearest GP practice, placed by its postcode",
+              "label": "Distance to the nearest GP practice, in a straight line, with each practice placed by its postcode",
               "hundredths": 15
             },
             {
               "feature_id": "pharmacy_walk",
-              "label": "Straight-line distance to the nearest pharmacy, placed by its postcode",
+              "label": "Distance to the nearest pharmacy, in a straight line, with each pharmacy placed by its postcode",
               "hundredths": 15
             }
           ]
@@ -1072,7 +1072,7 @@
             },
             {
               "feature_id": "independents_nearby",
-              "label": "Share of the places to eat and drink within 800 m of home, in a straight line, that belong to no chain",
+              "label": "Places to eat and drink that belong to no chain, as a share of those within 800 m of home, in a straight line",
               "hundredths": 40
             },
             {
@@ -1095,7 +1095,7 @@
             },
             {
               "feature_id": "play_space_proximity",
-              "label": "Straight-line distance to the nearest marked way into a play space",
+              "label": "Distance to the nearest marked entrance to a play space, in a straight line",
               "hundredths": 35
             }
           ]
@@ -1108,17 +1108,17 @@
           "waits_on": [
             {
               "feature_id": "underground_proximity",
-              "label": "Straight-line distance to the nearest Underground or DLR station",
+              "label": "Distance to the nearest Underground or DLR station, in a straight line",
               "hundredths": 45
             },
             {
               "feature_id": "overground_proximity",
-              "label": "Straight-line distance to the nearest Overground or Elizabeth line station",
+              "label": "Distance to the nearest Overground or Elizabeth line station, in a straight line",
               "hundredths": 20
             },
             {
               "feature_id": "rail_proximity",
-              "label": "Straight-line distance to the nearest National Rail station or tram stop",
+              "label": "Distance to the nearest National Rail station or tram stop, in a straight line",
               "hundredths": 15
             },
             {
@@ -1174,7 +1174,7 @@
             },
             {
               "feature_id": "play_space_proximity",
-              "label": "Straight-line distance to the nearest marked way into a play space",
+              "label": "Distance to the nearest marked entrance to a play space, in a straight line",
               "hundredths": 20
             }
           ]
@@ -1192,7 +1192,7 @@
             },
             {
               "feature_id": "station_walk",
-              "label": "Straight-line distance to the nearest way in to a station",
+              "label": "Distance to the nearest station entrance, in a straight line",
               "hundredths": 25
             },
             {
@@ -1215,11 +1215,11 @@
         },
         {
           "family": "pace_food",
-          "label": "Pace and food"
+          "label": "Going out and food"
         },
         {
           "family": "green",
-          "label": "Green"
+          "label": "Parks, gardens and water"
         },
         {
           "family": "daily_life",
@@ -1227,7 +1227,7 @@
         },
         {
           "family": "who_lives_there",
-          "label": "Who lives there, at the 2021 census"
+          "label": "Who lived there, at the census of 2021"
         }
       ],
       "gritty_variant": "b",
@@ -1319,6 +1319,35 @@
           "commute_combine_from": "default",
           "pt_basis_from": "default",
           "commute_weight_from": "default"
+        },
+        "visit": {
+          "schema_version": 1,
+          "tenure": "visit",
+          "budget": {
+            "amount": null,
+            "segment": "bed_1",
+            "strictness": "soft",
+            "weight": 0.0,
+            "provenance": "default"
+          },
+          "commutes": [],
+          "commute_combine": "slowest",
+          "pt_basis": "typical",
+          "commute_weight": 0.4,
+          "weights": [
+            {
+              "feature_id": "park_proximity",
+              "weight": 0.3,
+              "direction": "less",
+              "provenance": "default"
+            }
+          ],
+          "tags": [],
+          "areas": [],
+          "tenure_from": "default",
+          "commute_combine_from": "default",
+          "pt_basis_from": "default",
+          "commute_weight_from": "default"
         }
       },
       "limits": {
@@ -1372,13 +1401,7 @@
         "heading": "",
         "intro": ""
       },
-      "rough_guides": [
-        {
-          "tag_id": "village_feel",
-          "label": "Rough guide",
-          "why": "Of the areas it puts highest, about half read as villages to people, and it takes some busy main roads and some grand inner streets for villages."
-        }
-      ]
+      "rough_guides": []
     }
   }
 }

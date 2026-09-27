@@ -426,8 +426,8 @@ final class LinkTests: XCTestCase {
     }
 
     func test_the_words_for_a_shared_search_are_the_websites_word_for_word() throws {
-        let share = try Repository.text(Repository.root.appendingPathComponent("apps/web/src/content/share.ts"))
-        let search = try Repository.text(Repository.root.appendingPathComponent("apps/web/src/content/search.ts"))
+        let share = try Repository.text(Repository.website.appendingPathComponent("src/content/share.ts"))
+        let search = try Repository.text(Repository.website.appendingPathComponent("src/content/search.ts"))
 
         for words in [
             LinkCopy.Shared.title, LinkCopy.Shared.text, LinkCopy.Shared.holds, LinkCopy.Shared.coarsened,

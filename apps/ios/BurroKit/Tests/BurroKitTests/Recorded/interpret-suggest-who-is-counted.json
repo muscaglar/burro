@@ -16,7 +16,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "4984",
+    "content-length": "5190",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -26,7 +26,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -126,7 +126,7 @@
             "start": 0,
             "end": 19
           },
-          "follows": "What it counts: residents aged 20 to 34 at Census 2021, with a station, places to eat and drink and culture nearby. It counts who lived there beside what is there. It cannot see: one street or one home. An area is many streets.",
+          "follows": "This vibe counts residents aged 20 to 34 at Census 2021, with a station, places to eat and drink and culture nearby. It counts who lived there as well as what is there. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
@@ -167,18 +167,20 @@
               }
             }
           ],
-          "note": "Burro counts who was living there at the census of 2021. It measures places first.",
+          "note": "Burro measures places first. When it counts people, it counts who was living there at the census of 2021.",
           "read_by": "rule",
           "add_all": "",
           "needs": "Young professionals",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": true
         },
         {
           "target": "tag:pace",
           "label": "Going out",
-          "does": "Going out runs from Calm to Buzzy. Which way?",
+          "does": "Add Going out, towards Buzzy.",
           "spans": [
             {
               "start": 21,
@@ -189,14 +191,14 @@
             "start": 21,
             "end": 27
           },
-          "follows": "What it counts: how much there is to eat, drink and go out to within reach of homes. It cannot see: one street or one home. An area is many streets.",
+          "follows": "Going out runs from Calm to Buzzy. This vibe counts how much there is to eat, drink and go out to within reach of homes. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
               "label": "Towards Buzzy",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
@@ -255,16 +257,18 @@
           ],
           "note": "",
           "read_by": "rule",
-          "add_all": "",
-          "needs": "Going out",
+          "add_all": "more",
+          "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": false
         },
         {
           "target": "feature:station_walk",
           "label": "Nearer a station",
-          "does": "Nearer a station: count it, or stop counting it?",
+          "does": "Rank an area higher when it is nearer a station.",
           "spans": [
             {
               "start": 29,
@@ -275,14 +279,14 @@
             "start": 29,
             "end": 43
           },
-          "follows": "What Burro counts: straight-line distance to the nearest way in to a station. Within 800 m in a straight line is about a 10 to 15 minute walk.",
+          "follows": "This is what Burro measures for it: distance to the nearest station entrance, in a straight line. Within 800 m in a straight line is about a 10 to 15 minute walk.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
               "label": "Add",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
@@ -341,11 +345,13 @@
           ],
           "note": "",
           "read_by": "rule",
-          "add_all": "",
-          "needs": "nearer a station",
+          "add_all": "more",
+          "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         }
       ],
       "unread": [],

@@ -20,7 +20,7 @@
         },
         "commutes": [
           {
-            "place_id": "syn-p0017",
+            "place_id": "syn-p0012",
             "mode": "pt",
             "max_minutes": 30,
             "strictness": "soft",
@@ -109,7 +109,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "1628",
+    "content-length": "1624",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -119,7 +119,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -137,7 +137,7 @@
         },
         "commutes": [
           {
-            "place_id": "syn-p0017",
+            "place_id": "syn-p0012",
             "mode": "pt",
             "max_minutes": 30,
             "strictness": "soft",
@@ -221,9 +221,9 @@
       "coarsened": false,
       "places": [
         {
-          "place_id": "syn-p0017",
-          "name": "Pellam Exchange",
-          "kind": "district"
+          "place_id": "syn-p0012",
+          "name": "Pellam Cross",
+          "kind": "station"
         },
         {
           "place_id": "syn-p0021",

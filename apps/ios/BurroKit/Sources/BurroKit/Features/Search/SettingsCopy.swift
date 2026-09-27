@@ -30,6 +30,12 @@ enum SettingsCopy {
         static let notWhole = "Give the amount as a whole number of pounds."
         /// In place of the amount, where the data holds no cost to test one against.
         static let notInData = "This data holds no rents and no prices yet, so a budget cannot be set."
+        /// In place of the budget and the kind of home, which a visit has none of: why they
+        /// are not asked for, and what the areas are ranked by.
+        static let notForAVisit =
+            "You are visiting, so Burro does not ask what you can pay or what kind of home you want. "
+            + "It ranks the areas by everything else you choose, such as the places you need to reach "
+            + "and what you want around you."
         /// What the slider says while no amount is set.
         static let noneSet = "No budget set"
         /// The slider beside the field. It sets the same amount.

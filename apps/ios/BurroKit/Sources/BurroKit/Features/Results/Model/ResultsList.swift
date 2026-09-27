@@ -136,7 +136,7 @@ extension Results {
     static func waysOut(of state: SearchState) -> [Press] {
         var ways: [Press] = []
         let spec = state.spec
-        if spec.budget.amount != nil && spec.budget.strictness == .hard {
+        if !spec.visiting && spec.budget.amount != nil && spec.budget.strictness == .hard {
             ways.append(
                 Press(words: ResultsCopy.NothingMatches.budgetFlexible, act: .edit(Edits.budgetStrictness(.soft))))
         }

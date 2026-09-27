@@ -132,7 +132,7 @@ final class CreditTests: XCTestCase {
     }
 
     func test_the_credit_stands_where_the_website_puts_it_after_the_name_and_before_the_date() throws {
-        let web = Repository.root.appendingPathComponent("apps/web/src")
+        let web = Repository.website.appendingPathComponent("src")
         let written = try Repository.text(web.appendingPathComponent("components/SourceLine/SourceLine.tsx"))
         let pressed = try Repository.text(web.appendingPathComponent("components/SourceNote/SourceNote.tsx"))
         let facts = try Repository.text(web.appendingPathComponent("lib/facts.ts"))

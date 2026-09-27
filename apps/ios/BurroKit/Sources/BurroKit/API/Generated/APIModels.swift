@@ -1,16 +1,16 @@
 // Generated from contracts/openapi.json by apps/ios/scripts/generate.py.
 // Never edited by hand: change the source and run `make generate`.
-// source-sha256: 6480664bda353c4d7df8cd689f2eb64e9e49851c3dc23286b747584a5801c811
+// source-sha256: aee0db27962f10ef3c88f64dd44018806f2bdb9ab372aaaec4d243be067025a0
 
 import Foundation
 
 /// What these files were generated from, for the test that says when they are stale.
 public enum GeneratedFrom {
     /// The SHA-256 of `contracts/openapi.json` when the models were written.
-    public static let contractSHA256 = "6480664bda353c4d7df8cd689f2eb64e9e49851c3dc23286b747584a5801c811"
+    public static let contractSHA256 = "aee0db27962f10ef3c88f64dd44018806f2bdb9ab372aaaec4d243be067025a0"
     /// The title and the version the contract gives itself.
     public static let contractTitle = "Burro API"
-    public static let contractVersion = "2"
+    public static let contractVersion = "3"
 }
 
 /// A position as GeoJSON writes it: longitude, then latitude, in WGS84.
@@ -2111,30 +2111,36 @@ public struct Cutoffs: Hashable, Sendable, Codable {
     }
 }
 
+/// What a search of each kind starts from, before a person has chosen anything.
 public struct Defaults: Hashable, Sendable, Codable {
     public let rent: PreferenceSpec
     public let buy: PreferenceSpec
+    public let visit: PreferenceSpec
 
-    public init(rent: PreferenceSpec, buy: PreferenceSpec) {
+    public init(rent: PreferenceSpec, buy: PreferenceSpec, visit: PreferenceSpec) {
         self.rent = rent
         self.buy = buy
+        self.visit = visit
     }
 
     enum CodingKeys: String, CodingKey {
         case rent
         case buy
+        case visit
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         rent = try container.decode(PreferenceSpec.self, forKey: .rent)
         buy = try container.decode(PreferenceSpec.self, forKey: .buy)
+        visit = try container.decode(PreferenceSpec.self, forKey: .visit)
     }
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(rent, forKey: .rent)
         try container.encode(buy, forKey: .buy)
+        try container.encode(visit, forKey: .visit)
     }
 }
 
@@ -2357,11 +2363,26 @@ public enum ErrorCode: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
     case releaseChanged
     case censusNotAvailable
     case incomeNotAvailable
+    case notTheWebsite
+    case notSignedIn
+    case signInAgain
+    case rateLimited
+    case signInBusy
+    case signInUnavailable
+    case invalidEmail
+    case linkNotValid
+    case linkExpired
+    case linkUsed
+    case otherBrowser
+    case ageNotConfirmed
+    case tooManySearches
+    case searchNotFound
+    case sessionNotFound
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [ErrorCode] = [.malformedJson, .bodyTooLarge, .unsupportedMediaType, .internalError, .notFound, .methodNotAllowed, .invalidRequest, .invalidText, .invalidSpec, .invalidOperations, .invalidCompare, .invalidQuery, .unknownPlace, .unknownArea, .areaNotFound, .shareNotFound, .releaseChanged, .censusNotAvailable, .incomeNotAvailable]
+    public static let allCases: [ErrorCode] = [.malformedJson, .bodyTooLarge, .unsupportedMediaType, .internalError, .notFound, .methodNotAllowed, .invalidRequest, .invalidText, .invalidSpec, .invalidOperations, .invalidCompare, .invalidQuery, .unknownPlace, .unknownArea, .areaNotFound, .shareNotFound, .releaseChanged, .censusNotAvailable, .incomeNotAvailable, .notTheWebsite, .notSignedIn, .signInAgain, .rateLimited, .signInBusy, .signInUnavailable, .invalidEmail, .linkNotValid, .linkExpired, .linkUsed, .otherBrowser, .ageNotConfirmed, .tooManySearches, .searchNotFound, .sessionNotFound]
 
     public init(rawValue: String) {
         switch rawValue {
@@ -2384,6 +2405,21 @@ public enum ErrorCode: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case "release_changed": self = .releaseChanged
         case "census_not_available": self = .censusNotAvailable
         case "income_not_available": self = .incomeNotAvailable
+        case "not_the_website": self = .notTheWebsite
+        case "not_signed_in": self = .notSignedIn
+        case "sign_in_again": self = .signInAgain
+        case "rate_limited": self = .rateLimited
+        case "sign_in_busy": self = .signInBusy
+        case "sign_in_unavailable": self = .signInUnavailable
+        case "invalid_email": self = .invalidEmail
+        case "link_not_valid": self = .linkNotValid
+        case "link_expired": self = .linkExpired
+        case "link_used": self = .linkUsed
+        case "other_browser": self = .otherBrowser
+        case "age_not_confirmed": self = .ageNotConfirmed
+        case "too_many_searches": self = .tooManySearches
+        case "search_not_found": self = .searchNotFound
+        case "session_not_found": self = .sessionNotFound
         default: self = .unlisted(rawValue)
         }
     }
@@ -2409,6 +2445,21 @@ public enum ErrorCode: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case .releaseChanged: return "release_changed"
         case .censusNotAvailable: return "census_not_available"
         case .incomeNotAvailable: return "income_not_available"
+        case .notTheWebsite: return "not_the_website"
+        case .notSignedIn: return "not_signed_in"
+        case .signInAgain: return "sign_in_again"
+        case .rateLimited: return "rate_limited"
+        case .signInBusy: return "sign_in_busy"
+        case .signInUnavailable: return "sign_in_unavailable"
+        case .invalidEmail: return "invalid_email"
+        case .linkNotValid: return "link_not_valid"
+        case .linkExpired: return "link_expired"
+        case .linkUsed: return "link_used"
+        case .otherBrowser: return "other_browser"
+        case .ageNotConfirmed: return "age_not_confirmed"
+        case .tooManySearches: return "too_many_searches"
+        case .searchNotFound: return "search_not_found"
+        case .sessionNotFound: return "session_not_found"
         case .unlisted(let value): return value
         }
     }
@@ -6005,7 +6056,10 @@ public struct RestsOn: Hashable, Sendable, Codable {
     }
 }
 
-/// What stands beside a vibe that is a rough guide, wherever the vibe is shown.
+/// What is said of a vibe that is a rough guide: its label, and why it is less sure.
+///
+/// The review desk shows it to whoever decides a recipe. The service hands it
+/// to no client: route 11 holds a list of these, which is always empty.
 public struct RoughGuide: Hashable, Sendable, Codable {
     public let tagId: TagId
     public let label: String
@@ -6971,6 +7025,8 @@ public struct Suggestion: Hashable, Sendable, Codable {
     public let asksPlace: Bool
     public let namedAt: Span?
     public let options: [ClarifyOption]
+    public let byName: Bool
+    public let onlyByChoice: Bool
 
     public init(
         target: String,
@@ -6987,7 +7043,9 @@ public struct Suggestion: Hashable, Sendable, Codable {
         needs: String,
         asksPlace: Bool,
         namedAt: Span?,
-        options: [ClarifyOption]
+        options: [ClarifyOption],
+        byName: Bool = false,
+        onlyByChoice: Bool = false
     ) {
         self.target = target
         self.label = label
@@ -7004,6 +7062,8 @@ public struct Suggestion: Hashable, Sendable, Codable {
         self.asksPlace = asksPlace
         self.namedAt = namedAt
         self.options = options
+        self.byName = byName
+        self.onlyByChoice = onlyByChoice
     }
 
     enum CodingKeys: String, CodingKey {
@@ -7022,6 +7082,8 @@ public struct Suggestion: Hashable, Sendable, Codable {
         case asksPlace = "asks_place"
         case namedAt = "named_at"
         case options
+        case byName = "by_name"
+        case onlyByChoice = "only_by_choice"
     }
 
     public init(from decoder: any Decoder) throws {
@@ -7041,6 +7103,8 @@ public struct Suggestion: Hashable, Sendable, Codable {
         asksPlace = try container.decode(Bool.self, forKey: .asksPlace)
         namedAt = try container.decodeIfPresent(Span.self, forKey: .namedAt)
         options = try container.decode([ClarifyOption].self, forKey: .options)
+        byName = try container.decodeIfPresent(Bool.self, forKey: .byName) ?? false
+        onlyByChoice = try container.decodeIfPresent(Bool.self, forKey: .onlyByChoice) ?? false
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -7060,6 +7124,8 @@ public struct Suggestion: Hashable, Sendable, Codable {
         try container.encode(asksPlace, forKey: .asksPlace)
         try container.encode(namedAt, forKey: .namedAt)
         try container.encode(options, forKey: .options)
+        try container.encode(byName, forKey: .byName)
+        try container.encode(onlyByChoice, forKey: .onlyByChoice)
     }
 }
 
@@ -7705,19 +7771,25 @@ public enum TemplateId: Hashable, Sendable, Codable, CaseIterable, RawRepresenta
     }
 }
 
+/// What a search is for: a home to rent, a home to buy, or somewhere to stay on a visit.
+///
+/// A visit is a kind of search of its own. It holds no budget, no number of bedrooms and
+/// no kind of home, and what homes cost is no part of how its areas are ranked.
 public enum Tenure: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
     case rent
     case buy
+    case visit
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [Tenure] = [.rent, .buy]
+    public static let allCases: [Tenure] = [.rent, .buy, .visit]
 
     public init(rawValue: String) {
         switch rawValue {
         case "rent": self = .rent
         case "buy": self = .buy
+        case "visit": self = .visit
         default: self = .unlisted(rawValue)
         }
     }
@@ -7726,6 +7798,7 @@ public enum Tenure: Hashable, Sendable, Codable, CaseIterable, RawRepresentable 
         switch self {
         case .rent: return "rent"
         case .buy: return "buy"
+        case .visit: return "visit"
         case .unlisted(let value): return value
         }
     }
@@ -7734,17 +7807,19 @@ public enum Tenure: Hashable, Sendable, Codable, CaseIterable, RawRepresentable 
 public enum TenureChoice: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
     case rent
     case buy
+    case visit
     case unchanged
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [TenureChoice] = [.rent, .buy, .unchanged]
+    public static let allCases: [TenureChoice] = [.rent, .buy, .visit, .unchanged]
 
     public init(rawValue: String) {
         switch rawValue {
         case "rent": self = .rent
         case "buy": self = .buy
+        case "visit": self = .visit
         case "unchanged": self = .unchanged
         default: self = .unlisted(rawValue)
         }
@@ -7754,6 +7829,7 @@ public enum TenureChoice: Hashable, Sendable, Codable, CaseIterable, RawRepresen
         switch self {
         case .rent: return "rent"
         case .buy: return "buy"
+        case .visit: return "visit"
         case .unchanged: return "unchanged"
         case .unlisted(let value): return value
         }
@@ -8195,6 +8271,885 @@ public enum GeometryCoordinates: Hashable, Sendable, Codable {
         switch self {
         case .polygon(let value): try container.encode(value)
         case .multiPolygon(let value): try container.encode(value)
+        }
+    }
+}
+
+/// Everything of accounts: the records that only a route of accounts takes or gives, and
+/// in `APIRoutes.swift` the routes themselves.
+///
+/// A person signs in on the website, which asks these routes of its own origin. The app
+/// asks none of them, so `BurroAPI` has no method for one. They are here so that what is
+/// generated is the whole of the contract. A name in here is `Accounts.Name` to the rest of
+/// the app, so that it meets no name the app has already.
+public enum Accounts {
+    /// The family of a browser, coarsely. It is all that is kept of what a browser says it is.
+    public enum Browser: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+        case chrome
+        case edge
+        case firefox
+        case safari
+        case other
+        /// A value this build does not know. It is kept, and sent back, as it came.
+        case unlisted(String)
+
+        /// Every value the contract lists.
+        public static let allCases: [Browser] = [.chrome, .edge, .firefox, .safari, .other]
+
+        public init(rawValue: String) {
+            switch rawValue {
+            case "chrome": self = .chrome
+            case "edge": self = .edge
+            case "firefox": self = .firefox
+            case "safari": self = .safari
+            case "other": self = .other
+            default: self = .unlisted(rawValue)
+            }
+        }
+
+        public var rawValue: String {
+            switch self {
+            case .chrome: return "chrome"
+            case .edge: return "edge"
+            case .firefox: return "firefox"
+            case .safari: return "safari"
+            case .other: return "other"
+            case .unlisted(let value): return value
+            }
+        }
+    }
+
+    /// What happened.
+    public enum Event: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+        case linkRequested
+        case linkSent
+        case linkSendFailed
+        case linkUsed
+        case linkRejected
+        case sessionCreated
+        case sessionRevoked
+        case rateLimited
+        case accountDeleted
+        /// A value this build does not know. It is kept, and sent back, as it came.
+        case unlisted(String)
+
+        /// Every value the contract lists.
+        public static let allCases: [Event] = [.linkRequested, .linkSent, .linkSendFailed, .linkUsed, .linkRejected, .sessionCreated, .sessionRevoked, .rateLimited, .accountDeleted]
+
+        public init(rawValue: String) {
+            switch rawValue {
+            case "link_requested": self = .linkRequested
+            case "link_sent": self = .linkSent
+            case "link_send_failed": self = .linkSendFailed
+            case "link_used": self = .linkUsed
+            case "link_rejected": self = .linkRejected
+            case "session_created": self = .sessionCreated
+            case "session_revoked": self = .sessionRevoked
+            case "rate_limited": self = .rateLimited
+            case "account_deleted": self = .accountDeleted
+            default: self = .unlisted(rawValue)
+            }
+        }
+
+        public var rawValue: String {
+            switch self {
+            case .linkRequested: return "link_requested"
+            case .linkSent: return "link_sent"
+            case .linkSendFailed: return "link_send_failed"
+            case .linkUsed: return "link_used"
+            case .linkRejected: return "link_rejected"
+            case .sessionCreated: return "session_created"
+            case .sessionRevoked: return "session_revoked"
+            case .rateLimited: return "rate_limited"
+            case .accountDeleted: return "account_deleted"
+            case .unlisted(let value): return value
+            }
+        }
+    }
+
+    /// Everything Burro holds of an account.
+    public struct Export: Hashable, Sendable, Codable {
+        public let exportedAt: String
+        public let email: String
+        public let madeAt: String
+        public let adultAt: String
+        public let preferences: Preferences
+        public let searches: [KeptSearch]
+        public let recent: [KeptSearch]
+        public let sessions: [SignedInAt]
+        public let events: [Happened]
+        public let links: [LinkHeld]
+
+        public init(
+            exportedAt: String,
+            email: String,
+            madeAt: String,
+            adultAt: String,
+            preferences: Preferences,
+            searches: [KeptSearch],
+            recent: [KeptSearch],
+            sessions: [SignedInAt],
+            events: [Happened],
+            links: [LinkHeld]
+        ) {
+            self.exportedAt = exportedAt
+            self.email = email
+            self.madeAt = madeAt
+            self.adultAt = adultAt
+            self.preferences = preferences
+            self.searches = searches
+            self.recent = recent
+            self.sessions = sessions
+            self.events = events
+            self.links = links
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case exportedAt = "exported_at"
+            case email
+            case madeAt = "made_at"
+            case adultAt = "adult_at"
+            case preferences
+            case searches
+            case recent
+            case sessions
+            case events
+            case links
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            exportedAt = try container.decode(String.self, forKey: .exportedAt)
+            email = try container.decode(String.self, forKey: .email)
+            madeAt = try container.decode(String.self, forKey: .madeAt)
+            adultAt = try container.decode(String.self, forKey: .adultAt)
+            preferences = try container.decode(Preferences.self, forKey: .preferences)
+            searches = try container.decode([KeptSearch].self, forKey: .searches)
+            recent = try container.decode([KeptSearch].self, forKey: .recent)
+            sessions = try container.decode([SignedInAt].self, forKey: .sessions)
+            events = try container.decode([Happened].self, forKey: .events)
+            links = try container.decode([LinkHeld].self, forKey: .links)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(exportedAt, forKey: .exportedAt)
+            try container.encode(email, forKey: .email)
+            try container.encode(madeAt, forKey: .madeAt)
+            try container.encode(adultAt, forKey: .adultAt)
+            try container.encode(preferences, forKey: .preferences)
+            try container.encode(searches, forKey: .searches)
+            try container.encode(recent, forKey: .recent)
+            try container.encode(sessions, forKey: .sessions)
+            try container.encode(events, forKey: .events)
+            try container.encode(links, forKey: .links)
+        }
+    }
+
+    public struct ForgetBody: Hashable, Sendable, Codable {
+        public let searchId: String
+
+        public init(searchId: String) {
+            self.searchId = searchId
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case searchId = "search_id"
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            searchId = try container.decode(String.self, forKey: .searchId)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(searchId, forKey: .searchId)
+        }
+    }
+
+    public struct Happened: Hashable, Sendable, Codable {
+        public let event: Event
+        public let outcome: Outcome
+        public let at: String
+
+        public init(event: Event, outcome: Outcome, at: String) {
+            self.event = event
+            self.outcome = outcome
+            self.at = at
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case event
+            case outcome
+            case at
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            event = try container.decode(Event.self, forKey: .event)
+            outcome = try container.decode(Outcome.self, forKey: .outcome)
+            at = try container.decode(String.self, forKey: .at)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(event, forKey: .event)
+            try container.encode(outcome, forKey: .outcome)
+            try container.encode(at, forKey: .at)
+        }
+    }
+
+    public struct KeepBody: Hashable, Sendable, Codable {
+        public let spec: PreferenceSpec
+
+        public init(spec: PreferenceSpec) {
+            self.spec = spec
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case spec
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            spec = try container.decode(PreferenceSpec.self, forKey: .spec)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(spec, forKey: .spec)
+        }
+    }
+
+    public struct KeptSearch: Hashable, Sendable, Codable {
+        public let searchId: String
+        public let name: String
+        public let spec: PreferenceSpec?
+        public let releaseId: String
+        public let keptAt: String
+        public let state: SearchState
+
+        public init(
+            searchId: String,
+            name: String,
+            spec: PreferenceSpec?,
+            releaseId: String,
+            keptAt: String,
+            state: SearchState
+        ) {
+            self.searchId = searchId
+            self.name = name
+            self.spec = spec
+            self.releaseId = releaseId
+            self.keptAt = keptAt
+            self.state = state
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case searchId = "search_id"
+            case name
+            case spec
+            case releaseId = "release_id"
+            case keptAt = "kept_at"
+            case state
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            searchId = try container.decode(String.self, forKey: .searchId)
+            name = try container.decode(String.self, forKey: .name)
+            spec = try container.decodeIfPresent(PreferenceSpec.self, forKey: .spec)
+            releaseId = try container.decode(String.self, forKey: .releaseId)
+            keptAt = try container.decode(String.self, forKey: .keptAt)
+            state = try container.decode(SearchState.self, forKey: .state)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(searchId, forKey: .searchId)
+            try container.encode(name, forKey: .name)
+            try container.encode(spec, forKey: .spec)
+            try container.encode(releaseId, forKey: .releaseId)
+            try container.encode(keptAt, forKey: .keptAt)
+            try container.encode(state, forKey: .state)
+        }
+    }
+
+    public struct KeptSearches: Hashable, Sendable, Codable {
+        public let searches: [KeptSearch]
+        public let most: Int
+
+        public init(searches: [KeptSearch], most: Int) {
+            self.searches = searches
+            self.most = most
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case searches
+            case most
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            searches = try container.decode([KeptSearch].self, forKey: .searches)
+            most = try container.decode(Int.self, forKey: .most)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(searches, forKey: .searches)
+            try container.encode(most, forKey: .most)
+        }
+    }
+
+    /// What asking for a link is answered: the same, whoever asked and whatever the address.
+    public struct LinkAsked: Hashable, Sendable, Codable {
+        public let lastsMinutes: Int
+
+        public init(lastsMinutes: Int) {
+            self.lastsMinutes = lastsMinutes
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case lastsMinutes = "lasts_minutes"
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            lastsMinutes = try container.decode(Int.self, forKey: .lastsMinutes)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(lastsMinutes, forKey: .lastsMinutes)
+        }
+    }
+
+    public struct LinkBody: Hashable, Sendable, Codable {
+        public let email: String
+
+        public init(email: String) {
+            self.email = email
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case email
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            email = try container.decode(String.self, forKey: .email)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(email, forKey: .email)
+        }
+    }
+
+    /// A link that was asked for the address of the account, for as long as Burro holds it.
+    public struct LinkHeld: Hashable, Sendable, Codable {
+        public let askedAt: String
+        public let endsAt: String
+        public let used: Bool
+
+        public init(askedAt: String, endsAt: String, used: Bool) {
+            self.askedAt = askedAt
+            self.endsAt = endsAt
+            self.used = used
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case askedAt = "asked_at"
+            case endsAt = "ends_at"
+            case used
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            askedAt = try container.decode(String.self, forKey: .askedAt)
+            endsAt = try container.decode(String.self, forKey: .endsAt)
+            used = try container.decode(Bool.self, forKey: .used)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(askedAt, forKey: .askedAt)
+            try container.encode(endsAt, forKey: .endsAt)
+            try container.encode(used, forKey: .used)
+        }
+    }
+
+    public struct Me: Hashable, Sendable, Codable {
+        public let email: String
+        public let madeAt: String
+        public let preferences: Preferences
+        public let fresh: Bool
+
+        public init(
+            email: String,
+            madeAt: String,
+            preferences: Preferences,
+            fresh: Bool
+        ) {
+            self.email = email
+            self.madeAt = madeAt
+            self.preferences = preferences
+            self.fresh = fresh
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case email
+            case madeAt = "made_at"
+            case preferences
+            case fresh
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            email = try container.decode(String.self, forKey: .email)
+            madeAt = try container.decode(String.self, forKey: .madeAt)
+            preferences = try container.decode(Preferences.self, forKey: .preferences)
+            fresh = try container.decode(Bool.self, forKey: .fresh)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(email, forKey: .email)
+            try container.encode(madeAt, forKey: .madeAt)
+            try container.encode(preferences, forKey: .preferences)
+            try container.encode(fresh, forKey: .fresh)
+        }
+    }
+
+    /// How it ended.
+    public enum Outcome: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+        case ok
+        case refused
+        case expired
+        case used
+        case limited
+        case unavailable
+        /// A value this build does not know. It is kept, and sent back, as it came.
+        case unlisted(String)
+
+        /// Every value the contract lists.
+        public static let allCases: [Outcome] = [.ok, .refused, .expired, .used, .limited, .unavailable]
+
+        public init(rawValue: String) {
+            switch rawValue {
+            case "ok": self = .ok
+            case "refused": self = .refused
+            case "expired": self = .expired
+            case "used": self = .used
+            case "limited": self = .limited
+            case "unavailable": self = .unavailable
+            default: self = .unlisted(rawValue)
+            }
+        }
+
+        public var rawValue: String {
+            switch self {
+            case .ok: return "ok"
+            case .refused: return "refused"
+            case .expired: return "expired"
+            case .used: return "used"
+            case .limited: return "limited"
+            case .unavailable: return "unavailable"
+            case .unlisted(let value): return value
+            }
+        }
+    }
+
+    /// Every preference as it now stands, whether the person set it or nobody did.
+    public struct Preferences: Hashable, Sendable, Codable {
+        public let keepRecent: Switch
+
+        public init(keepRecent: Switch) {
+            self.keepRecent = keepRecent
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case keepRecent = "keep_recent"
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            keepRecent = try container.decode(Switch.self, forKey: .keepRecent)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(keepRecent, forKey: .keepRecent)
+        }
+    }
+
+    /// What to set. A preference that is left out, or is `null`, stays as it was.
+    public struct PreferencesBody: Hashable, Sendable, Codable {
+        public let keepRecent: Switch?
+
+        public init(keepRecent: Switch? = nil) {
+            self.keepRecent = keepRecent
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case keepRecent = "keep_recent"
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            keepRecent = try container.decodeIfPresent(Switch.self, forKey: .keepRecent)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encodeIfPresent(keepRecent, forKey: .keepRecent)
+        }
+    }
+
+    public struct RecentSearches: Hashable, Sendable, Codable {
+        public let kept: Bool
+        public let searches: [KeptSearch]
+        public let most: Int
+
+        public init(kept: Bool, searches: [KeptSearch], most: Int) {
+            self.kept = kept
+            self.searches = searches
+            self.most = most
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case kept
+            case searches
+            case most
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            kept = try container.decode(Bool.self, forKey: .kept)
+            searches = try container.decode([KeptSearch].self, forKey: .searches)
+            most = try container.decode(Int.self, forKey: .most)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(kept, forKey: .kept)
+            try container.encode(searches, forKey: .searches)
+            try container.encode(most, forKey: .most)
+        }
+    }
+
+    /// Whether a search that was kept can be searched again on the data as it is now.
+    public enum SearchState: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+        case ok
+        case releaseChanged
+        case unreadable
+        /// A value this build does not know. It is kept, and sent back, as it came.
+        case unlisted(String)
+
+        /// Every value the contract lists.
+        public static let allCases: [SearchState] = [.ok, .releaseChanged, .unreadable]
+
+        public init(rawValue: String) {
+            switch rawValue {
+            case "ok": self = .ok
+            case "release_changed": self = .releaseChanged
+            case "unreadable": self = .unreadable
+            default: self = .unlisted(rawValue)
+            }
+        }
+
+        public var rawValue: String {
+            switch self {
+            case .ok: return "ok"
+            case .releaseChanged: return "release_changed"
+            case .unreadable: return "unreadable"
+            case .unlisted(let value): return value
+            }
+        }
+    }
+
+    /// Whether the browser that asked is signed in, and as whom.
+    public struct Session: Hashable, Sendable, Codable {
+        public let signedIn: Bool
+        public let email: String?
+
+        public init(signedIn: Bool, email: String?) {
+            self.signedIn = signedIn
+            self.email = email
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case signedIn = "signed_in"
+            case email
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            signedIn = try container.decode(Bool.self, forKey: .signedIn)
+            email = try container.decodeIfPresent(String.self, forKey: .email)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(signedIn, forKey: .signedIn)
+            try container.encode(email, forKey: .email)
+        }
+    }
+
+    public struct Sessions: Hashable, Sendable, Codable {
+        public let sessions: [SignedInAt]
+        public let signedIn: Bool
+
+        public init(sessions: [SignedInAt], signedIn: Bool) {
+            self.sessions = sessions
+            self.signedIn = signedIn
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case sessions
+            case signedIn = "signed_in"
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            sessions = try container.decode([SignedInAt].self, forKey: .sessions)
+            signedIn = try container.decode(Bool.self, forKey: .signedIn)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(sessions, forKey: .sessions)
+            try container.encode(signedIn, forKey: .signedIn)
+        }
+    }
+
+    public struct SignInBody: Hashable, Sendable, Codable {
+        public let token: String
+        public let adult: Bool
+        public let otherBrowser: Bool
+
+        public init(token: String, adult: Bool = false, otherBrowser: Bool = false) {
+            self.token = token
+            self.adult = adult
+            self.otherBrowser = otherBrowser
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case token
+            case adult
+            case otherBrowser = "other_browser"
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            token = try container.decode(String.self, forKey: .token)
+            adult = try container.decodeIfPresent(Bool.self, forKey: .adult) ?? false
+            otherBrowser = try container.decodeIfPresent(Bool.self, forKey: .otherBrowser) ?? false
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(token, forKey: .token)
+            try container.encode(adult, forKey: .adult)
+            try container.encode(otherBrowser, forKey: .otherBrowser)
+        }
+    }
+
+    public struct SignOutBody: Hashable, Sendable, Codable {
+        public let everywhere: Bool
+        public let sessionId: String?
+
+        public init(everywhere: Bool = false, sessionId: String? = nil) {
+            self.everywhere = everywhere
+            self.sessionId = sessionId
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case everywhere
+            case sessionId = "session_id"
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            everywhere = try container.decodeIfPresent(Bool.self, forKey: .everywhere) ?? false
+            sessionId = try container.decodeIfPresent(String.self, forKey: .sessionId)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(everywhere, forKey: .everywhere)
+            try container.encodeIfPresent(sessionId, forKey: .sessionId)
+        }
+    }
+
+    public struct SignedIn: Hashable, Sendable, Codable {
+        public let email: String
+        public let newAccount: Bool
+
+        public init(email: String, newAccount: Bool) {
+            self.email = email
+            self.newAccount = newAccount
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case email
+            case newAccount = "new_account"
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            email = try container.decode(String.self, forKey: .email)
+            newAccount = try container.decode(Bool.self, forKey: .newAccount)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(email, forKey: .email)
+            try container.encode(newAccount, forKey: .newAccount)
+        }
+    }
+
+    /// One browser a person is signed in with.
+    public struct SignedInAt: Hashable, Sendable, Codable {
+        public let sessionId: String
+        public let browser: Browser
+        public let madeAt: String
+        public let seenAt: String
+        public let endsAt: String
+        public let current: Bool
+        public let revoked: Bool
+
+        public init(
+            sessionId: String,
+            browser: Browser,
+            madeAt: String,
+            seenAt: String,
+            endsAt: String,
+            current: Bool,
+            revoked: Bool
+        ) {
+            self.sessionId = sessionId
+            self.browser = browser
+            self.madeAt = madeAt
+            self.seenAt = seenAt
+            self.endsAt = endsAt
+            self.current = current
+            self.revoked = revoked
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case sessionId = "session_id"
+            case browser
+            case madeAt = "made_at"
+            case seenAt = "seen_at"
+            case endsAt = "ends_at"
+            case current
+            case revoked
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            sessionId = try container.decode(String.self, forKey: .sessionId)
+            browser = try container.decode(Browser.self, forKey: .browser)
+            madeAt = try container.decode(String.self, forKey: .madeAt)
+            seenAt = try container.decode(String.self, forKey: .seenAt)
+            endsAt = try container.decode(String.self, forKey: .endsAt)
+            current = try container.decode(Bool.self, forKey: .current)
+            revoked = try container.decode(Bool.self, forKey: .revoked)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(sessionId, forKey: .sessionId)
+            try container.encode(browser, forKey: .browser)
+            try container.encode(madeAt, forKey: .madeAt)
+            try container.encode(seenAt, forKey: .seenAt)
+            try container.encode(endsAt, forKey: .endsAt)
+            try container.encode(current, forKey: .current)
+            try container.encode(revoked, forKey: .revoked)
+        }
+    }
+
+    public enum Switch: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+        case on
+        case off
+        /// A value this build does not know. It is kept, and sent back, as it came.
+        case unlisted(String)
+
+        /// Every value the contract lists.
+        public static let allCases: [Switch] = [.on, .off]
+
+        public init(rawValue: String) {
+            switch rawValue {
+            case "on": self = .on
+            case "off": self = .off
+            default: self = .unlisted(rawValue)
+            }
+        }
+
+        public var rawValue: String {
+            switch self {
+            case .on: return "on"
+            case .off: return "off"
+            case .unlisted(let value): return value
+            }
+        }
+    }
+
+    public struct TokenBody: Hashable, Sendable, Codable {
+        public let token: String
+
+        public init(token: String) {
+            self.token = token
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case token
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            token = try container.decode(String.self, forKey: .token)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(token, forKey: .token)
+        }
+    }
+
+    /// Whose link this is. Asking uses nothing up.
+    public struct WhoseLink: Hashable, Sendable, Codable {
+        public let email: String
+        public let sameBrowser: Bool
+        public let newAccount: Bool
+
+        public init(email: String, sameBrowser: Bool, newAccount: Bool) {
+            self.email = email
+            self.sameBrowser = sameBrowser
+            self.newAccount = newAccount
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case email
+            case sameBrowser = "same_browser"
+            case newAccount = "new_account"
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            email = try container.decode(String.self, forKey: .email)
+            sameBrowser = try container.decode(Bool.self, forKey: .sameBrowser)
+            newAccount = try container.decode(Bool.self, forKey: .newAccount)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(email, forKey: .email)
+            try container.encode(sameBrowser, forKey: .sameBrowser)
+            try container.encode(newAccount, forKey: .newAccount)
         }
     }
 }

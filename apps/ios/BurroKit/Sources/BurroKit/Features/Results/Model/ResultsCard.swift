@@ -16,8 +16,9 @@ extension Results {
     }
 
     /// The cost of the kind of home the search is for: the fact, and the figures that place the bar.
+    /// `nil` for a visit, which is for no kind of home.
     static func cost(in detail: AreaData?, for spec: PreferenceSpec) -> (fact: Fact, estimate: CostEstimate)? {
-        guard let detail else { return nil }
+        guard let detail, !spec.visiting else { return nil }
         let key = "\(spec.tenure.rawValue).\(spec.budget.segment.rawValue)"
         guard let fact = detail.facts.first(where: { $0.kind == .cost && $0.key == key }),
             let estimate = detail.cost.first(where: {
@@ -674,7 +675,10 @@ extension Results {
         let missing: Loaded<[Sentence]> =
             !said.isEmpty ? .here(said) : (waitingForReasons && without > 0 ? .waiting : .hidden)
         let cost: Loaded<Cost>
-        if let found = Self.cost(in: detail, for: state.spec),
+        if state.spec.visiting {
+            // Nothing is said of what a home costs, and nothing that none is held: no part is drawn.
+            cost = .hidden
+        } else if let found = Self.cost(in: detail, for: state.spec),
             let shown = Self.cost(
                 of: found.fact, estimate: found.estimate, budget: state.spec.budget.amount, on: scale)
         {

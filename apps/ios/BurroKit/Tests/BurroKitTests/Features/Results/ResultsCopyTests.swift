@@ -26,6 +26,8 @@ final class ResultsCopyTests: XCTestCase {
             "The website's line names an area's page, which does not choose areas in the app.",
         "Left off, each place you named is replaced by the station or district that stands in for it,":
             "The website's line says unticked. The app has a switch.",
+        "No search is open, so these areas are compared on the usual settings for visiting.":
+            "The website knew no visit when its words were copied. It is its line for renting, of a visit.",
         "Loading": "The name of the room kept for what has not come, for a screen reader.",
         "Chosen on the map": "Says in words which card is the chosen one.",
         "Open the page": "A short name for a button. The area's name is said after it.",
@@ -67,7 +69,7 @@ final class ResultsCopyTests: XCTestCase {
     }
 
     private func website() throws -> String {
-        let folder = Repository.root.appendingPathComponent("apps/web/src/content")
+        let folder = Repository.website.appendingPathComponent("src/content")
         return try Repository.files(under: folder, ending: ".ts")
             .map { try Repository.text(folder.appendingPathComponent($0)) }
             .joined(separator: "\n")

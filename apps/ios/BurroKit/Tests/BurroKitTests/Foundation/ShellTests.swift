@@ -113,7 +113,7 @@ final class ShellTests: XCTestCase {
     }
 
     func test_the_banner_says_what_the_website_says_word_for_word() throws {
-        let site = try Repository.text(Repository.root.appendingPathComponent("apps/web/src/content/site.ts"))
+        let site = try Repository.text(Repository.website.appendingPathComponent("src/content/site.ts"))
         let sentences = ShellCopy.banner.components(separatedBy: ". ").map {
             $0.hasSuffix(".") ? $0 : $0 + "."
         }

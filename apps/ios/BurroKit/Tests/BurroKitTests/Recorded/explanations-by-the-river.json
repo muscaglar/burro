@@ -96,7 +96,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "29719",
+    "content-length": "31609",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -106,7 +106,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -125,7 +125,7 @@
           },
           "reasons": [
             {
-              "text": "Age of buildings: band 5 of 5, counted from Newer to Historic, among the 21 areas compared in this release.",
+              "text": "Age of buildings: band 5 of 5 among the 21 areas Burro compared, where the bands run from Newer to Historic.",
               "fact_ids": [
                 "syn-n0021/tag/built_age"
               ],
@@ -133,7 +133,7 @@
               "replaced": false
             },
             {
-              "text": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake: 24%, more than 90% of the 22 areas compared in this release.",
+              "text": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes: 24%, which is more than 90% of the 22 areas Burro compared.",
               "fact_ids": [
                 "syn-n0021/feature/water_access"
               ],
@@ -150,7 +150,7 @@
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 1,070 m, further than 80% of the 21 areas compared in this release.",
+            "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 1,070 m, which is further than 80% of the 21 areas Burro compared.",
             "fact_ids": [
               "syn-n0021/feature/park_proximity"
             ],
@@ -171,7 +171,7 @@
           },
           "reasons": [
             {
-              "text": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake: 23%, more than 86% of the 22 areas compared in this release.",
+              "text": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes: 23%, which is more than 86% of the 22 areas Burro compared.",
               "fact_ids": [
                 "syn-n0018/feature/water_access"
               ],
@@ -187,7 +187,7 @@
               "replaced": false
             },
             {
-              "text": "Age of buildings: band 4 of 5, counted from Newer to Historic, among the 21 areas compared in this release.",
+              "text": "Age of buildings: band 4 of 5 among the 21 areas Burro compared, where the bands run from Newer to Historic.",
               "fact_ids": [
                 "syn-n0018/tag/built_age"
               ],
@@ -196,7 +196,7 @@
             }
           ],
           "trade_off": {
-            "text": "Modelled annual mean nitrogen dioxide: 34.5 µg/m³, higher than 95% of the 20 areas compared in this release.",
+            "text": "Nitrogen dioxide in the air, as a modelled average over a year: 34.5 µg/m³, which is higher than 95% of the 20 areas Burro compared.",
             "fact_ids": [
               "syn-n0018/feature/air_no2"
             ],
@@ -217,7 +217,7 @@
           },
           "reasons": [
             {
-              "text": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake: 21%, more than 81% of the 22 areas compared in this release.",
+              "text": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes: 21%, which is more than 81% of the 22 areas Burro compared.",
               "fact_ids": [
                 "syn-n0010/feature/water_access"
               ],
@@ -225,7 +225,7 @@
               "replaced": false
             },
             {
-              "text": "Age of buildings: band 4 of 5, counted from Newer to Historic, among the 21 areas compared in this release.",
+              "text": "Age of buildings: band 4 of 5 among the 21 areas Burro compared, where the bands run from Newer to Historic.",
               "fact_ids": [
                 "syn-n0010/tag/built_age"
               ],
@@ -233,7 +233,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest way in to a station: 320 m, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 320 m, which is closer than 50% of the 22 areas Burro compared, and the same as 5 others.",
               "fact_ids": [
                 "syn-n0010/feature/station_walk"
               ],
@@ -242,7 +242,7 @@
             }
           ],
           "trade_off": {
-            "text": "By bike to Tallowgate Guild Quarter: about 23 minutes, 3 minutes over the 20 you set.",
+            "text": "By bike to Tallowgate Guild Quarter: about 23 minutes. That is 3 minutes over the limit of 20 minutes you set.",
             "fact_ids": [
               "syn-n0010/travel/syn-p0018.cycle"
             ],
@@ -271,7 +271,7 @@
               "replaced": false
             },
             {
-              "text": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake: 2%, more than 59% of the 22 areas compared in this release.",
+              "text": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes: 2%, which is more than 59% of the 22 areas Burro compared.",
               "fact_ids": [
                 "syn-n0023/feature/water_access"
               ],
@@ -279,7 +279,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest town centre boundary: 810 m, closer than 71% of the 21 areas compared in this release.",
+              "text": "Distance to the edge of the nearest town centre, in a straight line: 810 m, which is closer than 71% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0023/feature/highstreet_access"
               ],
@@ -288,7 +288,7 @@
             }
           ],
           "trade_off": {
-            "text": "Share of residents exposed to 55 dB or more of transport noise: 36%, noisier than 65% of the 20 areas compared in this release.",
+            "text": "Share of residents exposed to 55 dB or more of transport noise: 36%, which is noisier than 65% of the 20 areas Burro compared.",
             "fact_ids": [
               "syn-n0023/feature/noise_exposure"
             ],
@@ -309,7 +309,7 @@
           },
           "reasons": [
             {
-              "text": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake: 21%, more than 77% of the 22 areas compared in this release.",
+              "text": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes: 21%, which is more than 77% of the 22 areas Burro compared.",
               "fact_ids": [
                 "syn-n0002/feature/water_access"
               ],
@@ -317,7 +317,7 @@
               "replaced": false
             },
             {
-              "text": "Age of buildings: band 4 of 5, counted from Newer to Historic, among the 21 areas compared in this release.",
+              "text": "Age of buildings: band 4 of 5 among the 21 areas Burro compared, where the bands run from Newer to Historic.",
               "fact_ids": [
                 "syn-n0002/tag/built_age"
               ],
@@ -325,7 +325,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 160 m, which is closer than 77% of the 22 areas Burro compared, and the same as 4 others.",
               "fact_ids": [
                 "syn-n0002/feature/station_walk"
               ],
@@ -334,7 +334,7 @@
             }
           ],
           "trade_off": {
-            "text": "By bike to Tallowgate Guild Quarter: about 37 minutes, 17 minutes over the 20 you set.",
+            "text": "By bike to Tallowgate Guild Quarter: about 37 minutes. That is 17 minutes over the limit of 20 minutes you set.",
             "fact_ids": [
               "syn-n0002/travel/syn-p0018.cycle"
             ],
@@ -382,18 +382,18 @@
           "area_id": "syn-n0021",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "1,070 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "14",
-            "standing": "closer than 14% of the 21 areas compared in this release",
+            "standing": "closer than 14% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "80",
-            "standing_worse": "further than 80% of the 21 areas compared in this release",
+            "standing_worse": "further than 80% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -420,18 +420,18 @@
           "area_id": "syn-n0021",
           "kind": "feature",
           "key": "water_access",
-          "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+          "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
           "template": "feature",
           "slots": {
-            "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+            "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
             "value": "24%",
             "band": "5",
             "comparative": "more than",
             "pct": "90",
-            "standing": "more than 90% of the 22 areas compared in this release",
+            "standing": "more than 90% of the 22 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "4",
-            "standing_worse": "less than 4% of the 22 areas compared in this release",
+            "standing_worse": "less than 4% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -473,8 +473,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -515,9 +515,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -559,9 +559,9 @@
             "known": "2",
             "parts": "3",
             "share": "80",
-            "partly": "Worked out from 2 of its 3 parts, 80 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 80 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -657,17 +657,17 @@
           "area_id": "syn-n0018",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "34.5 µg/m³",
             "band": "5",
-            "standing": "lower than none of the 19 other areas compared in this release",
+            "standing": "higher than all 19 other areas Burro compared",
             "comparative": "lower than",
             "comparative_worse": "higher than",
             "pct_worse": "95",
-            "standing_worse": "higher than 95% of the 20 areas compared in this release",
+            "standing_worse": "higher than 95% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -694,18 +694,18 @@
           "area_id": "syn-n0018",
           "kind": "feature",
           "key": "water_access",
-          "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+          "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
           "template": "feature",
           "slots": {
-            "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+            "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
             "value": "23%",
             "band": "5",
             "comparative": "more than",
             "pct": "86",
-            "standing": "more than 86% of the 22 areas compared in this release",
+            "standing": "more than 86% of the 22 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "9",
-            "standing_worse": "less than 9% of the 22 areas compared in this release",
+            "standing_worse": "less than 9% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -747,8 +747,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -789,9 +789,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -833,9 +833,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -931,18 +931,18 @@
           "area_id": "syn-n0010",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "320 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "50",
-            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "standing": "closer than 50% of the 22 areas Burro compared, and the same as 5 others",
             "comparative_worse": "further than",
             "pct_worse": "22",
-            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "standing_worse": "further than 22% of the 22 areas Burro compared, and the same as 5 others",
             "compared": "22",
             "level": "5"
           },
@@ -971,18 +971,18 @@
           "area_id": "syn-n0010",
           "kind": "feature",
           "key": "water_access",
-          "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+          "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
           "template": "feature",
           "slots": {
-            "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+            "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
             "value": "21%",
             "band": "5",
             "comparative": "more than",
             "pct": "81",
-            "standing": "more than 81% of the 22 areas compared in this release",
+            "standing": "more than 81% of the 22 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "13",
-            "standing_worse": "less than 13% of the 22 areas compared in this release",
+            "standing_worse": "less than 13% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -1024,8 +1024,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1066,9 +1066,9 @@
             "known": "2",
             "parts": "3",
             "share": "80",
-            "partly": "Worked out from 2 of its 3 parts, 80 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 80 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1111,9 +1111,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1209,18 +1209,18 @@
           "area_id": "syn-n0023",
           "kind": "feature",
           "key": "highstreet_access",
-          "label": "Straight-line distance to the nearest town centre boundary",
+          "label": "Distance to the edge of the nearest town centre, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest town centre boundary",
+            "label": "Distance to the edge of the nearest town centre, in a straight line",
             "value": "810 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "71",
-            "standing": "closer than 71% of the 21 areas compared in this release",
+            "standing": "closer than 71% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "23",
-            "standing_worse": "further than 23% of the 21 areas compared in this release",
+            "standing_worse": "further than 23% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1255,10 +1255,10 @@
             "band": "4",
             "comparative": "quieter than",
             "pct": "30",
-            "standing": "quieter than 30% of the 20 areas compared in this release",
+            "standing": "quieter than 30% of the 20 areas Burro compared",
             "comparative_worse": "noisier than",
             "pct_worse": "65",
-            "standing_worse": "noisier than 65% of the 20 areas compared in this release",
+            "standing_worse": "noisier than 65% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -1285,18 +1285,18 @@
           "area_id": "syn-n0023",
           "kind": "feature",
           "key": "water_access",
-          "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+          "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
           "template": "feature",
           "slots": {
-            "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+            "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
             "value": "2%",
             "band": "3",
             "comparative": "more than",
             "pct": "59",
-            "standing": "more than 59% of the 22 areas compared in this release",
+            "standing": "more than 59% of the 22 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "36",
-            "standing_worse": "less than 36% of the 22 areas compared in this release",
+            "standing_worse": "less than 36% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -1338,8 +1338,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -1381,9 +1381,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1428,8 +1428,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1523,16 +1523,16 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "160 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "77",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
-            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
             "compared": "22",
             "level": "4"
           },
@@ -1561,18 +1561,18 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "water_access",
-          "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+          "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
           "template": "feature",
           "slots": {
-            "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+            "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
             "value": "21%",
             "band": "4",
             "comparative": "more than",
             "pct": "77",
-            "standing": "more than 77% of the 22 areas compared in this release",
+            "standing": "more than 77% of the 22 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "18",
-            "standing_worse": "less than 18% of the 22 areas compared in this release",
+            "standing_worse": "less than 18% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -1614,8 +1614,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1657,8 +1657,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1700,8 +1700,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",

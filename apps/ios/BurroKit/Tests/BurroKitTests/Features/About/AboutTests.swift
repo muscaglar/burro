@@ -120,7 +120,12 @@ final class AboutTests: XCTestCase {
 
         // The release carries no figure for the last two parts of this recipe.
         XCTAssertEqual(onFoot.tag.terms.map { carried.contains($0.featureId) }, [true, true, true, false, false])
-        XCTAssertEqual(held.waitsOn.map(\.label), ["Straight-line distance to the nearest GP practice, placed by its postcode", "Straight-line distance to the nearest pharmacy, placed by its postcode"])
+        XCTAssertEqual(
+            held.waitsOn.map(\.label),
+            [
+                "Distance to the nearest GP practice, in a straight line, with each practice placed by its postcode",
+                "Distance to the nearest pharmacy, in a straight line, with each pharmacy placed by its postcode",
+            ])
         // Each is named by the API's name for it, and said to be missing. It is never shown by its code.
         XCTAssertEqual(onFoot.terms.suffix(2).map(\.feature), held.waitsOn.map(\.label))
         for term in onFoot.terms.suffix(2) {
@@ -157,7 +162,9 @@ final class AboutTests: XCTestCase {
         XCTAssertEqual(starts.first?.rows.count, 2 + meta.defaults.rent.weights.count)
         XCTAssertEqual(
             starts.first?.rows.last,
-            AboutRow(name: "Straight-line distance to the nearest way in to a station", value: "50 of 100. Lower is better"))
+            AboutRow(
+                name: "Distance to the nearest station entrance, in a straight line",
+                value: "50 of 100. Lower is better"))
     }
 
     func test_the_limits_are_the_ones_the_form_keeps_to() {

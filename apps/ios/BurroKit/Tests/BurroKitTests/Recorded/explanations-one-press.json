@@ -96,7 +96,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "29057",
+    "content-length": "30865",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -106,7 +106,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -125,7 +125,7 @@
           },
           "reasons": [
             {
-              "text": "By public transport to Pellam Exchange: about 15 minutes on a typical weekday morning, 18 if you just miss a service.",
+              "text": "By public transport to Pellam Exchange: about 15 minutes on a typical weekday morning, or 18 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0005/travel/syn-p0017.pt"
               ],
@@ -133,7 +133,7 @@
               "replaced": false
             },
             {
-              "text": "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 4 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0005/tag/quiet_residential"
               ],
@@ -141,7 +141,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 710 m, closer than 61% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 710 m, which is closer than 61% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0005/feature/park_proximity"
               ],
@@ -150,7 +150,7 @@
             }
           ],
           "trade_off": {
-            "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 1.8 per 1,000 homes, fewer than 61% of the 21 areas compared in this release, and the same as 1 other.",
+            "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 1.8 per 1,000 homes, which is fewer than 61% of the 21 areas Burro compared, and the same as 1 other.",
             "fact_ids": [
               "syn-n0005/feature/culture_venues_per_homes"
             ],
@@ -171,7 +171,7 @@
           },
           "reasons": [
             {
-              "text": "By public transport to Pellam Exchange: about 17 minutes on a typical weekday morning, 19 if you just miss a service.",
+              "text": "By public transport to Pellam Exchange: about 17 minutes on a typical weekday morning, or 19 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0023/travel/syn-p0017.pt"
               ],
@@ -179,7 +179,7 @@
               "replaced": false
             },
             {
-              "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 5.2 per 1,000 homes, more than 66% of the 21 areas compared in this release.",
+              "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 5.2 per 1,000 homes, which is more than 66% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0023/feature/culture_venues_per_homes"
               ],
@@ -187,7 +187,7 @@
               "replaced": false
             },
             {
-              "text": "The upper end is £75 under your budget of £1,900.",
+              "text": "For this kind of home, the upper end of the range of costs here is £1,825, which is £75 under your budget of £1,900.",
               "fact_ids": [
                 "syn-n0023/budget_fit/rent.bed_1"
               ],
@@ -196,7 +196,7 @@
             }
           ],
           "trade_off": {
-            "text": "Share of residents exposed to 55 dB or more of transport noise: 36%, noisier than 65% of the 20 areas compared in this release.",
+            "text": "Share of residents exposed to 55 dB or more of transport noise: 36%, which is noisier than 65% of the 20 areas Burro compared.",
             "fact_ids": [
               "syn-n0023/feature/noise_exposure"
             ],
@@ -217,7 +217,7 @@
           },
           "reasons": [
             {
-              "text": "Quiet streets: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0008/tag/quiet_residential"
               ],
@@ -225,7 +225,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 490 m, closer than 80% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 490 m, which is closer than 80% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0008/feature/park_proximity"
               ],
@@ -233,7 +233,7 @@
               "replaced": false
             },
             {
-              "text": "The upper end is £350 under your budget of £1,900.",
+              "text": "For this kind of home, the upper end of the range of costs here is £1,550, which is £350 under your budget of £1,900.",
               "fact_ids": [
                 "syn-n0008/budget_fit/rent.bed_1"
               ],
@@ -242,7 +242,7 @@
             }
           ],
           "trade_off": {
-            "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 0.7 per 1,000 homes, fewer than 95% of the 21 areas compared in this release.",
+            "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 0.7 per 1,000 homes, which is fewer than 95% of the 21 areas Burro compared.",
             "fact_ids": [
               "syn-n0008/feature/culture_venues_per_homes"
             ],
@@ -263,7 +263,7 @@
           },
           "reasons": [
             {
-              "text": "By public transport to Pellam Exchange: about 16 minutes on a typical weekday morning, 18 if you just miss a service.",
+              "text": "By public transport to Pellam Exchange: about 16 minutes on a typical weekday morning, or 18 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0003/travel/syn-p0017.pt"
               ],
@@ -271,7 +271,7 @@
               "replaced": false
             },
             {
-              "text": "The upper end is £850 under your budget of £1,900.",
+              "text": "For this kind of home, the upper end of the range of costs here is £1,050, which is £850 under your budget of £1,900.",
               "fact_ids": [
                 "syn-n0003/budget_fit/rent.bed_1"
               ],
@@ -279,7 +279,7 @@
               "replaced": false
             },
             {
-              "text": "Quiet streets: band 3 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 3 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0003/tag/quiet_residential"
               ],
@@ -288,7 +288,7 @@
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 1,030 m, further than 66% of the 21 areas compared in this release.",
+            "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 1,030 m, which is further than 66% of the 21 areas Burro compared.",
             "fact_ids": [
               "syn-n0003/feature/park_proximity"
             ],
@@ -309,7 +309,7 @@
           },
           "reasons": [
             {
-              "text": "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 4 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0006/tag/quiet_residential"
               ],
@@ -317,7 +317,7 @@
               "replaced": false
             },
             {
-              "text": "By public transport to Pellam Exchange: about 24 minutes on a typical weekday morning, 28 if you just miss a service.",
+              "text": "By public transport to Pellam Exchange: about 24 minutes on a typical weekday morning, or 28 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0006/travel/syn-p0017.pt"
               ],
@@ -325,7 +325,7 @@
               "replaced": false
             },
             {
-              "text": "The upper end is £600 under your budget of £1,900.",
+              "text": "For this kind of home, the upper end of the range of costs here is £1,300, which is £600 under your budget of £1,900.",
               "fact_ids": [
                 "syn-n0006/budget_fit/rent.bed_1"
               ],
@@ -334,7 +334,7 @@
             }
           ],
           "trade_off": {
-            "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 1 per 1,000 homes, fewer than 85% of the 21 areas compared in this release.",
+            "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 1 per 1,000 homes, which is fewer than 85% of the 21 areas Burro compared.",
             "fact_ids": [
               "syn-n0006/feature/culture_venues_per_homes"
             ],
@@ -390,10 +390,10 @@
             "band": "2",
             "comparative": "more than",
             "pct": "28",
-            "standing": "more than 28% of the 21 areas compared in this release, and the same as 1 other",
+            "standing": "more than 28% of the 21 areas Burro compared, and the same as 1 other",
             "comparative_worse": "fewer than",
             "pct_worse": "61",
-            "standing_worse": "fewer than 61% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "fewer than 61% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -422,18 +422,18 @@
           "area_id": "syn-n0005",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "710 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "61",
-            "standing": "closer than 61% of the 21 areas compared in this release",
+            "standing": "closer than 61% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "33",
-            "standing_worse": "further than 33% of the 21 areas compared in this release",
+            "standing_worse": "further than 33% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -475,8 +475,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -519,8 +519,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -562,8 +562,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -697,10 +697,10 @@
             "band": "4",
             "comparative": "more than",
             "pct": "66",
-            "standing": "more than 66% of the 21 areas compared in this release",
+            "standing": "more than 66% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "28",
-            "standing_worse": "fewer than 28% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 28% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -735,10 +735,10 @@
             "band": "4",
             "comparative": "quieter than",
             "pct": "30",
-            "standing": "quieter than 30% of the 20 areas compared in this release",
+            "standing": "quieter than 30% of the 20 areas Burro compared",
             "comparative_worse": "noisier than",
             "pct_worse": "65",
-            "standing_worse": "noisier than 65% of the 20 areas compared in this release",
+            "standing_worse": "noisier than 65% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -779,9 +779,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -826,8 +826,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -869,8 +869,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -1003,11 +1003,11 @@
             "label": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line",
             "value": "0.7 per 1,000 homes",
             "band": "1",
-            "standing": "more than none of the 20 other areas compared in this release",
+            "standing": "fewer than all 20 other areas Burro compared",
             "comparative": "more than",
             "comparative_worse": "fewer than",
             "pct_worse": "95",
-            "standing_worse": "fewer than 95% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 95% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1034,18 +1034,18 @@
           "area_id": "syn-n0008",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "490 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "80",
-            "standing": "closer than 80% of the 21 areas compared in this release",
+            "standing": "closer than 80% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "14",
-            "standing_worse": "further than 14% of the 21 areas compared in this release",
+            "standing_worse": "further than 14% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1086,9 +1086,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1133,8 +1133,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1176,8 +1176,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1266,18 +1266,18 @@
           "area_id": "syn-n0003",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "1,030 m",
             "band": "4",
             "comparative": "closer than",
             "pct": "28",
-            "standing": "closer than 28% of the 21 areas compared in this release",
+            "standing": "closer than 28% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "66",
-            "standing_worse": "further than 66% of the 21 areas compared in this release",
+            "standing_worse": "further than 66% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1318,9 +1318,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1365,8 +1365,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1409,8 +1409,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -1545,10 +1545,10 @@
             "band": "1",
             "comparative": "more than",
             "pct": "9",
-            "standing": "more than 9% of the 21 areas compared in this release",
+            "standing": "more than 9% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "85",
-            "standing_worse": "fewer than 85% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 85% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1590,8 +1590,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1633,9 +1633,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1679,8 +1679,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",

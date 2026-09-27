@@ -537,11 +537,12 @@ enum SearchScreen {
         return WhoReads(words: SearchCopy.Reader.checking, said: false)
     }
 
-    /// True when the spec is one of the two a search starts from, as the API served them.
+    /// True when the spec is one a search starts from, as the API served it for its kind.
     static func isWhereASearchStarts(_ state: SearchState) -> Bool {
         switch state.spec.tenure {
         case .rent: return state.spec == state.meta.defaults.rent
         case .buy: return state.spec == state.meta.defaults.buy
+        case .visit: return state.spec == state.meta.defaults.visit
         case .unlisted: return false
         }
     }

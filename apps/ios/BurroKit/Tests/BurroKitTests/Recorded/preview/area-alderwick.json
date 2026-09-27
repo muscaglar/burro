@@ -13,9 +13,9 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-cache",
-    "content-length": "27616",
+    "content-length": "28027",
     "content-type": "application/json",
-    "etag": "\"syn-2026-09-23-01\"",
+    "etag": "\"syn-2026-09-23-01.f46b9686\"",
     "vary": "Origin",
     "x-burro-preview": "true",
     "x-burro-synthetic": "true",
@@ -24,7 +24,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": true
     },
@@ -827,8 +827,8 @@
             "band": "5",
             "comparative": "more than",
             "pct": "95",
-            "standing": "more than 95% of the 22 areas compared in this release",
-            "standing_worse": "less than none of the 21 other areas compared in this release",
+            "standing": "more than 95% of the 22 areas Burro compared",
+            "standing_worse": "more than all 21 other areas Burro compared",
             "comparative_worse": "less than",
             "compared": "22"
           },
@@ -860,14 +860,14 @@
           "template": "feature",
           "slots": {
             "label": "Homes per hectare",
-            "value": "29.7 per ha",
+            "value": "29.7 per hectare",
             "band": "2",
             "comparative": "denser than",
             "pct": "22",
-            "standing": "denser than 22% of the 22 areas compared in this release",
+            "standing": "denser than 22% of the 22 areas Burro compared",
             "comparative_worse": "less dense than",
             "pct_worse": "72",
-            "standing_worse": "less dense than 72% of the 22 areas compared in this release",
+            "standing_worse": "less dense than 72% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -902,10 +902,10 @@
             "band": "2",
             "comparative": "more than",
             "pct": "31",
-            "standing": "more than 31% of the 22 areas compared in this release, and the same as 1 other",
+            "standing": "more than 31% of the 22 areas Burro compared, and the same as 1 other",
             "comparative_worse": "fewer than",
             "pct_worse": "59",
-            "standing_worse": "fewer than 59% of the 22 areas compared in this release, and the same as 1 other",
+            "standing_worse": "fewer than 59% of the 22 areas Burro compared, and the same as 1 other",
             "compared": "22",
             "level": "1"
           },
@@ -942,10 +942,10 @@
             "band": "4",
             "comparative": "more than",
             "pct": "76",
-            "standing": "more than 76% of the 21 areas compared in this release",
+            "standing": "more than 76% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "19",
-            "standing_worse": "fewer than 19% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 19% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -980,10 +980,10 @@
             "band": "1",
             "comparative": "quieter than",
             "pct": "90",
-            "standing": "quieter than 90% of the 20 areas compared in this release",
+            "standing": "quieter than 90% of the 20 areas Burro compared",
             "comparative_worse": "noisier than",
             "pct_worse": "5",
-            "standing_worse": "noisier than 5% of the 20 areas compared in this release",
+            "standing_worse": "noisier than 5% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -1010,18 +1010,18 @@
           "area_id": "syn-n0001",
           "kind": "feature",
           "key": "park_large_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 20 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 20 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 20 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 20 hectares or more, in a straight line",
             "value": "2,820 m",
             "band": "4",
             "comparative": "closer than",
             "pct": "19",
-            "standing": "closer than 19% of the 21 areas compared in this release",
+            "standing": "closer than 19% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "76",
-            "standing_worse": "further than 76% of the 21 areas compared in this release",
+            "standing_worse": "further than 76% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1048,18 +1048,18 @@
           "area_id": "syn-n0001",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "970 m",
             "band": "4",
             "comparative": "closer than",
             "pct": "33",
-            "standing": "closer than 33% of the 21 areas compared in this release",
+            "standing": "closer than 33% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "61",
-            "standing_worse": "further than 61% of the 21 areas compared in this release",
+            "standing_worse": "further than 61% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1086,18 +1086,18 @@
           "area_id": "syn-n0001",
           "kind": "feature",
           "key": "road_major_exposure",
-          "label": "Share of homes within 100 m of a main road",
+          "label": "Homes within 100 m of a main road, as a share of all homes",
           "template": "feature",
           "slots": {
-            "label": "Share of homes within 100 m of a main road",
+            "label": "Homes within 100 m of a main road, as a share of all homes",
             "value": "27%",
             "band": "2",
             "comparative": "less than",
             "pct": "66",
-            "standing": "less than 66% of the 21 areas compared in this release",
+            "standing": "less than 66% of the 21 areas Burro compared",
             "comparative_worse": "more than",
             "pct_worse": "28",
-            "standing_worse": "more than 28% of the 21 areas compared in this release",
+            "standing_worse": "more than 28% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1124,18 +1124,18 @@
           "area_id": "syn-n0001",
           "kind": "feature",
           "key": "road_traffic_nearby",
-          "label": "Traffic past the busiest count point within 500 m of home, in a straight line",
+          "label": "Traffic past the busiest counting point within 500 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Traffic past the busiest count point within 500 m of home, in a straight line",
+            "label": "Traffic past the busiest counting point within 500 m of home, in a straight line",
             "value": "13,740 motor vehicles a day",
             "band": "2",
             "comparative": "less than",
             "pct": "66",
-            "standing": "less than 66% of the 21 areas compared in this release",
+            "standing": "less than 66% of the 21 areas Burro compared",
             "comparative_worse": "more than",
             "pct_worse": "28",
-            "standing_worse": "more than 28% of the 21 areas compared in this release",
+            "standing_worse": "more than 28% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1169,7 +1169,7 @@
             "other": "Brackenhythe",
             "same": "2",
             "measures": "4",
-            "family": "Green"
+            "family": "Parks, gardens and water"
           },
           "numbers": [
             "2",
@@ -1203,7 +1203,7 @@
             "other": "Hollinsworth Quay",
             "same": "2",
             "measures": "4",
-            "family": "Green"
+            "family": "Parks, gardens and water"
           },
           "numbers": [
             "2",
@@ -1237,7 +1237,7 @@
             "other": "Kindlewharf",
             "same": "1",
             "measures": "4",
-            "family": "Green"
+            "family": "Parks, gardens and water"
           },
           "numbers": [
             "1",
@@ -1271,7 +1271,7 @@
             "other": "Pellam Cross",
             "same": "1",
             "measures": "4",
-            "family": "Green"
+            "family": "Parks, gardens and water"
           },
           "numbers": [
             "1",
@@ -1506,9 +1506,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -1615,9 +1615,9 @@
             "known": "2",
             "parts": "3",
             "share": "70",
-            "partly": "Worked out from 2 of its 3 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1661,9 +1661,9 @@
             "known": "3",
             "parts": "4",
             "share": "70",
-            "partly": "Worked out from 3 of its 4 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 4 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",

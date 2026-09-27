@@ -1,6 +1,6 @@
 {
   "scenario": "interpret-rules-at-once",
-  "shows": "The same, asked of the rules alone: what they offer is served at once, with a guess at what was plainly said of the journey and of the home and at no wish, and the answer says that a model has more to read",
+  "shows": "The same, asked of the rules alone: what they offer is served at once, with a guess at what was plainly said of the journey and of the home and at each wish whose way the words give, and the answer says that a model has more to read",
   "captured": true,
   "request": {
     "operation_id": "interpret",
@@ -17,7 +17,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "16235",
+    "content-length": "17122",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -27,7 +27,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -129,14 +129,14 @@
             "start": 0,
             "end": 30
           },
-          "follows": "What it counts: homes away from main roads, from heavy traffic and from clusters of pubs and bars, with little transport noise. It cannot see: one street or one home. An area is many streets.",
+          "follows": "This vibe counts homes away from main roads, from heavy traffic and from clusters of pubs and bars, with little transport noise. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
               "label": "Add",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
@@ -176,12 +176,14 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "feature:park_proximity",
           "label": "Nearer a park",
-          "does": "Nearer a park: count it, or stop counting it?",
+          "does": "Rank an area higher when it is nearer a park.",
           "spans": [
             {
               "start": 47,
@@ -192,14 +194,14 @@
             "start": 32,
             "end": 52
           },
-          "follows": "What Burro counts: straight-line distance to the nearest marked way into a park of 2 ha or more.",
+          "follows": "This is what Burro measures for it: distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
               "label": "Add",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
@@ -258,16 +260,18 @@
           ],
           "note": "",
           "read_by": "rule",
-          "add_all": "",
-          "needs": "nearer a park",
+          "add_all": "more",
+          "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "feature:brand_mix",
           "label": "Mix of brands",
-          "does": "Rank areas higher for this: more premium.",
+          "does": "Rank an area higher when the chain grocers, gyms and coffee places near it are more premium.",
           "spans": [
             {
               "start": 54,
@@ -278,7 +282,7 @@
             "start": 54,
             "end": 103
           },
-          "follows": "What Burro counts: share of the chain grocers, gyms and coffee places within 800 m of home that are premium, with a mid-range one counted as half, by Burro's table of tiers.",
+          "follows": "This is what Burro measures for it: premium chains as a share of the chain grocers, gyms and coffee places within 800 m of home, with a mid-range chain counted as half, as Burro sorts the chains.",
           "said": [],
           "choices": [
             {
@@ -319,13 +323,15 @@
               }
             }
           ],
-          "note": "Burro reads this of the place, and not of the people who live there.",
+          "note": "Burro takes this to be about the place, and not about the people who live there.",
           "read_by": "rule",
           "add_all": "",
           "needs": "mix of brands",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": false
         },
         {
           "target": "tag:street_character",
@@ -341,7 +347,7 @@
             "start": 54,
             "end": 103
           },
-          "follows": "Gritty runs from Polished to Gritty. What it counts: works and warehouses, main roads and transport noise, with recorded criminal damage and anti-social behaviour. It cannot see: one street or one home. An area is many streets.",
+          "follows": "Gritty runs from Polished to Gritty. This vibe counts works and warehouses, main roads and transport noise, with recorded criminal damage and anti-social behaviour. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
@@ -382,18 +388,20 @@
               }
             }
           ],
-          "note": "Burro reads this of the place, and not of the people who live there. Gritty counts recorded criminal damage and arson, and recorded anti-social behaviour. Recorded crime depends on what is reported, and locations are approximate.",
+          "note": "Burro takes this to be about the place, and not about the people who live there. Gritty counts recorded criminal damage and arson, and recorded anti-social behaviour. Recorded crime depends on what is reported, and locations are approximate.",
           "read_by": "rule",
           "add_all": "",
-          "needs": "recorded crime, which is added under its own name",
+          "needs": "recorded crime, which Burro adds only when you choose it by name",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": true
         },
         {
           "target": "feature:price_median",
           "label": "What homes sell for",
-          "does": "Rank areas higher for this: dearer.",
+          "does": "Rank an area higher when homes there sell for more.",
           "spans": [
             {
               "start": 54,
@@ -404,7 +412,7 @@
             "start": 54,
             "end": 103
           },
-          "follows": "What Burro counts: median price paid for a home.",
+          "follows": "This is what Burro measures for it: the middle price paid for a home.",
           "said": [],
           "choices": [
             {
@@ -445,18 +453,20 @@
               }
             }
           ],
-          "note": "Burro reads this of the place, and not of the people who live there.",
+          "note": "Burro takes this to be about the place, and not about the people who live there.",
           "read_by": "rule",
           "add_all": "",
           "needs": "what homes sell for",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": false
         },
         {
           "target": "feature:homes_higher_bands",
           "label": "Homes in the higher council tax bands",
-          "does": "Rank areas higher for this: more homes in the higher council tax bands.",
+          "does": "Rank an area higher when it has more homes in the higher council tax bands.",
           "spans": [
             {
               "start": 54,
@@ -467,7 +477,7 @@
             "start": 54,
             "end": 103
           },
-          "follows": "What Burro counts: homes in council tax bands E to H as a share of homes.",
+          "follows": "This is what Burro measures for it: homes in council tax bands E to H as a share of homes.",
           "said": [],
           "choices": [
             {
@@ -508,18 +518,20 @@
               }
             }
           ],
-          "note": "Burro reads this of the place, and not of the people who live there.",
+          "note": "Burro takes this to be about the place, and not about the people who live there.",
           "read_by": "rule",
           "add_all": "",
           "needs": "homes in the higher council tax bands",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": true
         },
         {
           "target": "feature:culture_venues_per_homes",
           "label": "More culture nearby",
-          "does": "Rank areas higher for this: more culture nearby.",
+          "does": "Rank an area higher when it has more culture nearby.",
           "spans": [
             {
               "start": 86,
@@ -530,14 +542,14 @@
             "start": 54,
             "end": 103
           },
-          "follows": "What Burro counts: museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line.",
+          "follows": "This is what Burro measures for it: museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
               "label": "Add",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
@@ -577,7 +589,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": false
         },
         {
           "target": "tag:village_feel",
@@ -593,7 +607,7 @@
             "start": 105,
             "end": 135
           },
-          "follows": "What it counts: a high street in a conservation area, homes that stand apart, period homes and protected streets. It cannot see: one street or one home. An area is many streets.",
+          "follows": "This vibe counts a high street in a conservation area, homes that stand apart, period homes and protected streets. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
@@ -634,13 +648,15 @@
               }
             }
           ],
-          "note": "Burro cannot measure the character of a place. The nearest it can count are a village feel (rough guide), the age of the buildings and a town centre nearby. Choose any that fit what you mean. Rough guide. Of the areas it puts highest, about half read as villages to people, and it takes some busy main roads and some grand inner streets for villages.",
+          "note": "Burro has no way of measuring the character of a place. The nearest things it can count are a village feel, the age of the buildings and a town centre nearby, so choose any of these that fit what you mean.",
           "read_by": "rule",
           "add_all": "",
           "needs": "Village feel",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": false
         },
         {
           "target": "tag:built_age",
@@ -656,7 +672,7 @@
             "start": 105,
             "end": 135
           },
-          "follows": "Age of buildings runs from Newer to Historic. What it counts: homes built since 2000 at one end. Period homes, listed buildings and protected streets at the other. It cannot see: one street or one home. An area is many streets.",
+          "follows": "Age of buildings runs from Newer to Historic. This vibe counts homes built since 2000 at one end. Period homes, listed buildings and protected streets at the other. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
@@ -697,18 +713,20 @@
               }
             }
           ],
-          "note": "Burro cannot measure the character of a place. The nearest it can count are a village feel (rough guide), the age of the buildings and a town centre nearby. Choose any that fit what you mean.",
+          "note": "Burro has no way of measuring the character of a place. The nearest things it can count are a village feel, the age of the buildings and a town centre nearby, so choose any of these that fit what you mean.",
           "read_by": "rule",
           "add_all": "",
           "needs": "Age of buildings",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": false
         },
         {
           "target": "feature:highstreet_access",
           "label": "Nearer a town centre",
-          "does": "Rank areas higher for this: nearer a town centre.",
+          "does": "Rank an area higher when it is nearer a town centre.",
           "spans": [
             {
               "start": 120,
@@ -719,7 +737,7 @@
             "start": 105,
             "end": 135
           },
-          "follows": "What Burro counts: straight-line distance to the nearest town centre boundary.",
+          "follows": "This is what Burro measures for it: distance to the edge of the nearest town centre, in a straight line.",
           "said": [],
           "choices": [
             {
@@ -760,13 +778,15 @@
               }
             }
           ],
-          "note": "Burro cannot measure the character of a place. The nearest it can count are a village feel (rough guide), the age of the buildings and a town centre nearby. Choose any that fit what you mean.",
+          "note": "Burro has no way of measuring the character of a place. The nearest things it can count are a village feel, the age of the buildings and a town centre nearby, so choose any of these that fit what you mean.",
           "read_by": "rule",
           "add_all": "",
           "needs": "nearer a town centre",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": false
         },
         {
           "target": "commute",
@@ -784,13 +804,13 @@
           },
           "follows": "Areas further off are left out.",
           "said": [
-            "You named no way of travelling: Burro took public transport."
+            "You did not say how you would travel, so Burro has assumed public transport."
           ],
           "choices": [
             {
               "id": "firm",
               "direction": "more",
-              "label": "Add as a firm limit: areas further off are left out",
+              "label": "Add it as a firm limit, which leaves out areas that are further away",
               "guess": true,
               "operations": {
                 "budget_ops": [],
@@ -814,7 +834,7 @@
             {
               "id": "guide",
               "direction": "more",
-              "label": "Add as a guide: areas further off rank lower",
+              "label": "Add it as a guide, which ranks areas lower when they are further away",
               "guess": false,
               "operations": {
                 "budget_ops": [],
@@ -850,13 +870,15 @@
               }
             }
           ],
-          "note": "You gave 35 to 40 minutes. Burro has taken the longer.",
+          "note": "You gave 35 to 40 minutes, so Burro has used 40, the longer of the two.",
           "read_by": "rule",
           "add_all": "guide",
-          "needs": "the journey can be made a firm limit",
+          "needs": "the journey, which you can make a firm limit",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "tenure",
@@ -920,7 +942,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "budget",
@@ -938,13 +962,13 @@
           },
           "follows": "Dearer areas are left out.",
           "said": [
-            "You did not say renting or buying: Burro took renting, as the search stands."
+            "You did not say whether you are renting or buying, so Burro has kept your search on renting."
           ],
           "choices": [
             {
               "id": "more",
               "direction": "more",
-              "label": "Set as a firm limit: dearer areas are left out",
+              "label": "Set it as a firm limit, which leaves out areas that cost more",
               "guess": true,
               "operations": {
                 "budget_ops": [
@@ -986,7 +1010,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "budget",
@@ -1050,7 +1076,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         }
       ],
       "unread": [],

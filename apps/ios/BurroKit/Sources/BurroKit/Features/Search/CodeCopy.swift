@@ -60,6 +60,7 @@ enum CodeCopy {
         switch tenure {
         case .rent: return "Renting"
         case .buy: return "Buying"
+        case .visit: return "Visiting"
         case .unlisted: return nil
         }
     }

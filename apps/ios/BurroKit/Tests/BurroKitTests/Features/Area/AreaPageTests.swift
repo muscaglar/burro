@@ -157,7 +157,10 @@ final class AreaPageTests: XCTestCase {
         XCTAssertEqual(fact.slots["known"], "2")
         XCTAssertEqual(fact.slots["parts"], "3")
         XCTAssertEqual(homes.shown.restsOn, fact.slots["partly"])
-        XCTAssertEqual(homes.shown.restsOn, "Worked out from 2 of its 3 parts, 75 of 100 by weight.")
+        XCTAssertEqual(
+            homes.shown.restsOn,
+            "Burro has a figure for 2 of the 3 measurements that go into this vibe, "
+                + "and they count for 75 of 100 in it.")
         // One that rests on the whole of its recipe says nothing of it.
         XCTAssertEqual(leafy.fact?.slots["known"], leafy.fact?.slots["parts"])
         XCTAssertNil(leafy.shown.restsOn)
@@ -462,7 +465,7 @@ final class AreaPageTests: XCTestCase {
     }
 
     func test_the_words_of_the_page_are_the_websites_word_for_word() throws {
-        let content = Repository.root.appendingPathComponent("apps/web/src/content")
+        let content = Repository.website.appendingPathComponent("src/content")
         let area = try Repository.text(content.appendingPathComponent("area.ts"))
         let facts = try Repository.text(content.appendingPathComponent("facts.ts"))
         let labels = try Repository.text(content.appendingPathComponent("labels.ts"))
@@ -511,7 +514,7 @@ final class AreaPageTests: XCTestCase {
 
     func test_the_kinds_of_home_are_the_ones_the_website_lists_for_each_tenure() throws {
         let settings = try Repository.text(
-            Repository.root.appendingPathComponent("apps/web/src/content/settings.ts"))
+            Repository.website.appendingPathComponent("src/content/settings.ts"))
 
         XCTAssertTrue(
             settings.contains(

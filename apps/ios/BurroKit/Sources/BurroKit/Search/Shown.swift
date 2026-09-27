@@ -91,7 +91,7 @@ extension SearchState {
     /// no longer.
     public var leftOutByTheBudget: Int? {
         guard let added, added.firm, phase == .results, let ranking else { return nil }
-        guard spec.budget.strictness == .hard else { return nil }
+        guard !spec.visiting, spec.budget.strictness == .hard else { return nil }
         return ranking.filtered.filter { $0.reason == .overBudget }.count
     }
 
@@ -293,7 +293,8 @@ extension PreferenceSpec {
         let most = mostAskedOfThePlace
         guard most > 0 else { return nil }
         let journey = !commutes.isEmpty && commuteWeight > most
-        let budget = budget.amount != nil && budget.weight > most
+        // A visit holds no budget, so none outweighs anything in one.
+        let budget = !visiting && budget.amount != nil && budget.weight > most
         return journey || budget ? Leads(journey: journey, budget: budget, journeys: commutes.count) : nil
     }
 }

@@ -54,11 +54,12 @@ final class ResultsCardTests: XCTestCase {
         XCTAssertEqual(reasons.count, 3)
         XCTAssertEqual(
             reasons[0].text,
-            "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.")
+            "Quiet streets: band 4 of 5 among the 21 areas Burro compared, "
+                + "where the bands run from least to most.")
         XCTAssertEqual(
             reasons[1].text,
             "By public transport to Cindermoor Works: about 21 minutes on a typical weekday morning, "
-                + "26 if you just miss a service.")
+                + "or 26 minutes if you just miss a service.")
         // Every sentence ends in its source and its date.
         for reason in reasons {
             XCTAssertEqual(reason.sources.map(\.name), [synthetic])
@@ -427,7 +428,11 @@ final class ResultsCardTests: XCTestCase {
         // A band that rests on part of its recipe says so, in the API's own clause.
         XCTAssertEqual(
             card.strip.map(\.restsOn),
-            [nil, nil, nil, "Worked out from 2 of its 3 parts, 75 of 100 by weight."])
+            [
+                nil, nil, nil,
+                "Burro has a figure for 2 of the 3 measurements that go into this vibe, "
+                    + "and they count for 75 of 100 in it.",
+            ])
         // Every band ends in its source and its date.
         for vibe in card.strip {
             XCTAssertEqual(
@@ -507,12 +512,12 @@ final class ResultsCardTests: XCTestCase {
             card.breakdown.map(\.thing),
             [
                 "Quiet streets", "Journey", "Budget", "Leafy",
-                "Modelled annual mean nitrogen dioxide",
-                "Straight-line distance to the nearest way in to a station",
+                "Nitrogen dioxide in the air, as a modelled average over a year",
+                "Distance to the nearest station entrance, in a straight line",
                 "Share of residents exposed to 55 dB or more of transport noise",
                 "Lines within a 10-minute walk",
-                "Straight-line distance to the nearest marked way into a park of 2 ha or more",
-                "Straight-line distance to the nearest town centre boundary",
+                "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
+                "Distance to the edge of the nearest town centre, in a straight line",
             ])
         XCTAssertEqual(
             card.breakdown.first,

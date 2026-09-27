@@ -96,7 +96,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "6649",
+    "content-length": "6964",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -106,7 +106,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -125,7 +125,7 @@
           },
           "reasons": [
             {
-              "text": "Modelled annual mean nitrogen dioxide: 13.2 µg/m³, lower than 95% of the 20 areas compared in this release.",
+              "text": "Nitrogen dioxide in the air, as a modelled average over a year: 13.2 µg/m³, which is lower than 95% of the 20 areas Burro compared.",
               "fact_ids": [
                 "syn-n0008/feature/air_no2"
               ],
@@ -133,7 +133,7 @@
               "replaced": false
             },
             {
-              "text": "Share of residents exposed to 55 dB or more of transport noise: 6%, quieter than 95% of the 20 areas compared in this release.",
+              "text": "Share of residents exposed to 55 dB or more of transport noise: 6%, which is quieter than 95% of the 20 areas Burro compared.",
               "fact_ids": [
                 "syn-n0008/feature/noise_exposure"
               ],
@@ -141,7 +141,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 490 m, closer than 80% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 490 m, which is closer than 80% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0008/feature/park_proximity"
               ],
@@ -150,7 +150,7 @@
             }
           ],
           "trade_off": {
-            "text": "By public transport to Cindermoor Works: about 63 minutes on a typical weekday morning, 68 if you just miss a service, 28 minutes over the 35 you set.",
+            "text": "By public transport to Cindermoor Works: about 63 minutes on a typical weekday morning, or 68 minutes if you just miss a service. This journey is 28 minutes over the limit of 35 minutes you set.",
             "fact_ids": [
               "syn-n0008/travel/syn-p0021.pt"
             ],
@@ -159,7 +159,7 @@
           },
           "missing": [
             {
-              "text": "There is no journey time from Gorsebeck to Wexmoor University in this release, so that journey was left out of the score.",
+              "text": "Burro has no journey time from Gorsebeck to Wexmoor University, so that journey does not count towards the fit of this area.",
               "fact_ids": [
                 "syn-n0008/missing/commute.syn-p0026.pt"
               ],
@@ -207,16 +207,16 @@
           "area_id": "syn-n0008",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "13.2 µg/m³",
             "band": "1",
             "comparative": "lower than",
             "pct": "95",
-            "standing": "lower than 95% of the 20 areas compared in this release",
-            "standing_worse": "higher than none of the 19 other areas compared in this release",
+            "standing": "lower than 95% of the 20 areas Burro compared",
+            "standing_worse": "lower than all 19 other areas Burro compared",
             "comparative_worse": "higher than",
             "compared": "20"
           },
@@ -252,8 +252,8 @@
             "band": "1",
             "comparative": "quieter than",
             "pct": "95",
-            "standing": "quieter than 95% of the 20 areas compared in this release",
-            "standing_worse": "noisier than none of the 19 other areas compared in this release",
+            "standing": "quieter than 95% of the 20 areas Burro compared",
+            "standing_worse": "quieter than all 19 other areas Burro compared",
             "comparative_worse": "noisier than",
             "compared": "20"
           },
@@ -281,18 +281,18 @@
           "area_id": "syn-n0008",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "490 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "80",
-            "standing": "closer than 80% of the 21 areas compared in this release",
+            "standing": "closer than 80% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "14",
-            "standing_worse": "further than 14% of the 21 areas compared in this release",
+            "standing_worse": "further than 14% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -361,9 +361,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -408,8 +408,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",

@@ -96,7 +96,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "28172",
+    "content-length": "30794",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -106,7 +106,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -125,7 +125,7 @@
           },
           "reasons": [
             {
-              "text": "Age of buildings: band 1 of 5, counted from Newer to Historic, among the 21 areas compared in this release.",
+              "text": "Age of buildings: band 1 of 5 among the 21 areas Burro compared, where the bands run from Newer to Historic.",
               "fact_ids": [
                 "syn-n0004/tag/built_age"
               ],
@@ -133,7 +133,7 @@
               "replaced": false
             },
             {
-              "text": "Everyday on foot: band 4 of 5, counted from least to most, among the 21 areas compared in this release. Worked out from 3 of its 5 parts, 70 of 100 by weight.",
+              "text": "Everyday on foot: band 4 of 5 among the 21 areas Burro compared, where the bands run from least to most. Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
               "fact_ids": [
                 "syn-n0004/tag/everyday_on_foot"
               ],
@@ -141,7 +141,7 @@
               "replaced": false
             },
             {
-              "text": "By public transport to Wexmoor University: about 22 minutes on a typical weekday morning, 27 if you just miss a service.",
+              "text": "By public transport to Wexmoor University: about 22 minutes on a typical weekday morning, or 27 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0004/travel/syn-p0026.pt"
               ],
@@ -164,7 +164,7 @@
           },
           "reasons": [
             {
-              "text": "Age of buildings: band 1 of 5, counted from Newer to Historic, among the 21 areas compared in this release.",
+              "text": "Age of buildings: band 1 of 5 among the 21 areas Burro compared, where the bands run from Newer to Historic.",
               "fact_ids": [
                 "syn-n0019/tag/built_age"
               ],
@@ -172,7 +172,7 @@
               "replaced": false
             },
             {
-              "text": "Everyday on foot: band 4 of 5, counted from least to most, among the 21 areas compared in this release. Worked out from 3 of its 5 parts, 70 of 100 by weight.",
+              "text": "Everyday on foot: band 4 of 5 among the 21 areas Burro compared, where the bands run from least to most. Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
               "fact_ids": [
                 "syn-n0019/tag/everyday_on_foot"
               ],
@@ -180,7 +180,7 @@
               "replaced": false
             },
             {
-              "text": "By public transport to Wexmoor University: about 28 minutes on a typical weekday morning, 33 if you just miss a service.",
+              "text": "By public transport to Wexmoor University: about 28 minutes on a typical weekday morning, or 33 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0019/travel/syn-p0026.pt"
               ],
@@ -189,7 +189,7 @@
             }
           ],
           "trade_off": {
-            "text": "Modelled annual mean nitrogen dioxide: 26.8 µg/m³, higher than 70% of the 20 areas compared in this release.",
+            "text": "Nitrogen dioxide in the air, as a modelled average over a year: 26.8 µg/m³, which is higher than 70% of the 20 areas Burro compared.",
             "fact_ids": [
               "syn-n0019/feature/air_no2"
             ],
@@ -210,7 +210,7 @@
           },
           "reasons": [
             {
-              "text": "Everyday on foot: band 5 of 5, counted from least to most, among the 21 areas compared in this release. Worked out from 3 of its 5 parts, 70 of 100 by weight.",
+              "text": "Everyday on foot: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most. Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
               "fact_ids": [
                 "syn-n0007/tag/everyday_on_foot"
               ],
@@ -218,7 +218,7 @@
               "replaced": false
             },
             {
-              "text": "By public transport to Wexmoor University: about 27 minutes on a typical weekday morning, 32 if you just miss a service.",
+              "text": "By public transport to Wexmoor University: about 27 minutes on a typical weekday morning, or 32 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0007/travel/syn-p0026.pt"
               ],
@@ -226,7 +226,7 @@
               "replaced": false
             },
             {
-              "text": "Age of buildings: band 3 of 5, counted from Newer to Historic, among the 21 areas compared in this release.",
+              "text": "Age of buildings: band 3 of 5 among the 21 areas Burro compared, where the bands run from Newer to Historic.",
               "fact_ids": [
                 "syn-n0007/tag/built_age"
               ],
@@ -235,7 +235,7 @@
             }
           ],
           "trade_off": {
-            "text": "Share of residents exposed to 55 dB or more of transport noise: 37%, noisier than 70% of the 20 areas compared in this release.",
+            "text": "Share of residents exposed to 55 dB or more of transport noise: 37%, which is noisier than 70% of the 20 areas Burro compared.",
             "fact_ids": [
               "syn-n0007/feature/noise_exposure"
             ],
@@ -256,7 +256,7 @@
           },
           "reasons": [
             {
-              "text": "Everyday on foot: band 5 of 5, counted from least to most, among the 21 areas compared in this release. Worked out from 3 of its 5 parts, 70 of 100 by weight.",
+              "text": "Everyday on foot: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most. Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
               "fact_ids": [
                 "syn-n0018/tag/everyday_on_foot"
               ],
@@ -264,7 +264,7 @@
               "replaced": false
             },
             {
-              "text": "By public transport to Wexmoor University: about 25 minutes on a typical weekday morning, 27 if you just miss a service.",
+              "text": "By public transport to Wexmoor University: about 25 minutes on a typical weekday morning, or 27 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0018/travel/syn-p0026.pt"
               ],
@@ -272,7 +272,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 160 m, which is closer than 77% of the 22 areas Burro compared, and the same as 4 others.",
               "fact_ids": [
                 "syn-n0018/feature/station_walk"
               ],
@@ -281,7 +281,7 @@
             }
           ],
           "trade_off": {
-            "text": "Modelled annual mean nitrogen dioxide: 34.5 µg/m³, higher than 95% of the 20 areas compared in this release.",
+            "text": "Nitrogen dioxide in the air, as a modelled average over a year: 34.5 µg/m³, which is higher than 95% of the 20 areas Burro compared.",
             "fact_ids": [
               "syn-n0018/feature/air_no2"
             ],
@@ -302,7 +302,7 @@
           },
           "reasons": [
             {
-              "text": "Age of buildings: band 1 of 5, counted from Newer to Historic, among the 21 areas compared in this release.",
+              "text": "Age of buildings: band 1 of 5 among the 21 areas Burro compared, where the bands run from Newer to Historic.",
               "fact_ids": [
                 "syn-n0006/tag/built_age"
               ],
@@ -310,7 +310,7 @@
               "replaced": false
             },
             {
-              "text": "By public transport to Wexmoor University: about 26 minutes on a typical weekday morning, 31 if you just miss a service.",
+              "text": "By public transport to Wexmoor University: about 26 minutes on a typical weekday morning, or 31 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0006/travel/syn-p0026.pt"
               ],
@@ -318,7 +318,7 @@
               "replaced": false
             },
             {
-              "text": "Modelled annual mean nitrogen dioxide: 15.4 µg/m³, lower than 90% of the 20 areas compared in this release.",
+              "text": "Nitrogen dioxide in the air, as a modelled average over a year: 15.4 µg/m³, which is lower than 90% of the 20 areas Burro compared.",
               "fact_ids": [
                 "syn-n0006/feature/air_no2"
               ],
@@ -327,7 +327,7 @@
             }
           ],
           "trade_off": {
-            "text": "Everyday on foot: band 2 of 5, counted from least to most, among the 21 areas compared in this release. Worked out from 3 of its 5 parts, 70 of 100 by weight.",
+            "text": "Everyday on foot: band 2 of 5 among the 21 areas Burro compared, where the bands run from least to most. Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
             "fact_ids": [
               "syn-n0006/tag/everyday_on_foot"
             ],
@@ -390,8 +390,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -433,9 +433,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -479,8 +479,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -522,8 +522,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -619,18 +619,18 @@
           "area_id": "syn-n0019",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "26.8 µg/m³",
             "band": "4",
             "comparative": "lower than",
             "pct": "25",
-            "standing": "lower than 25% of the 20 areas compared in this release",
+            "standing": "lower than 25% of the 20 areas Burro compared",
             "comparative_worse": "higher than",
             "pct_worse": "70",
-            "standing_worse": "higher than 70% of the 20 areas compared in this release",
+            "standing_worse": "higher than 70% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -672,8 +672,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -715,9 +715,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -761,8 +761,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -805,8 +805,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -910,10 +910,10 @@
             "band": "4",
             "comparative": "quieter than",
             "pct": "25",
-            "standing": "quieter than 25% of the 20 areas compared in this release",
+            "standing": "quieter than 25% of the 20 areas Burro compared",
             "comparative_worse": "noisier than",
             "pct_worse": "70",
-            "standing_worse": "noisier than 70% of the 20 areas compared in this release",
+            "standing_worse": "noisier than 70% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -955,8 +955,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -998,9 +998,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1043,8 +1043,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1086,9 +1086,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1187,17 +1187,17 @@
           "area_id": "syn-n0018",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "34.5 µg/m³",
             "band": "5",
-            "standing": "lower than none of the 19 other areas compared in this release",
+            "standing": "higher than all 19 other areas Burro compared",
             "comparative": "lower than",
             "comparative_worse": "higher than",
             "pct_worse": "95",
-            "standing_worse": "higher than 95% of the 20 areas compared in this release",
+            "standing_worse": "higher than 95% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -1224,16 +1224,16 @@
           "area_id": "syn-n0018",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "160 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "77",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
-            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
             "compared": "22",
             "level": "4"
           },
@@ -1277,8 +1277,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1319,9 +1319,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1363,9 +1363,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1409,8 +1409,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1506,18 +1506,18 @@
           "area_id": "syn-n0006",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "15.4 µg/m³",
             "band": "1",
             "comparative": "lower than",
             "pct": "90",
-            "standing": "lower than 90% of the 20 areas compared in this release",
+            "standing": "lower than 90% of the 20 areas Burro compared",
             "comparative_worse": "higher than",
             "pct_worse": "5",
-            "standing_worse": "higher than 5% of the 20 areas compared in this release",
+            "standing_worse": "higher than 5% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -1559,8 +1559,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1602,9 +1602,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -1647,9 +1647,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1693,8 +1693,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",

@@ -1,0 +1,258 @@
+{
+  "scenario": "visiting/interpret",
+  "shows": "A sentence that says a visit, typed into a renter's search: the search becomes a visit",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "I'm visiting for a weekend, somewhere buzzy with lots of restaurants",
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.3,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      }
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "2298",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "6bdc8897-3eee-4356-b717-8bc3c9249946"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.19.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "status": "ok",
+      "operations": {
+        "budget_ops": [
+          {
+            "action": "set",
+            "tenure": "visit",
+            "amount": 0,
+            "segment": "unchanged",
+            "strictness": "unchanged",
+            "step": "none",
+            "provenance": "stated"
+          }
+        ],
+        "commute_ops": [],
+        "weight_ops": [
+          {
+            "action": "nudge",
+            "feature_id": "venue_food_drink_per_homes",
+            "value": 0.0,
+            "step": "up_large",
+            "direction": "default",
+            "provenance": "stated"
+          }
+        ],
+        "tag_ops": [
+          {
+            "action": "nudge",
+            "tag_id": "pace",
+            "value": 0.0,
+            "step": "up_large",
+            "toward": "high",
+            "provenance": "stated"
+          }
+        ],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "visit",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.0,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "culture_venues_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_evening_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_food_drink_per_homes",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "stated"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "pace",
+            "weight": 0.5,
+            "toward": "high",
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "stated",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "6f43cb4bbfcfb67b1ebc77f3c13880fb327383091146b24b5e903113469e2df4",
+      "applied": [
+        {
+          "group": "budget_ops",
+          "index": 0,
+          "changed": true
+        },
+        {
+          "group": "weight_ops",
+          "index": 0,
+          "changed": true
+        },
+        {
+          "group": "tag_ops",
+          "index": 0,
+          "changed": true
+        }
+      ],
+      "rejected": [],
+      "assumptions": [
+        {
+          "code": "direction",
+          "group": "weight_ops",
+          "index": 0,
+          "word": ""
+        }
+      ],
+      "unmet": [],
+      "clarify": [],
+      "notice": "none",
+      "notice_text": "",
+      "interpreter": "rule",
+      "degraded": false,
+      "model_refused": false,
+      "rests_on": [
+        {
+          "group": "budget_ops",
+          "index": 0,
+          "start": 4,
+          "end": 26
+        },
+        {
+          "group": "weight_ops",
+          "index": 0,
+          "start": 49,
+          "end": 68
+        },
+        {
+          "group": "tag_ops",
+          "index": 0,
+          "start": 38,
+          "end": 43
+        }
+      ],
+      "suggestions": [],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
+    }
+  }
+}

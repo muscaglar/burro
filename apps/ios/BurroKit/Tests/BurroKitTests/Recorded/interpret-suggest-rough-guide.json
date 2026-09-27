@@ -1,6 +1,6 @@
 {
   "scenario": "interpret-suggest-rough-guide",
-  "shows": "A vibe that is a rough guide: offered with its label and its sentence, never applied, and never taken by the one press that takes what stands beside it",
+  "shows": "A vibe that is a rough guide: offered with no word that says so, never applied, and never taken by the one press that takes what stands beside it",
   "captured": true,
   "request": {
     "operation_id": "interpret",
@@ -16,7 +16,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "4329",
+    "content-length": "4349",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -26,7 +26,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -126,14 +126,14 @@
             "start": 0,
             "end": 5
           },
-          "follows": "What it counts: gardens, woodland and trees, and a public park near home. It cannot see: one street or one home. An area is many streets.",
+          "follows": "This vibe counts gardens, woodland and trees, and a public park near home. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
               "label": "Add",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
@@ -173,7 +173,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "tag:quiet_residential",
@@ -189,14 +191,14 @@
             "start": 7,
             "end": 20
           },
-          "follows": "What it counts: homes away from main roads, from heavy traffic and from clusters of pubs and bars, with little transport noise. It cannot see: one street or one home. An area is many streets.",
+          "follows": "This vibe counts homes away from main roads, from heavy traffic and from clusters of pubs and bars, with little transport noise. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
               "label": "Add",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
@@ -236,7 +238,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "tag:village_feel",
@@ -252,7 +256,7 @@
             "start": 22,
             "end": 30
           },
-          "follows": "What it counts: a high street in a conservation area, homes that stand apart, period homes and protected streets. It cannot see: one street or one home. An area is many streets.",
+          "follows": "This vibe counts a high street in a conservation area, homes that stand apart, period homes and protected streets. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
@@ -293,13 +297,15 @@
               }
             }
           ],
-          "note": "Rough guide. Of the areas it puts highest, about half read as villages to people, and it takes some busy main roads and some grand inner streets for villages.",
+          "note": "",
           "read_by": "rule",
           "add_all": "",
           "needs": "Village feel",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         }
       ],
       "unread": [],

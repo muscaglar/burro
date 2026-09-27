@@ -461,6 +461,9 @@ enum ResultsCopy {
         static let fromDefaultsBuy =
             "No search is open, so these areas are compared on the usual settings for buying. "
             + "A search of your own puts the rows in the order of what counts most to you."
+        static let fromDefaultsVisit =
+            "No search is open, so these areas are compared on the usual settings for visiting. "
+            + "A search of your own puts the rows in the order of what counts most to you."
         static let nothingCounts =
             "Nothing is set to count in this search, so there is nothing to compare the areas on."
         static let chooseOthers = "Choose other areas"

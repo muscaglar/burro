@@ -55,12 +55,6 @@
           },
           {
             "feature_id": "station_walk",
-            "weight": 0.1,
-            "direction": "less",
-            "provenance": "default"
-          },
-          {
-            "feature_id": "venue_evening_per_homes",
             "weight": 0.5,
             "direction": "less",
             "provenance": "ui_edit"
@@ -70,7 +64,7 @@
           {
             "tag_id": "pace",
             "weight": 0.5,
-            "toward": "low",
+            "toward": "high",
             "provenance": "ui_edit"
           }
         ],
@@ -88,7 +82,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "30778",
+    "content-length": "31354",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -98,53 +92,53 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
     "data": {
-      "spec_hash": "7fcd34bed22d4896a9ab864d644cbe0d4dfc96f57ff92db18e96dc351a935234",
+      "spec_hash": "077f420d383d9331c69cec0b4684af70d34552cd83cbcb1b95a6ef2f619f123e",
       "explanations": [
         {
-          "area_id": "syn-n0008",
+          "area_id": "syn-n0018",
           "orientation": {
-            "text": "Gorsebeck is in Quillhaven.",
+            "text": "Pellam Cross is in Quillhaven.",
             "fact_ids": [
-              "syn-n0008/area/name"
+              "syn-n0018/area/name"
             ],
             "origin": "template",
             "replaced": false
           },
           "reasons": [
             {
-              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 1.4 per 1,000 homes, fewer than 90% of the 21 areas compared in this release, and the same as 1 other.",
+              "text": "Going out: band 5 of 5 among the 21 areas Burro compared, where the bands run from Calm to Buzzy.",
               "fact_ids": [
-                "syn-n0008/feature/venue_evening_per_homes"
+                "syn-n0018/tag/pace"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Going out: band 1 of 5, counted from Calm to Buzzy, among the 21 areas compared in this release.",
+              "text": "Distance to the nearest station entrance, in a straight line: 160 m, which is closer than 77% of the 22 areas Burro compared, and the same as 4 others.",
               "fact_ids": [
-                "syn-n0008/tag/pace"
+                "syn-n0018/feature/station_walk"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Modelled annual mean nitrogen dioxide: 13.2 µg/m³, lower than 95% of the 20 areas compared in this release.",
+              "text": "Lines within a 10-minute walk: 4, which is more than 95% of the 22 areas Burro compared.",
               "fact_ids": [
-                "syn-n0008/feature/air_no2"
+                "syn-n0018/feature/station_lines"
               ],
               "origin": "template",
               "replaced": false
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest way in to a station: 5,440 m, further than 95% of the 22 areas compared in this release.",
+            "text": "Nitrogen dioxide in the air, as a modelled average over a year: 34.5 µg/m³, which is higher than 95% of the 20 areas Burro compared.",
             "fact_ids": [
-              "syn-n0008/feature/station_walk"
+              "syn-n0018/feature/air_no2"
             ],
             "origin": "template",
             "replaced": false
@@ -152,45 +146,84 @@
           "missing": []
         },
         {
-          "area_id": "syn-n0006",
+          "area_id": "syn-n0002",
           "orientation": {
-            "text": "Farrowmere is in Quillhaven.",
+            "text": "Brackenhythe is in Quillhaven.",
             "fact_ids": [
-              "syn-n0006/area/name"
+              "syn-n0002/area/name"
             ],
             "origin": "template",
             "replaced": false
           },
           "reasons": [
             {
-              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 1.6 per 1,000 homes, fewer than 85% of the 21 areas compared in this release.",
+              "text": "Going out: band 3 of 5 among the 21 areas Burro compared, where the bands run from Calm to Buzzy.",
               "fact_ids": [
-                "syn-n0006/feature/venue_evening_per_homes"
+                "syn-n0002/tag/pace"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Going out: band 1 of 5, counted from Calm to Buzzy, among the 21 areas compared in this release.",
+              "text": "Distance to the nearest station entrance, in a straight line: 160 m, which is closer than 77% of the 22 areas Burro compared, and the same as 4 others.",
               "fact_ids": [
-                "syn-n0006/tag/pace"
+                "syn-n0002/feature/station_walk"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Modelled annual mean nitrogen dioxide: 15.4 µg/m³, lower than 90% of the 20 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 480 m, which is closer than 85% of the 21 areas Burro compared.",
               "fact_ids": [
-                "syn-n0006/feature/air_no2"
+                "syn-n0002/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": null,
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0021",
+          "orientation": {
+            "text": "Tallowgate is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0021/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Going out: band 5 of 5 among the 21 areas Burro compared, where the bands run from Calm to Buzzy.",
+              "fact_ids": [
+                "syn-n0021/tag/pace"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Distance to the nearest station entrance, in a straight line: 320 m, which is closer than 50% of the 22 areas Burro compared, and the same as 5 others.",
+              "fact_ids": [
+                "syn-n0021/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Lines within a 10-minute walk: 2, which is more than 86% of the 22 areas Burro compared, and the same as 1 other.",
+              "fact_ids": [
+                "syn-n0021/feature/station_lines"
               ],
               "origin": "template",
               "replaced": false
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest town centre boundary: 1,460 m, further than 66% of the 21 areas compared in this release.",
+            "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 1,070 m, which is further than 80% of the 21 areas Burro compared.",
             "fact_ids": [
-              "syn-n0006/feature/highstreet_access"
+              "syn-n0021/feature/park_proximity"
             ],
             "origin": "template",
             "replaced": false
@@ -198,100 +231,45 @@
           "missing": []
         },
         {
-          "area_id": "syn-n0014",
+          "area_id": "syn-n0012",
           "orientation": {
-            "text": "Marrowfen is in Quillhaven.",
+            "text": "Lantern Yard is in Quillhaven.",
             "fact_ids": [
-              "syn-n0014/area/name"
+              "syn-n0012/area/name"
             ],
             "origin": "template",
             "replaced": false
           },
           "reasons": [
             {
-              "text": "Going out: band 1 of 5, counted from Calm to Buzzy, among the 21 areas compared in this release.",
+              "text": "Going out: band 5 of 5 among the 21 areas Burro compared, where the bands run from Calm to Buzzy.",
               "fact_ids": [
-                "syn-n0014/tag/pace"
+                "syn-n0012/tag/pace"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 1.4 per 1,000 homes, fewer than 90% of the 21 areas compared in this release, and the same as 1 other.",
+              "text": "Distance to the nearest station entrance, in a straight line: 320 m, which is closer than 50% of the 22 areas Burro compared, and the same as 5 others.",
               "fact_ids": [
-                "syn-n0014/feature/venue_evening_per_homes"
+                "syn-n0012/feature/station_walk"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Modelled annual mean nitrogen dioxide: 18.5 µg/m³, lower than 65% of the 20 areas compared in this release, and the same as 1 other.",
+              "text": "Distance to the edge of the nearest town centre, in a straight line: 510 m, which is closer than 85% of the 21 areas Burro compared.",
               "fact_ids": [
-                "syn-n0014/feature/air_no2"
+                "syn-n0012/feature/highstreet_access"
               ],
               "origin": "template",
               "replaced": false
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest way in to a station: 3,200 m, further than 90% of the 22 areas compared in this release.",
+            "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 1,140 m, which is further than 90% of the 21 areas Burro compared.",
             "fact_ids": [
-              "syn-n0014/feature/station_walk"
-            ],
-            "origin": "template",
-            "replaced": false
-          },
-          "missing": [
-            {
-              "text": "There is no Share of residents exposed to 55 dB or more of transport noise figure for Marrowfen in this release, so it was left out of the score.",
-              "fact_ids": [
-                "syn-n0014/missing/feature:noise_exposure"
-              ],
-              "origin": "template",
-              "replaced": false
-            }
-          ]
-        },
-        {
-          "area_id": "syn-n0019",
-          "orientation": {
-            "text": "Sable Reach is in Quillhaven.",
-            "fact_ids": [
-              "syn-n0019/area/name"
-            ],
-            "origin": "template",
-            "replaced": false
-          },
-          "reasons": [
-            {
-              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 1.7 per 1,000 homes, fewer than 76% of the 21 areas compared in this release, and the same as 1 other.",
-              "fact_ids": [
-                "syn-n0019/feature/venue_evening_per_homes"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "Going out: band 1 of 5, counted from Calm to Buzzy, among the 21 areas compared in this release.",
-              "fact_ids": [
-                "syn-n0019/tag/pace"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
-              "fact_ids": [
-                "syn-n0019/feature/station_walk"
-              ],
-              "origin": "template",
-              "replaced": false
-            }
-          ],
-          "trade_off": {
-            "text": "Modelled annual mean nitrogen dioxide: 26.8 µg/m³, higher than 70% of the 20 areas compared in this release.",
-            "fact_ids": [
-              "syn-n0019/feature/air_no2"
+              "syn-n0012/feature/park_proximity"
             ],
             "origin": "template",
             "replaced": false
@@ -299,45 +277,45 @@
           "missing": []
         },
         {
-          "area_id": "syn-n0003",
+          "area_id": "syn-n0024",
           "orientation": {
-            "text": "Cindermoor is in Quillhaven.",
+            "text": "Wickerford is in Quillhaven.",
             "fact_ids": [
-              "syn-n0003/area/name"
+              "syn-n0024/area/name"
             ],
             "origin": "template",
             "replaced": false
           },
           "reasons": [
             {
-              "text": "Going out: band 1 of 5, counted from Calm to Buzzy, among the 21 areas compared in this release.",
+              "text": "Distance to the nearest station entrance, in a straight line: 160 m, which is closer than 77% of the 22 areas Burro compared, and the same as 4 others.",
               "fact_ids": [
-                "syn-n0003/tag/pace"
+                "syn-n0024/feature/station_walk"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 1.8 per 1,000 homes, fewer than 71% of the 21 areas compared in this release.",
+              "text": "Share of residents exposed to 55 dB or more of transport noise: 17%, which is quieter than 70% of the 20 areas Burro compared.",
               "fact_ids": [
-                "syn-n0003/feature/venue_evening_per_homes"
+                "syn-n0024/feature/noise_exposure"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "text": "Nitrogen dioxide in the air, as a modelled average over a year: 18.5 µg/m³, which is lower than 65% of the 20 areas Burro compared, and the same as 1 other.",
               "fact_ids": [
-                "syn-n0003/feature/station_walk"
+                "syn-n0024/feature/air_no2"
               ],
               "origin": "template",
               "replaced": false
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest town centre boundary: 1,580 m, further than 80% of the 21 areas compared in this release.",
+            "text": "Distance to the edge of the nearest town centre, in a straight line: 1,550 m, which is further than 76% of the 21 areas Burro compared.",
             "fact_ids": [
-              "syn-n0003/feature/highstreet_access"
+              "syn-n0024/feature/highstreet_access"
             ],
             "origin": "template",
             "replaced": false
@@ -347,24 +325,24 @@
       ],
       "facts": [
         {
-          "fact_id": "syn-n0008/area/name",
-          "area_id": "syn-n0008",
+          "fact_id": "syn-n0018/area/name",
+          "area_id": "syn-n0018",
           "kind": "area",
           "key": "name",
           "label": "Area",
           "template": "area",
           "slots": {
-            "name": "Gorsebeck",
+            "name": "Pellam Cross",
             "borough": "Quillhaven",
-            "label": "Quillhaven 008",
+            "label": "Quillhaven 018",
             "written_by": "Burro",
-            "state": "draft"
+            "state": "checked"
           },
           "numbers": [],
           "names": [
-            "Gorsebeck",
+            "Pellam Cross",
             "Quillhaven",
-            "Quillhaven 008"
+            "Quillhaven 018"
           ],
           "sources": [
             {
@@ -379,102 +357,27 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0008/feature/air_no2",
-          "area_id": "syn-n0008",
+          "fact_id": "syn-n0018/feature/air_no2",
+          "area_id": "syn-n0018",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
-            "value": "13.2 µg/m³",
-            "band": "1",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
+            "value": "34.5 µg/m³",
+            "band": "5",
+            "standing": "higher than all 19 other areas Burro compared",
             "comparative": "lower than",
-            "pct": "95",
-            "standing": "lower than 95% of the 20 areas compared in this release",
-            "standing_worse": "higher than none of the 19 other areas compared in this release",
             "comparative_worse": "higher than",
+            "pct_worse": "95",
+            "standing_worse": "higher than 95% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
-            "13.2",
+            "34.5",
+            "19",
             "95%",
-            "20",
-            "19"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0008/feature/station_walk",
-          "area_id": "syn-n0008",
-          "kind": "feature",
-          "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
-          "template": "feature",
-          "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
-            "value": "5,440 m",
-            "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
-            "comparative": "closer than",
-            "comparative_worse": "further than",
-            "pct_worse": "95",
-            "standing_worse": "further than 95% of the 22 areas compared in this release",
-            "compared": "22"
-          },
-          "numbers": [
-            "5440",
-            "21",
-            "95%",
-            "22"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0008/feature/venue_evening_per_homes",
-          "area_id": "syn-n0008",
-          "kind": "feature",
-          "key": "venue_evening_per_homes",
-          "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
-          "template": "feature",
-          "slots": {
-            "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
-            "value": "1.4 per 1,000 homes",
-            "band": "1",
-            "comparative": "fewer than",
-            "pct": "90",
-            "standing": "fewer than 90% of the 21 areas compared in this release, and the same as 1 other",
-            "standing_worse": "the same as 1 of the 20 other areas compared in this release",
-            "compared": "21",
-            "level": "1"
-          },
-          "numbers": [
-            "1.4",
-            "90%",
-            "21",
-            "1",
             "20"
           ],
           "names": [],
@@ -491,30 +394,148 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0008/tag/homes",
-          "area_id": "syn-n0008",
+          "fact_id": "syn-n0018/feature/station_lines",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "station_lines",
+          "label": "Lines within a 10-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Lines within a 10-minute walk",
+            "value": "4",
+            "band": "5",
+            "comparative": "more than",
+            "pct": "95",
+            "standing": "more than 95% of the 22 areas Burro compared",
+            "standing_worse": "more than all 21 other areas Burro compared",
+            "comparative_worse": "fewer than",
+            "compared": "22"
+          },
+          "numbers": [
+            "4",
+            "95%",
+            "22",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/station_walk",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Distance to the nearest station entrance, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Distance to the nearest station entrance, in a straight line",
+            "value": "160 m",
+            "band": "1",
+            "comparative": "closer than",
+            "pct": "77",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
+            "compared": "22",
+            "level": "4"
+          },
+          "numbers": [
+            "160",
+            "77%",
+            "22",
+            "4",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/tag/everyday_on_foot",
+          "area_id": "syn-n0018",
+          "kind": "tag",
+          "key": "everyday_on_foot",
+          "label": "Everyday on foot",
+          "template": "vibe",
+          "slots": {
+            "label": "Everyday on foot",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "5",
+            "share": "70",
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "70",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/tag/homes",
+          "area_id": "syn-n0018",
           "kind": "tag",
           "key": "homes",
           "label": "Houses or flats",
           "template": "vibe",
           "slots": {
             "label": "Houses or flats",
-            "band": "1",
+            "band": "5",
             "low_end": "Houses",
             "high_end": "Flats",
             "compared": "22",
             "span": "2025",
-            "spread_low": "1",
-            "spread_high": "1",
+            "spread_low": "5",
+            "spread_high": "5",
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
-            "1",
             "5",
             "22",
             "2",
@@ -537,73 +558,29 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0008/tag/leafy",
-          "area_id": "syn-n0008",
-          "kind": "tag",
-          "key": "leafy",
-          "label": "Leafy",
-          "template": "vibe",
-          "slots": {
-            "label": "Leafy",
-            "band": "5",
-            "low_end": "least",
-            "high_end": "most",
-            "compared": "21",
-            "span": "2025",
-            "spread_low": "5",
-            "spread_high": "5",
-            "known": "3",
-            "parts": "3",
-            "share": "100",
-            "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "5",
-            "21",
-            "3",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0008/tag/pace",
-          "area_id": "syn-n0008",
+          "fact_id": "syn-n0018/tag/pace",
+          "area_id": "syn-n0018",
           "kind": "tag",
           "key": "pace",
           "label": "Going out",
           "template": "vibe",
           "slots": {
             "label": "Going out",
-            "band": "1",
+            "band": "5",
             "low_end": "Calm",
             "high_end": "Buzzy",
             "compared": "21",
             "span": "2025",
-            "spread_low": "1",
-            "spread_high": "1",
+            "spread_low": "5",
+            "spread_high": "5",
             "known": "4",
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
-            "1",
             "5",
             "21",
             "4",
@@ -624,24 +601,24 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0006/area/name",
-          "area_id": "syn-n0006",
+          "fact_id": "syn-n0002/area/name",
+          "area_id": "syn-n0002",
           "kind": "area",
           "key": "name",
           "label": "Area",
           "template": "area",
           "slots": {
-            "name": "Farrowmere",
+            "name": "Brackenhythe",
             "borough": "Quillhaven",
-            "label": "Quillhaven 006",
+            "label": "Quillhaven 002",
             "written_by": "Burro",
             "state": "draft"
           },
           "numbers": [],
           "names": [
-            "Farrowmere",
+            "Brackenhythe",
             "Quillhaven",
-            "Quillhaven 006"
+            "Quillhaven 002"
           ],
           "sources": [
             {
@@ -656,102 +633,26 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0006/feature/air_no2",
-          "area_id": "syn-n0006",
+          "fact_id": "syn-n0002/feature/park_proximity",
+          "area_id": "syn-n0002",
           "kind": "feature",
-          "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "key": "park_proximity",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
-            "value": "15.4 µg/m³",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
+            "value": "480 m",
             "band": "1",
-            "comparative": "lower than",
-            "pct": "90",
-            "standing": "lower than 90% of the 20 areas compared in this release",
-            "comparative_worse": "higher than",
-            "pct_worse": "5",
-            "standing_worse": "higher than 5% of the 20 areas compared in this release",
-            "compared": "20"
-          },
-          "numbers": [
-            "15.4",
-            "90%",
-            "20",
-            "5%"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0006/feature/highstreet_access",
-          "area_id": "syn-n0006",
-          "kind": "feature",
-          "key": "highstreet_access",
-          "label": "Straight-line distance to the nearest town centre boundary",
-          "template": "feature",
-          "slots": {
-            "label": "Straight-line distance to the nearest town centre boundary",
-            "value": "1,460 m",
-            "band": "4",
             "comparative": "closer than",
-            "pct": "28",
-            "standing": "closer than 28% of the 21 areas compared in this release",
-            "comparative_worse": "further than",
-            "pct_worse": "66",
-            "standing_worse": "further than 66% of the 21 areas compared in this release",
-            "compared": "21"
-          },
-          "numbers": [
-            "1460",
-            "28%",
-            "21",
-            "66%"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0006/feature/venue_evening_per_homes",
-          "area_id": "syn-n0006",
-          "kind": "feature",
-          "key": "venue_evening_per_homes",
-          "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
-          "template": "feature",
-          "slots": {
-            "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
-            "value": "1.6 per 1,000 homes",
-            "band": "1",
-            "comparative": "fewer than",
             "pct": "85",
-            "standing": "fewer than 85% of the 21 areas compared in this release",
-            "comparative_worse": "more than",
+            "standing": "closer than 85% of the 21 areas Burro compared",
+            "comparative_worse": "further than",
             "pct_worse": "9",
-            "standing_worse": "more than 9% of the 21 areas compared in this release",
+            "standing_worse": "further than 9% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
-            "1.6",
+            "480",
             "85%",
             "21",
             "9%"
@@ -770,30 +671,111 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0006/tag/built_age",
-          "area_id": "syn-n0006",
+          "fact_id": "syn-n0002/feature/station_walk",
+          "area_id": "syn-n0002",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Distance to the nearest station entrance, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Distance to the nearest station entrance, in a straight line",
+            "value": "160 m",
+            "band": "1",
+            "comparative": "closer than",
+            "pct": "77",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
+            "compared": "22",
+            "level": "4"
+          },
+          "numbers": [
+            "160",
+            "77%",
+            "22",
+            "4",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/tag/leafy",
+          "area_id": "syn-n0002",
           "kind": "tag",
-          "key": "built_age",
-          "label": "Age of buildings",
+          "key": "leafy",
+          "label": "Leafy",
           "template": "vibe",
           "slots": {
-            "label": "Age of buildings",
-            "band": "1",
-            "low_end": "Newer",
-            "high_end": "Historic",
+            "label": "Leafy",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
             "compared": "21",
             "span": "2025",
-            "spread_low": "1",
-            "spread_high": "1",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/tag/pace",
+          "area_id": "syn-n0002",
+          "kind": "tag",
+          "key": "pace",
+          "label": "Going out",
+          "template": "vibe",
+          "slots": {
+            "label": "Going out",
+            "band": "3",
+            "low_end": "Calm",
+            "high_end": "Buzzy",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "3",
+            "spread_high": "3",
             "known": "4",
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
-            "1",
+            "3",
             "5",
             "21",
             "4",
@@ -814,8 +796,522 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0006/tag/homes",
-          "area_id": "syn-n0006",
+          "fact_id": "syn-n0002/tag/parks_close_by",
+          "area_id": "syn-n0002",
+          "kind": "tag",
+          "key": "parks_close_by",
+          "label": "Parks close by",
+          "template": "vibe",
+          "slots": {
+            "label": "Parks close by",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/area/name",
+          "area_id": "syn-n0021",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Tallowgate",
+            "borough": "Quillhaven",
+            "label": "Quillhaven 021",
+            "written_by": "Burro",
+            "state": "checked"
+          },
+          "numbers": [],
+          "names": [
+            "Tallowgate",
+            "Quillhaven",
+            "Quillhaven 021"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/park_proximity",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
+            "value": "1,070 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "14",
+            "standing": "closer than 14% of the 21 areas Burro compared",
+            "comparative_worse": "further than",
+            "pct_worse": "80",
+            "standing_worse": "further than 80% of the 21 areas Burro compared",
+            "compared": "21"
+          },
+          "numbers": [
+            "1070",
+            "14%",
+            "21",
+            "80%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/station_lines",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "station_lines",
+          "label": "Lines within a 10-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Lines within a 10-minute walk",
+            "value": "2",
+            "band": "5",
+            "comparative": "more than",
+            "pct": "86",
+            "standing": "more than 86% of the 22 areas Burro compared, and the same as 1 other",
+            "comparative_worse": "fewer than",
+            "pct_worse": "4",
+            "standing_worse": "fewer than 4% of the 22 areas Burro compared, and the same as 1 other",
+            "compared": "22",
+            "level": "1"
+          },
+          "numbers": [
+            "2",
+            "86%",
+            "22",
+            "1",
+            "4%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/station_walk",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Distance to the nearest station entrance, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Distance to the nearest station entrance, in a straight line",
+            "value": "320 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "50",
+            "standing": "closer than 50% of the 22 areas Burro compared, and the same as 5 others",
+            "comparative_worse": "further than",
+            "pct_worse": "22",
+            "standing_worse": "further than 22% of the 22 areas Burro compared, and the same as 5 others",
+            "compared": "22",
+            "level": "5"
+          },
+          "numbers": [
+            "320",
+            "50%",
+            "22",
+            "5",
+            "22%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/tag/built_age",
+          "area_id": "syn-n0021",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "5",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/tag/everyday_on_foot",
+          "area_id": "syn-n0021",
+          "kind": "tag",
+          "key": "everyday_on_foot",
+          "label": "Everyday on foot",
+          "template": "vibe",
+          "slots": {
+            "label": "Everyday on foot",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "5",
+            "share": "70",
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "70",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/tag/pace",
+          "area_id": "syn-n0021",
+          "kind": "tag",
+          "key": "pace",
+          "label": "Going out",
+          "template": "vibe",
+          "slots": {
+            "label": "Going out",
+            "band": "5",
+            "low_end": "Calm",
+            "high_end": "Buzzy",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0012/area/name",
+          "area_id": "syn-n0012",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Lantern Yard",
+            "borough": "Quillhaven",
+            "label": "Quillhaven 012",
+            "written_by": "Burro",
+            "state": "draft"
+          },
+          "numbers": [],
+          "names": [
+            "Lantern Yard",
+            "Quillhaven",
+            "Quillhaven 012"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0012/feature/highstreet_access",
+          "area_id": "syn-n0012",
+          "kind": "feature",
+          "key": "highstreet_access",
+          "label": "Distance to the edge of the nearest town centre, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Distance to the edge of the nearest town centre, in a straight line",
+            "value": "510 m",
+            "band": "1",
+            "comparative": "closer than",
+            "pct": "85",
+            "standing": "closer than 85% of the 21 areas Burro compared",
+            "comparative_worse": "further than",
+            "pct_worse": "9",
+            "standing_worse": "further than 9% of the 21 areas Burro compared",
+            "compared": "21"
+          },
+          "numbers": [
+            "510",
+            "85%",
+            "21",
+            "9%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0012/feature/park_proximity",
+          "area_id": "syn-n0012",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
+            "value": "1,140 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 21 areas Burro compared",
+            "comparative_worse": "further than",
+            "pct_worse": "90",
+            "standing_worse": "further than 90% of the 21 areas Burro compared",
+            "compared": "21"
+          },
+          "numbers": [
+            "1140",
+            "4%",
+            "21",
+            "90%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0012/feature/station_walk",
+          "area_id": "syn-n0012",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Distance to the nearest station entrance, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Distance to the nearest station entrance, in a straight line",
+            "value": "320 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "50",
+            "standing": "closer than 50% of the 22 areas Burro compared, and the same as 5 others",
+            "comparative_worse": "further than",
+            "pct_worse": "22",
+            "standing_worse": "further than 22% of the 22 areas Burro compared, and the same as 5 others",
+            "compared": "22",
+            "level": "5"
+          },
+          "numbers": [
+            "320",
+            "50%",
+            "22",
+            "5",
+            "22%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0012/tag/built_age",
+          "area_id": "syn-n0012",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "5",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0012/tag/homes",
+          "area_id": "syn-n0012",
           "kind": "tag",
           "key": "homes",
           "label": "Houses or flats",
@@ -832,9 +1328,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -859,30 +1355,29 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0006/tag/pace",
-          "area_id": "syn-n0006",
+          "fact_id": "syn-n0012/tag/pace",
+          "area_id": "syn-n0012",
           "kind": "tag",
           "key": "pace",
           "label": "Going out",
           "template": "vibe",
           "slots": {
             "label": "Going out",
-            "band": "1",
+            "band": "5",
             "low_end": "Calm",
             "high_end": "Buzzy",
             "compared": "21",
             "span": "2025",
-            "spread_low": "1",
-            "spread_high": "1",
+            "spread_low": "5",
+            "spread_high": "5",
             "known": "4",
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
-            "1",
             "5",
             "21",
             "4",
@@ -903,24 +1398,24 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0014/area/name",
-          "area_id": "syn-n0014",
+          "fact_id": "syn-n0024/area/name",
+          "area_id": "syn-n0024",
           "kind": "area",
           "key": "name",
           "label": "Area",
           "template": "area",
           "slots": {
-            "name": "Marrowfen",
+            "name": "Wickerford",
             "borough": "Quillhaven",
-            "label": "Quillhaven 014",
+            "label": "Quillhaven 024",
             "written_by": "Burro",
             "state": "draft"
           },
           "numbers": [],
           "names": [
-            "Marrowfen",
+            "Wickerford",
             "Quillhaven",
-            "Quillhaven 014"
+            "Quillhaven 024"
           ],
           "sources": [
             {
@@ -935,22 +1430,22 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0014/feature/air_no2",
-          "area_id": "syn-n0014",
+          "fact_id": "syn-n0024/feature/air_no2",
+          "area_id": "syn-n0024",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "18.5 µg/m³",
             "band": "2",
             "comparative": "lower than",
             "pct": "65",
-            "standing": "lower than 65% of the 20 areas compared in this release, and the same as 1 other",
+            "standing": "lower than 65% of the 20 areas Burro compared, and the same as 1 other",
             "comparative_worse": "higher than",
             "pct_worse": "25",
-            "standing_worse": "higher than 25% of the 20 areas compared in this release, and the same as 1 other",
+            "standing_worse": "higher than 25% of the 20 areas Burro compared, and the same as 1 other",
             "compared": "20",
             "level": "1"
           },
@@ -975,67 +1470,29 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0014/feature/station_walk",
-          "area_id": "syn-n0014",
+          "fact_id": "syn-n0024/feature/highstreet_access",
+          "area_id": "syn-n0024",
           "kind": "feature",
-          "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "key": "highstreet_access",
+          "label": "Distance to the edge of the nearest town centre, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
-            "value": "3,200 m",
-            "band": "5",
+            "label": "Distance to the edge of the nearest town centre, in a straight line",
+            "value": "1,550 m",
+            "band": "4",
             "comparative": "closer than",
-            "pct": "4",
-            "standing": "closer than 4% of the 22 areas compared in this release",
+            "pct": "19",
+            "standing": "closer than 19% of the 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "90",
-            "standing_worse": "further than 90% of the 22 areas compared in this release",
-            "compared": "22"
+            "pct_worse": "76",
+            "standing_worse": "further than 76% of the 21 areas Burro compared",
+            "compared": "21"
           },
           "numbers": [
-            "3200",
-            "4%",
-            "22",
-            "90%"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0014/feature/venue_evening_per_homes",
-          "area_id": "syn-n0014",
-          "kind": "feature",
-          "key": "venue_evening_per_homes",
-          "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
-          "template": "feature",
-          "slots": {
-            "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
-            "value": "1.4 per 1,000 homes",
-            "band": "1",
-            "comparative": "fewer than",
-            "pct": "90",
-            "standing": "fewer than 90% of the 21 areas compared in this release, and the same as 1 other",
-            "standing_worse": "the same as 1 of the 20 other areas compared in this release",
-            "compared": "21",
-            "level": "1"
-          },
-          "numbers": [
-            "1.4",
-            "90%",
+            "1550",
+            "19%",
             "21",
-            "1",
-            "20"
+            "76%"
           ],
           "names": [],
           "sources": [
@@ -1051,224 +1508,29 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0014/missing/feature:noise_exposure",
-          "area_id": "syn-n0014",
-          "kind": "missing",
-          "key": "feature:noise_exposure",
+          "fact_id": "syn-n0024/feature/noise_exposure",
+          "area_id": "syn-n0024",
+          "kind": "feature",
+          "key": "noise_exposure",
           "label": "Share of residents exposed to 55 dB or more of transport noise",
-          "template": "missing",
+          "template": "feature",
           "slots": {
             "label": "Share of residents exposed to 55 dB or more of transport noise",
-            "name": "Marrowfen"
-          },
-          "numbers": [],
-          "names": [
-            "Marrowfen"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0014/tag/built_age",
-          "area_id": "syn-n0014",
-          "kind": "tag",
-          "key": "built_age",
-          "label": "Age of buildings",
-          "template": "vibe",
-          "slots": {
-            "label": "Age of buildings",
-            "band": "1",
-            "low_end": "Newer",
-            "high_end": "Historic",
-            "compared": "21",
-            "span": "2025",
-            "spread_low": "1",
-            "spread_high": "1",
-            "known": "3",
-            "parts": "4",
-            "share": "75",
-            "partly": "Worked out from 3 of its 4 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "1",
-            "5",
-            "21",
-            "3",
-            "4",
-            "75",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0014/tag/homes",
-          "area_id": "syn-n0014",
-          "kind": "tag",
-          "key": "homes",
-          "label": "Houses or flats",
-          "template": "vibe",
-          "slots": {
-            "label": "Houses or flats",
-            "band": "1",
-            "low_end": "Houses",
-            "high_end": "Flats",
-            "compared": "22",
-            "span": "2025",
-            "spread_low": "1",
-            "spread_high": "1",
-            "known": "2",
-            "parts": "3",
-            "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "1",
-            "5",
-            "22",
-            "2",
-            "3",
-            "75",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0014/tag/pace",
-          "area_id": "syn-n0014",
-          "kind": "tag",
-          "key": "pace",
-          "label": "Going out",
-          "template": "vibe",
-          "slots": {
-            "label": "Going out",
-            "band": "1",
-            "low_end": "Calm",
-            "high_end": "Buzzy",
-            "compared": "21",
-            "span": "2025",
-            "spread_low": "1",
-            "spread_high": "1",
-            "known": "4",
-            "parts": "4",
-            "share": "100",
-            "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "1",
-            "5",
-            "21",
-            "4",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0019/area/name",
-          "area_id": "syn-n0019",
-          "kind": "area",
-          "key": "name",
-          "label": "Area",
-          "template": "area",
-          "slots": {
-            "name": "Sable Reach",
-            "borough": "Quillhaven",
-            "label": "Quillhaven 019",
-            "written_by": "Burro",
-            "state": "draft"
-          },
-          "numbers": [],
-          "names": [
-            "Sable Reach",
-            "Quillhaven",
-            "Quillhaven 019"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0019/feature/air_no2",
-          "area_id": "syn-n0019",
-          "kind": "feature",
-          "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
-          "template": "feature",
-          "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
-            "value": "26.8 µg/m³",
-            "band": "4",
-            "comparative": "lower than",
-            "pct": "25",
-            "standing": "lower than 25% of the 20 areas compared in this release",
-            "comparative_worse": "higher than",
-            "pct_worse": "70",
-            "standing_worse": "higher than 70% of the 20 areas compared in this release",
+            "value": "17%",
+            "band": "2",
+            "comparative": "quieter than",
+            "pct": "70",
+            "standing": "quieter than 70% of the 20 areas Burro compared",
+            "comparative_worse": "noisier than",
+            "pct_worse": "25",
+            "standing_worse": "noisier than 25% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
-            "26.8",
-            "25%",
+            "17%",
+            "70%",
             "20",
-            "70%"
+            "25%"
           ],
           "names": [],
           "sources": [
@@ -1284,20 +1546,20 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0019/feature/station_walk",
-          "area_id": "syn-n0019",
+          "fact_id": "syn-n0024/feature/station_walk",
+          "area_id": "syn-n0024",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "160 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "77",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
-            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
             "compared": "22",
             "level": "4"
           },
@@ -1322,160 +1584,32 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0019/feature/venue_evening_per_homes",
-          "area_id": "syn-n0019",
-          "kind": "feature",
-          "key": "venue_evening_per_homes",
-          "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
-          "template": "feature",
-          "slots": {
-            "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
-            "value": "1.7 per 1,000 homes",
-            "band": "1",
-            "comparative": "fewer than",
-            "pct": "76",
-            "standing": "fewer than 76% of the 21 areas compared in this release, and the same as 1 other",
-            "comparative_worse": "more than",
-            "pct_worse": "14",
-            "standing_worse": "more than 14% of the 21 areas compared in this release, and the same as 1 other",
-            "compared": "21",
-            "level": "1"
-          },
-          "numbers": [
-            "1.7",
-            "76%",
-            "21",
-            "1",
-            "14%"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0019/tag/built_age",
-          "area_id": "syn-n0019",
+          "fact_id": "syn-n0024/tag/built_age",
+          "area_id": "syn-n0024",
           "kind": "tag",
           "key": "built_age",
           "label": "Age of buildings",
           "template": "vibe",
           "slots": {
             "label": "Age of buildings",
-            "band": "1",
+            "band": "5",
             "low_end": "Newer",
             "high_end": "Historic",
-            "compared": "21",
-            "span": "2025",
-            "spread_low": "1",
-            "spread_high": "1",
-            "known": "4",
-            "parts": "4",
-            "share": "100",
-            "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "1",
-            "5",
-            "21",
-            "4",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0019/tag/pace",
-          "area_id": "syn-n0019",
-          "kind": "tag",
-          "key": "pace",
-          "label": "Going out",
-          "template": "vibe",
-          "slots": {
-            "label": "Going out",
-            "band": "1",
-            "low_end": "Calm",
-            "high_end": "Buzzy",
-            "compared": "21",
-            "span": "2025",
-            "spread_low": "1",
-            "spread_high": "1",
-            "known": "4",
-            "parts": "4",
-            "share": "100",
-            "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "1",
-            "5",
-            "21",
-            "4",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0019/tag/parks_close_by",
-          "area_id": "syn-n0019",
-          "kind": "tag",
-          "key": "parks_close_by",
-          "label": "Parks close by",
-          "template": "vibe",
-          "slots": {
-            "label": "Parks close by",
-            "band": "5",
-            "low_end": "least",
-            "high_end": "most",
             "compared": "21",
             "span": "2025",
             "spread_low": "5",
             "spread_high": "5",
-            "known": "3",
-            "parts": "3",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
             "21",
-            "3",
+            "4",
             "100",
             "2025"
           ],
@@ -1493,163 +1627,63 @@
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0003/area/name",
-          "area_id": "syn-n0003",
-          "kind": "area",
-          "key": "name",
-          "label": "Area",
-          "template": "area",
-          "slots": {
-            "name": "Cindermoor",
-            "borough": "Quillhaven",
-            "label": "Quillhaven 003",
-            "written_by": "Burro",
-            "state": "draft"
-          },
-          "numbers": [],
-          "names": [
-            "Cindermoor",
-            "Quillhaven",
-            "Quillhaven 003"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/feature/highstreet_access",
-          "area_id": "syn-n0003",
-          "kind": "feature",
-          "key": "highstreet_access",
-          "label": "Straight-line distance to the nearest town centre boundary",
-          "template": "feature",
-          "slots": {
-            "label": "Straight-line distance to the nearest town centre boundary",
-            "value": "1,580 m",
-            "band": "5",
-            "comparative": "closer than",
-            "pct": "14",
-            "standing": "closer than 14% of the 21 areas compared in this release",
-            "comparative_worse": "further than",
-            "pct_worse": "80",
-            "standing_worse": "further than 80% of the 21 areas compared in this release",
-            "compared": "21"
-          },
-          "numbers": [
-            "1580",
-            "14%",
-            "21",
-            "80%"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/feature/station_walk",
-          "area_id": "syn-n0003",
-          "kind": "feature",
-          "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
-          "template": "feature",
-          "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
-            "value": "160 m",
-            "band": "1",
-            "comparative": "closer than",
-            "pct": "77",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
-            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
-            "compared": "22",
-            "level": "4"
-          },
-          "numbers": [
-            "160",
-            "77%",
-            "22",
-            "4",
-            "21"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/feature/venue_evening_per_homes",
-          "area_id": "syn-n0003",
-          "kind": "feature",
-          "key": "venue_evening_per_homes",
-          "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
-          "template": "feature",
-          "slots": {
-            "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
-            "value": "1.8 per 1,000 homes",
-            "band": "2",
-            "comparative": "fewer than",
-            "pct": "71",
-            "standing": "fewer than 71% of the 21 areas compared in this release",
-            "comparative_worse": "more than",
-            "pct_worse": "23",
-            "standing_worse": "more than 23% of the 21 areas compared in this release",
-            "compared": "21"
-          },
-          "numbers": [
-            "1.8",
-            "71%",
-            "21",
-            "23%"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/tag/built_age",
-          "area_id": "syn-n0003",
+          "fact_id": "syn-n0024/tag/foodie",
+          "area_id": "syn-n0024",
           "kind": "tag",
-          "key": "built_age",
-          "label": "Age of buildings",
+          "key": "foodie",
+          "label": "Food and drink",
           "template": "vibe",
           "slots": {
-            "label": "Age of buildings",
+            "label": "Food and drink",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "2",
+            "parts": "3",
+            "share": "80",
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 80 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "2",
+            "3",
+            "80",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0024/tag/pace",
+          "area_id": "syn-n0024",
+          "kind": "tag",
+          "key": "pace",
+          "label": "Going out",
+          "template": "vibe",
+          "slots": {
+            "label": "Going out",
             "band": "2",
-            "low_end": "Newer",
-            "high_end": "Historic",
+            "low_end": "Calm",
+            "high_end": "Buzzy",
             "compared": "21",
             "span": "2025",
             "spread_low": "2",
@@ -1658,101 +1692,11 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
-            "5",
-            "21",
-            "4",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/tag/homes",
-          "area_id": "syn-n0003",
-          "kind": "tag",
-          "key": "homes",
-          "label": "Houses or flats",
-          "template": "vibe",
-          "slots": {
-            "label": "Houses or flats",
-            "band": "1",
-            "low_end": "Houses",
-            "high_end": "Flats",
-            "compared": "22",
-            "span": "2025",
-            "spread_low": "1",
-            "spread_high": "1",
-            "known": "2",
-            "parts": "3",
-            "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "1",
-            "5",
-            "22",
-            "2",
-            "3",
-            "75",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null,
-              "said_with_attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/tag/pace",
-          "area_id": "syn-n0003",
-          "kind": "tag",
-          "key": "pace",
-          "label": "Going out",
-          "template": "vibe",
-          "slots": {
-            "label": "Going out",
-            "band": "1",
-            "low_end": "Calm",
-            "high_end": "Buzzy",
-            "compared": "21",
-            "span": "2025",
-            "spread_low": "1",
-            "spread_high": "1",
-            "known": "4",
-            "parts": "4",
-            "share": "100",
-            "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "1",
             "5",
             "21",
             "4",

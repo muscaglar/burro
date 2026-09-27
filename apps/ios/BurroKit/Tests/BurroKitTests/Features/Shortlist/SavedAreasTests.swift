@@ -304,7 +304,12 @@ final class SavedAreasTests: XCTestCase {
         saved.keep(page)
 
         let said = try XCTUnwrap(AreaInSearch(search.state, areaId: area.areaId))
-        var never: [String] = [canary, named, "spec_hash", "fact_id", "travel", "budget_fit", "score", "rank\""]
+        // A score and a rank are looked for as the name of what holds one, written to a file
+        // or read back from one. The word alone is in the name the release gives a measure of
+        // an area, "Average Attainment 8 score at nearby secondary schools", which is kept.
+        var never: [String] = [
+            canary, named, "spec_hash", "fact_id", "travel", "budget_fit", "score\"", "score:", "rank\"",
+        ]
         never += search.state.spec.commutes.map(\.placeId)
         never += [search.state.specHash, search.state.rankedHash].compactMap { $0 }
         never += said.reasons.map(\.text)

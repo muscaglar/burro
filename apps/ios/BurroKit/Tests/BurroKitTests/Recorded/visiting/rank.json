@@ -1,0 +1,2800 @@
+{
+  "scenario": "visiting/rank",
+  "shows": "Its ranking: no area holds a fit to a budget, and none is left out for a cost",
+  "captured": true,
+  "request": {
+    "operation_id": "rank",
+    "method": "POST",
+    "route": "/v1/rank",
+    "path": "/v1/rank",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "visit",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.0,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "culture_venues_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_evening_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_food_drink_per_homes",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "stated"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "pace",
+            "weight": 0.5,
+            "toward": "high",
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "stated",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 20
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "39305",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "dbb181ef-84cd-44b8-8866-2710a4ac3d48"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.19.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "scores": [
+        {
+          "area_id": "syn-n0018",
+          "score": 93.25,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0012",
+          "score": 85.86,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0021",
+          "score": 81.73,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0023",
+          "score": 78.42,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0011",
+          "score": 73.98,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0010",
+          "score": 68.77,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0022",
+          "score": 65.97,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0007",
+          "score": 63.75,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0002",
+          "score": 60.83,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0013",
+          "score": 53.31,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0005",
+          "score": 49.0,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0015",
+          "score": 48.48,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0024",
+          "score": 44.72,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0004",
+          "score": 42.52,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0019",
+          "score": 28.14,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0001",
+          "score": 27.79,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0016",
+          "score": 26.89,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0003",
+          "score": 19.92,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0006",
+          "score": 15.83,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0008",
+          "score": 15.23,
+          "counted": 7,
+          "present": 7
+        },
+        {
+          "area_id": "syn-n0014",
+          "score": 9.2,
+          "counted": 7,
+          "present": 7
+        }
+      ],
+      "ranked": [
+        {
+          "area_id": "syn-n0018",
+          "rank": 1,
+          "score": 93.25,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.976,
+              "contribution": 0.3754,
+              "loss": 0.0092,
+              "fact_ids": [
+                "syn-n0018/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.976,
+              "contribution": 0.3754,
+              "loss": 0.0092,
+              "fact_ids": [
+                "syn-n0018/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.886,
+              "contribution": 0.0682,
+              "loss": 0.0088,
+              "fact_ids": [
+                "syn-n0018/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.977,
+              "contribution": 0.0376,
+              "loss": 0.0009,
+              "fact_ids": [
+                "syn-n0018/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.976,
+              "contribution": 0.0375,
+              "loss": 0.0009,
+              "fact_ids": [
+                "syn-n0018/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.976,
+              "contribution": 0.0375,
+              "loss": 0.0009,
+              "fact_ids": [
+                "syn-n0018/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.024,
+              "contribution": 0.0009,
+              "loss": 0.0375,
+              "fact_ids": [
+                "syn-n0018/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0018/tag/pace"
+            },
+            {
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0018/tag/everyday_on_foot"
+            },
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0018/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0012",
+          "rank": 2,
+          "score": 85.86,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.929,
+              "contribution": 0.3573,
+              "loss": 0.0273,
+              "fact_ids": [
+                "syn-n0012/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.929,
+              "contribution": 0.3573,
+              "loss": 0.0273,
+              "fact_ids": [
+                "syn-n0012/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.636,
+              "contribution": 0.0489,
+              "loss": 0.028,
+              "fact_ids": [
+                "syn-n0012/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.929,
+              "contribution": 0.0357,
+              "loss": 0.0027,
+              "fact_ids": [
+                "syn-n0012/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.881,
+              "contribution": 0.0339,
+              "loss": 0.0046,
+              "fact_ids": [
+                "syn-n0012/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0012/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.071,
+              "contribution": 0.0027,
+              "loss": 0.0357,
+              "fact_ids": [
+                "syn-n0012/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0012/tag/pace"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0012/tag/built_age"
+            },
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0012/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0021",
+          "rank": 3,
+          "score": 81.73,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.881,
+              "contribution": 0.3388,
+              "loss": 0.0458,
+              "fact_ids": [
+                "syn-n0021/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.833,
+              "contribution": 0.3204,
+              "loss": 0.0642,
+              "fact_ids": [
+                "syn-n0021/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.636,
+              "contribution": 0.0489,
+              "loss": 0.028,
+              "fact_ids": [
+                "syn-n0021/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.929,
+              "contribution": 0.0357,
+              "loss": 0.0027,
+              "fact_ids": [
+                "syn-n0021/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.909,
+              "contribution": 0.035,
+              "loss": 0.0035,
+              "fact_ids": [
+                "syn-n0021/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.833,
+              "contribution": 0.032,
+              "loss": 0.0064,
+              "fact_ids": [
+                "syn-n0021/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.167,
+              "contribution": 0.0064,
+              "loss": 0.032,
+              "fact_ids": [
+                "syn-n0021/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0021/tag/pace"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0021/tag/built_age"
+            },
+            {
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0021/tag/everyday_on_foot"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0023",
+          "rank": 4,
+          "score": 78.42,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.881,
+              "contribution": 0.3388,
+              "loss": 0.0458,
+              "fact_ids": [
+                "syn-n0023/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.833,
+              "contribution": 0.3204,
+              "loss": 0.0642,
+              "fact_ids": [
+                "syn-n0023/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.881,
+              "contribution": 0.0339,
+              "loss": 0.0046,
+              "fact_ids": [
+                "syn-n0023/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.69,
+              "contribution": 0.0265,
+              "loss": 0.0119,
+              "fact_ids": [
+                "syn-n0023/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.341,
+              "contribution": 0.0262,
+              "loss": 0.0507,
+              "fact_ids": [
+                "syn-n0023/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0023/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.405,
+              "contribution": 0.0156,
+              "loss": 0.0229,
+              "fact_ids": [
+                "syn-n0023/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0023/tag/pace"
+            },
+            {
+              "tag_id": "homes",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0023/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0011",
+          "rank": 5,
+          "score": 73.98,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.786,
+              "contribution": 0.3023,
+              "loss": 0.0823,
+              "fact_ids": [
+                "syn-n0011/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.786,
+              "contribution": 0.3023,
+              "loss": 0.0823,
+              "fact_ids": [
+                "syn-n0011/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.909,
+              "contribution": 0.035,
+              "loss": 0.0035,
+              "fact_ids": [
+                "syn-n0011/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.833,
+              "contribution": 0.032,
+              "loss": 0.0064,
+              "fact_ids": [
+                "syn-n0011/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.786,
+              "contribution": 0.0302,
+              "loss": 0.0082,
+              "fact_ids": [
+                "syn-n0011/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.386,
+              "contribution": 0.0297,
+              "loss": 0.0472,
+              "fact_ids": [
+                "syn-n0011/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.214,
+              "contribution": 0.0082,
+              "loss": 0.0302,
+              "fact_ids": [
+                "syn-n0011/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0011/tag/pace"
+            },
+            {
+              "tag_id": "foodie",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0011/tag/foodie"
+            },
+            {
+              "tag_id": "well_connected",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0011/tag/well_connected"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0010",
+          "rank": 6,
+          "score": 68.77,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.738,
+              "contribution": 0.2838,
+              "loss": 0.1008,
+              "fact_ids": [
+                "syn-n0010/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.69,
+              "contribution": 0.2654,
+              "loss": 0.1192,
+              "fact_ids": [
+                "syn-n0010/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.636,
+              "contribution": 0.0489,
+              "loss": 0.028,
+              "fact_ids": [
+                "syn-n0010/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.738,
+              "contribution": 0.0284,
+              "loss": 0.0101,
+              "fact_ids": [
+                "syn-n0010/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.738,
+              "contribution": 0.0284,
+              "loss": 0.0101,
+              "fact_ids": [
+                "syn-n0010/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0010/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.262,
+              "contribution": 0.0101,
+              "loss": 0.0284,
+              "fact_ids": [
+                "syn-n0010/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0010/tag/pace"
+            },
+            {
+              "tag_id": "foodie",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0010/tag/foodie"
+            },
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0010/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0022",
+          "rank": 7,
+          "score": 65.97,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.738,
+              "contribution": 0.2838,
+              "loss": 0.1008,
+              "fact_ids": [
+                "syn-n0022/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.69,
+              "contribution": 0.2654,
+              "loss": 0.1192,
+              "fact_ids": [
+                "syn-n0022/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.786,
+              "contribution": 0.0302,
+              "loss": 0.0082,
+              "fact_ids": [
+                "syn-n0022/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.738,
+              "contribution": 0.0284,
+              "loss": 0.0101,
+              "fact_ids": [
+                "syn-n0022/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.69,
+              "contribution": 0.0265,
+              "loss": 0.0119,
+              "fact_ids": [
+                "syn-n0022/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.25,
+              "contribution": 0.0192,
+              "loss": 0.0577,
+              "fact_ids": [
+                "syn-n0022/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.159,
+              "contribution": 0.0061,
+              "loss": 0.0323,
+              "fact_ids": [
+                "syn-n0022/feature/station_lines"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0022/tag/pace"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0022/tag/built_age"
+            },
+            {
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0022/tag/everyday_on_foot"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0007",
+          "rank": 8,
+          "score": 63.75,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.643,
+              "contribution": 0.2473,
+              "loss": 0.1373,
+              "fact_ids": [
+                "syn-n0007/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.643,
+              "contribution": 0.2473,
+              "loss": 0.1373,
+              "fact_ids": [
+                "syn-n0007/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.976,
+              "contribution": 0.0375,
+              "loss": 0.0009,
+              "fact_ids": [
+                "syn-n0007/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.455,
+              "contribution": 0.035,
+              "loss": 0.0419,
+              "fact_ids": [
+                "syn-n0007/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.643,
+              "contribution": 0.0247,
+              "loss": 0.0137,
+              "fact_ids": [
+                "syn-n0007/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.595,
+              "contribution": 0.0229,
+              "loss": 0.0156,
+              "fact_ids": [
+                "syn-n0007/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0007/feature/station_lines"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 4,
+              "spread_low": 3,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0007/tag/pace"
+            },
+            {
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0007/tag/everyday_on_foot"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0007/tag/family_amenities"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0002",
+          "rank": 9,
+          "score": 60.83,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.595,
+              "contribution": 0.2288,
+              "loss": 0.1558,
+              "fact_ids": [
+                "syn-n0002/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.548,
+              "contribution": 0.2108,
+              "loss": 0.1738,
+              "fact_ids": [
+                "syn-n0002/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.886,
+              "contribution": 0.0682,
+              "loss": 0.0088,
+              "fact_ids": [
+                "syn-n0002/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.881,
+              "contribution": 0.0339,
+              "loss": 0.0046,
+              "fact_ids": [
+                "syn-n0002/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.595,
+              "contribution": 0.0229,
+              "loss": 0.0156,
+              "fact_ids": [
+                "syn-n0002/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0002/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.548,
+              "contribution": 0.0211,
+              "loss": 0.0174,
+              "fact_ids": [
+                "syn-n0002/feature/culture_venues_per_homes"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0002/tag/pace"
+            },
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0002/tag/leafy"
+            },
+            {
+              "tag_id": "parks_close_by",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0002/tag/parks_close_by"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0013",
+          "rank": 10,
+          "score": 53.31,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.595,
+              "contribution": 0.2288,
+              "loss": 0.1558,
+              "fact_ids": [
+                "syn-n0013/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.548,
+              "contribution": 0.2108,
+              "loss": 0.1738,
+              "fact_ids": [
+                "syn-n0013/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.929,
+              "contribution": 0.0357,
+              "loss": 0.0027,
+              "fact_ids": [
+                "syn-n0013/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.524,
+              "contribution": 0.0202,
+              "loss": 0.0183,
+              "fact_ids": [
+                "syn-n0013/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.5,
+              "contribution": 0.0192,
+              "loss": 0.0192,
+              "fact_ids": [
+                "syn-n0013/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.159,
+              "contribution": 0.0122,
+              "loss": 0.0647,
+              "fact_ids": [
+                "syn-n0013/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.159,
+              "contribution": 0.0061,
+              "loss": 0.0323,
+              "fact_ids": [
+                "syn-n0013/feature/station_lines"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0013/tag/pace"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0013/tag/family_amenities"
+            },
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0013/tag/leafy"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0005",
+          "rank": 11,
+          "score": 49.0,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.5,
+              "contribution": 0.1923,
+              "loss": 0.1923,
+              "fact_ids": [
+                "syn-n0005/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.452,
+              "contribution": 0.1738,
+              "loss": 0.2108,
+              "fact_ids": [
+                "syn-n0005/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.636,
+              "contribution": 0.0489,
+              "loss": 0.028,
+              "fact_ids": [
+                "syn-n0005/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.643,
+              "contribution": 0.0247,
+              "loss": 0.0137,
+              "fact_ids": [
+                "syn-n0005/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0005/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.381,
+              "contribution": 0.0147,
+              "loss": 0.0238,
+              "fact_ids": [
+                "syn-n0005/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.333,
+              "contribution": 0.0128,
+              "loss": 0.0257,
+              "fact_ids": [
+                "syn-n0005/feature/culture_venues_per_homes"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0005/tag/pace"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0005/tag/family_amenities"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0005/tag/built_age"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0015",
+          "rank": 12,
+          "score": 48.48,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.5,
+              "contribution": 0.1923,
+              "loss": 0.1923,
+              "fact_ids": [
+                "syn-n0015/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.429,
+              "contribution": 0.165,
+              "loss": 0.2196,
+              "fact_ids": [
+                "syn-n0015/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.636,
+              "contribution": 0.0489,
+              "loss": 0.028,
+              "fact_ids": [
+                "syn-n0015/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.595,
+              "contribution": 0.0229,
+              "loss": 0.0156,
+              "fact_ids": [
+                "syn-n0015/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0015/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.452,
+              "contribution": 0.0174,
+              "loss": 0.0211,
+              "fact_ids": [
+                "syn-n0015/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.405,
+              "contribution": 0.0156,
+              "loss": 0.0229,
+              "fact_ids": [
+                "syn-n0015/feature/culture_venues_per_homes"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0015/tag/pace"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0015/tag/built_age"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0015/tag/family_amenities"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0024",
+          "rank": 13,
+          "score": 44.72,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.405,
+              "contribution": 0.1558,
+              "loss": 0.2288,
+              "fact_ids": [
+                "syn-n0024/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.357,
+              "contribution": 0.1373,
+              "loss": 0.2473,
+              "fact_ids": [
+                "syn-n0024/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.886,
+              "contribution": 0.0682,
+              "loss": 0.0088,
+              "fact_ids": [
+                "syn-n0024/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.643,
+              "contribution": 0.0247,
+              "loss": 0.0137,
+              "fact_ids": [
+                "syn-n0024/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0024/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.524,
+              "contribution": 0.0202,
+              "loss": 0.0183,
+              "fact_ids": [
+                "syn-n0024/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.476,
+              "contribution": 0.0183,
+              "loss": 0.0202,
+              "fact_ids": [
+                "syn-n0024/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0024/tag/pace"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0024/tag/built_age"
+            },
+            {
+              "tag_id": "foodie",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0024/tag/foodie"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0004",
+          "rank": 14,
+          "score": 42.52,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.429,
+              "contribution": 0.165,
+              "loss": 0.2196,
+              "fact_ids": [
+                "syn-n0004/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.357,
+              "contribution": 0.1373,
+              "loss": 0.2473,
+              "fact_ids": [
+                "syn-n0004/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.636,
+              "contribution": 0.0489,
+              "loss": 0.028,
+              "fact_ids": [
+                "syn-n0004/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.69,
+              "contribution": 0.0265,
+              "loss": 0.0119,
+              "fact_ids": [
+                "syn-n0004/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0004/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.381,
+              "contribution": 0.0147,
+              "loss": 0.0238,
+              "fact_ids": [
+                "syn-n0004/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.262,
+              "contribution": 0.0101,
+              "loss": 0.0284,
+              "fact_ids": [
+                "syn-n0004/feature/culture_venues_per_homes"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0004/tag/pace"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0004/tag/built_age"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0004/tag/family_amenities"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0019",
+          "rank": 15,
+          "score": 28.14,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.214,
+              "contribution": 0.0823,
+              "loss": 0.3023,
+              "fact_ids": [
+                "syn-n0019/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.886,
+              "contribution": 0.0682,
+              "loss": 0.0088,
+              "fact_ids": [
+                "syn-n0019/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.167,
+              "contribution": 0.0642,
+              "loss": 0.3204,
+              "fact_ids": [
+                "syn-n0019/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.786,
+              "contribution": 0.0302,
+              "loss": 0.0082,
+              "fact_ids": [
+                "syn-n0019/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0019/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.19,
+              "contribution": 0.0073,
+              "loss": 0.0312,
+              "fact_ids": [
+                "syn-n0019/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.167,
+              "contribution": 0.0064,
+              "loss": 0.032,
+              "fact_ids": [
+                "syn-n0019/feature/culture_venues_per_homes"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0019/tag/pace"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0019/tag/built_age"
+            },
+            {
+              "tag_id": "parks_close_by",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0019/tag/parks_close_by"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0001",
+          "rank": 16,
+          "score": 27.79,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.31,
+              "contribution": 0.1192,
+              "loss": 0.2654,
+              "fact_ids": [
+                "syn-n0001/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.262,
+              "contribution": 0.1008,
+              "loss": 0.2838,
+              "fact_ids": [
+                "syn-n0001/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.452,
+              "contribution": 0.0174,
+              "loss": 0.0211,
+              "fact_ids": [
+                "syn-n0001/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.357,
+              "contribution": 0.0137,
+              "loss": 0.0247,
+              "fact_ids": [
+                "syn-n0001/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.31,
+              "contribution": 0.0119,
+              "loss": 0.0265,
+              "fact_ids": [
+                "syn-n0001/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.114,
+              "contribution": 0.0088,
+              "loss": 0.0682,
+              "fact_ids": [
+                "syn-n0001/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.159,
+              "contribution": 0.0061,
+              "loss": 0.0323,
+              "fact_ids": [
+                "syn-n0001/feature/station_lines"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0001/tag/pace"
+            },
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0001/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0001/tag/quiet_residential"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0016",
+          "rank": 17,
+          "score": 26.89,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.31,
+              "contribution": 0.1192,
+              "loss": 0.2654,
+              "fact_ids": [
+                "syn-n0016/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.262,
+              "contribution": 0.1008,
+              "loss": 0.2838,
+              "fact_ids": [
+                "syn-n0016/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.295,
+              "contribution": 0.0227,
+              "loss": 0.0542,
+              "fact_ids": [
+                "syn-n0016/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.214,
+              "contribution": 0.0082,
+              "loss": 0.0302,
+              "fact_ids": [
+                "syn-n0016/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.19,
+              "contribution": 0.0073,
+              "loss": 0.0312,
+              "fact_ids": [
+                "syn-n0016/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.159,
+              "contribution": 0.0061,
+              "loss": 0.0323,
+              "fact_ids": [
+                "syn-n0016/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.119,
+              "contribution": 0.0046,
+              "loss": 0.0339,
+              "fact_ids": [
+                "syn-n0016/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0016/tag/pace"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0016/tag/built_age"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0016/tag/family_amenities"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0003",
+          "rank": 18,
+          "score": 19.92,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.886,
+              "contribution": 0.0682,
+              "loss": 0.0088,
+              "fact_ids": [
+                "syn-n0003/feature/station_walk"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.167,
+              "contribution": 0.0642,
+              "loss": 0.3204,
+              "fact_ids": [
+                "syn-n0003/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0003/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.333,
+              "contribution": 0.0128,
+              "loss": 0.0257,
+              "fact_ids": [
+                "syn-n0003/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.31,
+              "contribution": 0.0119,
+              "loss": 0.0265,
+              "fact_ids": [
+                "syn-n0003/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.262,
+              "contribution": 0.0101,
+              "loss": 0.0284,
+              "fact_ids": [
+                "syn-n0003/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.024,
+              "contribution": 0.0092,
+              "loss": 0.3754,
+              "fact_ids": [
+                "syn-n0003/feature/venue_food_drink_per_homes"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0003/tag/pace"
+            },
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0003/tag/homes"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0003/tag/built_age"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0006",
+          "rank": 19,
+          "score": 15.83,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.119,
+              "contribution": 0.0458,
+              "loss": 0.3388,
+              "fact_ids": [
+                "syn-n0006/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.455,
+              "contribution": 0.035,
+              "loss": 0.0419,
+              "fact_ids": [
+                "syn-n0006/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.071,
+              "contribution": 0.0273,
+              "loss": 0.3573,
+              "fact_ids": [
+                "syn-n0006/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.591,
+              "contribution": 0.0227,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0006/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.476,
+              "contribution": 0.0183,
+              "loss": 0.0202,
+              "fact_ids": [
+                "syn-n0006/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.119,
+              "contribution": 0.0046,
+              "loss": 0.0339,
+              "fact_ids": [
+                "syn-n0006/feature/culture_venues_per_homes"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.119,
+              "contribution": 0.0046,
+              "loss": 0.0339,
+              "fact_ids": [
+                "syn-n0006/feature/venue_evening_per_homes"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0006/tag/pace"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0006/tag/built_age"
+            },
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0006/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0008",
+          "rank": 20,
+          "score": 15.23,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:venue_food_drink_per_homes",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.214,
+              "contribution": 0.0823,
+              "loss": 0.3023,
+              "fact_ids": [
+                "syn-n0008/feature/venue_food_drink_per_homes"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.833,
+              "contribution": 0.032,
+              "loss": 0.0064,
+              "fact_ids": [
+                "syn-n0008/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "tag:pace",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.3846,
+              "utility": 0.071,
+              "contribution": 0.0273,
+              "loss": 0.3573,
+              "fact_ids": [
+                "syn-n0008/tag/pace"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.159,
+              "contribution": 0.0061,
+              "loss": 0.0323,
+              "fact_ids": [
+                "syn-n0008/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:venue_evening_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.048,
+              "contribution": 0.0018,
+              "loss": 0.0366,
+              "fact_ids": [
+                "syn-n0008/feature/venue_evening_per_homes"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0769,
+              "utility": 0.023,
+              "contribution": 0.0018,
+              "loss": 0.0752,
+              "fact_ids": [
+                "syn-n0008/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:culture_venues_per_homes",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0385,
+              "utility": 0.024,
+              "contribution": 0.0009,
+              "loss": 0.0375,
+              "fact_ids": [
+                "syn-n0008/feature/culture_venues_per_homes"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "pace",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0008/tag/pace"
+            },
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0008/tag/homes"
+            },
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0008/tag/leafy"
+            }
+          ]
+        }
+      ],
+      "areas_ranked": 21,
+      "areas_listed": 20,
+      "filtered": [],
+      "unranked": [
+        {
+          "area_id": "syn-n0009",
+          "reason": "not_rankable",
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0017",
+          "reason": "insufficient_data",
+          "missing": [
+            "feature:culture_venues_per_homes",
+            "feature:park_proximity",
+            "feature:venue_evening_per_homes",
+            "feature:venue_food_drink_per_homes",
+            "tag:pace"
+          ]
+        },
+        {
+          "area_id": "syn-n0020",
+          "reason": "not_rankable",
+          "missing": []
+        }
+      ],
+      "empty_spec": false,
+      "spec": {
+        "schema_version": 1,
+        "tenure": "visit",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.0,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "culture_venues_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_evening_per_homes",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_food_drink_per_homes",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "stated"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "pace",
+            "weight": 0.5,
+            "toward": "high",
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "stated",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "6f43cb4bbfcfb67b1ebc77f3c13880fb327383091146b24b5e903113469e2df4",
+      "applied": [],
+      "rejected": [],
+      "places": []
+    }
+  }
+}

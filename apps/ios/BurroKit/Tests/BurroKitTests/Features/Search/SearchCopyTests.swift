@@ -28,6 +28,10 @@ final class SearchCopyTests: XCTestCase {
         "From \\(least), which is not at all, to \\(most), which is as much as anything can.",
         // The two quote marks, which the website's source writes as escapes.
         "“", "”",
+        // A visit, which the website came to ask for after its words were copied. The name and
+        // the line are the website's as it then wrote them, in `KIND_OF_SEARCH` of its settings.
+        "Visiting",
+        "You are visiting, so Burro does not ask what you can pay or what kind of home you want. It ranks the areas by everything else you choose, such as the places you need to reach and what you want around you.",
     ]
 
     private let files = ["SearchCopy.swift", "SettingsCopy.swift", "CodeCopy.swift"]
@@ -65,7 +69,7 @@ final class SearchCopyTests: XCTestCase {
 
     func test_the_line_on_how_words_are_handled_is_the_websites() throws {
         let site = Website.joined(
-            try Repository.text(Repository.root.appendingPathComponent("apps/web/src/content/site.ts")))
+            try Repository.text(Repository.website.appendingPathComponent("src/content/site.ts")))
 
         XCTAssertTrue(site.contains("\"\(SearchCopy.Permission.handled)\""))
         // It is true whoever else reads the words, so it names nobody else and no period of keeping.
@@ -151,7 +155,7 @@ final class SearchCopyTests: XCTestCase {
 
     func test_the_examples_are_the_websites_three() throws {
         let search = try Repository.text(
-            Repository.root.appendingPathComponent("apps/web/src/content/search.ts"))
+            Repository.website.appendingPathComponent("src/content/search.ts"))
 
         XCTAssertEqual(Examples.sentences.count, 3)
         for sentence in Examples.sentences {

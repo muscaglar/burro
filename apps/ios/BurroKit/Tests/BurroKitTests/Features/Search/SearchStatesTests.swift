@@ -642,9 +642,10 @@ final class SearchStatesTests: XCTestCase {
 
         XCTAssertEqual(
             shown.notice,
-            "Burro ranks places by what is there. Of who lives in a place it counts only their "
-                + "age and their households, at the census of 2021, and you cannot ask for fewer "
-                + "of anyone. The rest of your search has been applied.")
+            "Burro ranks places by what is there. The only things it counts about the people who "
+                + "live in a place are their age and the kind of household they live in, as the census "
+                + "of 2021 recorded them, and you cannot ask for fewer of any group of people. "
+                + "The rest of your search has been applied.")
         XCTAssertEqual(shown.unmet, [])
         XCTAssertEqual(shown.notApplied, [])
         XCTAssertNil(shown.nothingRead)
@@ -806,7 +807,7 @@ final class SearchStatesTests: XCTestCase {
         await search.flow.submitText("leafy")
         let shown = search.shown()
 
-        XCTAssertEqual(shown.failure?.message, "There is no such route.")
+        XCTAssertEqual(shown.failure?.message, "Burro has nothing at this address.")
         XCTAssertNil(shown.couldNotReadRetry)
         XCTAssertNil(shown.boxProblem)
     }

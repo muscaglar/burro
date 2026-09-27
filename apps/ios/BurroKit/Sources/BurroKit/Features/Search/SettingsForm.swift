@@ -12,20 +12,28 @@ enum SettingsForm {
     /// them. The contract names the kinds and the API refuses a kind that does
     /// not suit the tenure. No route lists which suit which (web.md section 13,
     /// gap 8), so they are held here, and a test holds them to the cost
-    /// figures the API serves.
+    /// figures the API serves. A visit has no kind of home: the API refuses every kind for one.
     static func segments(for tenure: Tenure) -> [Segment] {
         switch tenure {
         case .rent: return [.room, .studio, .bed1, .bed2, .bed3, .bed4plus]
         case .buy: return [.flat, .terraced, .semiDetached, .detached]
-        case .unlisted: return []
+        case .visit, .unlisted: return []
         }
     }
 
+    /// What the app offers a search to be for. A visit is not among them: the app shows one
+    /// that the API serves, as when an offer of one is taken or a link to one is opened.
     static let tenures: [Tenure] = [.rent, .buy]
     static let modes: [Mode] = [.pt, .cycle, .walk]
     static let combines: [Combine] = [.slowest, .mean]
     static let bases: [PtBasis] = [.typical, .justMissed]
     static let directions: [Direction] = [.more, .less]
+
+    /// False of a visit, which holds no budget and no kind of home. In the place of the
+    /// budget the settings then say why none is asked for.
+    static func asksForABudget(_ spec: PreferenceSpec) -> Bool {
+        !spec.visiting
+    }
 
     /// One group of features: a dimension, by the app's word for it.
     struct Group: Hashable, Sendable, Identifiable {

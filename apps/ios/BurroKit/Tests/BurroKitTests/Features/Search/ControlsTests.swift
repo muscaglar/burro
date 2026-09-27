@@ -182,6 +182,9 @@ final class ControlsTests: XCTestCase {
 
         XCTAssertEqual(Set(SettingsForm.segments(for: .rent)), served[.rent])
         XCTAssertEqual(Set(SettingsForm.segments(for: .buy)), served[.buy])
+        // A visit has no kind of home, and the API serves no cost of one.
+        XCTAssertEqual(SettingsForm.segments(for: .visit), [])
+        XCTAssertNil(served[.visit])
         XCTAssertEqual(SettingsForm.segments(for: .unlisted("lease")), [])
         for kind in SettingsForm.segments(for: .rent) + SettingsForm.segments(for: .buy) {
             XCTAssertNotNil(CodeCopy.segment(kind))
@@ -221,7 +224,8 @@ final class ControlsTests: XCTestCase {
     }
 
     func test_recorded_crime_is_off_until_it_is_switched_on() {
-        for spec in [Answers.meta.defaults.rent, Answers.meta.defaults.buy] {
+        let starts = [Answers.meta.defaults.rent, Answers.meta.defaults.buy, Answers.meta.defaults.visit]
+        for spec in starts {
             for feature in SettingsForm.crime(Answers.meta)?.features ?? [] {
                 XCTAssertFalse(
                     SearchChips.counts(spec.weights.first { $0.featureId == feature.featureId }?.weight))

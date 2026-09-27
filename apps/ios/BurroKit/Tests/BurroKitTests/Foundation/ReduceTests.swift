@@ -117,11 +117,13 @@ final class ReduceTests: XCTestCase {
 
     func test_every_spec_a_search_holds_is_one_the_api_returned() {
         let returned: Set<PreferenceSpec> = [
-            meta.defaults.rent, meta.defaults.buy, read.spec, ranked.spec, refined.spec, shared.spec,
+            meta.defaults.rent, meta.defaults.buy, meta.defaults.visit, read.spec, ranked.spec,
+            refined.spec, shared.spec,
         ]
         let states = [
             opened(),
             after(.tenureSwapped(.buy)),
+            after(.tenureSwapped(.visit)),
             after(.readAnswered(read)),
             after(.readAnswered(read), .queued(Edits.tagOn(.villageFeel))),
             after(.readAnswered(read), .rankAnswered(ranked, sent: .none)),
@@ -153,7 +155,9 @@ final class ReduceTests: XCTestCase {
 
         XCTAssertEqual(reduce(opened(), .tenureSwapped(.buy)).spec, meta.defaults.buy)
         XCTAssertEqual(reduce(reduce(opened(), .tenureSwapped(.buy)), .tenureSwapped(.rent)).spec, meta.defaults.rent)
+        XCTAssertEqual(reduce(opened(), .tenureSwapped(.visit)).spec, meta.defaults.visit)
         XCTAssertEqual(reduce(asked, .tenureSwapped(.buy)), asked)
+        XCTAssertEqual(reduce(asked, .tenureSwapped(.visit)), asked)
         XCTAssertEqual(reduce(opened(), .tenureSwapped(.unlisted("lease"))), opened())
     }
 
@@ -625,8 +629,8 @@ final class ReduceTests: XCTestCase {
         XCTAssertEqual(
             added.read?.added?.needs,
             [
-                "the journey can be made a firm limit", "mix of brands",
-                "recorded crime, which is added under its own name", "what homes sell for",
+                "the journey, which you can make a firm limit", "mix of brands",
+                "recorded crime, which Burro adds only when you choose it by name", "what homes sell for",
                 "homes in the higher council tax bands", "Village feel", "Age of buildings",
                 "nearer a town centre",
             ])

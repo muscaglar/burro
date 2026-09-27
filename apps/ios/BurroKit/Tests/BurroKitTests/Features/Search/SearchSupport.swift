@@ -10,7 +10,7 @@ enum Website {
     /// sentence that the file joins with a plus are joined here too, and a
     /// quote mark written with a backslash is written plain.
     static func words() throws -> String {
-        let folder = Repository.root.appendingPathComponent("apps/web/src/content")
+        let folder = Repository.website.appendingPathComponent("src/content")
         return try Repository.files(under: folder, ending: ".ts")
             .map { joined(try Repository.text(folder.appendingPathComponent($0))) }
             .joined(separator: "\n")

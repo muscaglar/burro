@@ -13,9 +13,9 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-cache",
-    "content-length": "92315",
+    "content-length": "90687",
     "content-type": "application/json",
-    "etag": "\"syn-2026-09-23-01\"",
+    "etag": "\"syn-2026-09-23-01.f431a1ba\"",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
@@ -24,7 +24,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -1512,22 +1512,20 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "9.9 µg/m³",
             "band": "1",
+            "standing": "lower than all 20 areas Burro compared",
             "comparative": "lower than",
-            "pct": "100",
-            "standing": "lower than 100% of the 20 areas compared in this release",
-            "standing_worse": "higher than none of the 20 other areas compared in this release",
+            "standing_worse": "lower than all 20 areas Burro compared",
             "comparative_worse": "higher than",
             "compared": "20"
           },
           "numbers": [
             "9.9",
-            "100%",
             "20"
           ],
           "names": [],
@@ -1548,16 +1546,16 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_aldi",
-          "label": "Straight-line distance to the nearest Aldi within 2,000 m of home",
+          "label": "Distance to the nearest Aldi within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Aldi within 2,000 m of home",
+            "label": "Distance to the nearest Aldi within 2,000 m of home, in a straight line",
             "value": "1,230 m",
             "band": "5",
-            "standing": "the same as 1 of the 21 other areas compared in this release",
+            "standing": "the same as 1 of the 21 other areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "95",
-            "standing_worse": "further than 95% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "further than 95% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -1585,18 +1583,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_anytime_fitness",
-          "label": "Straight-line distance to the nearest Anytime Fitness within 2,000 m of home",
+          "label": "Distance to the nearest Anytime Fitness within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Anytime Fitness within 2,000 m of home",
+            "label": "Distance to the nearest Anytime Fitness within 2,000 m of home, in a straight line",
             "value": "1,260 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "9",
-            "standing": "closer than 9% of the 21 areas compared in this release",
+            "standing": "closer than 9% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "90",
-            "standing_worse": "further than 90% of the 21 areas compared in this release",
+            "standing_worse": "further than 90% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1623,23 +1621,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_asda",
-          "label": "Straight-line distance to the nearest Asda within 2,000 m of home",
+          "label": "Distance to the nearest Asda within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Asda within 2,000 m of home",
+            "label": "Distance to the nearest Asda within 2,000 m of home, in a straight line",
             "value": "1,320 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1320",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -1659,23 +1655,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_barrys",
-          "label": "Straight-line distance to the nearest Barry's within 2,000 m of home",
+          "label": "Distance to the nearest Barry's within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Barry's within 2,000 m of home",
+            "label": "Distance to the nearest Barry's within 2,000 m of home, in a straight line",
             "value": "1,250 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1250",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -1695,18 +1689,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_blank_street",
-          "label": "Straight-line distance to the nearest Blank Street within 2,000 m of home",
+          "label": "Distance to the nearest Blank Street within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Blank Street within 2,000 m of home",
+            "label": "Distance to the nearest Blank Street within 2,000 m of home, in a straight line",
             "value": "1,300 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "19",
-            "standing": "closer than 19% of the 21 areas compared in this release",
+            "standing": "closer than 19% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "80",
-            "standing_worse": "further than 80% of the 21 areas compared in this release",
+            "standing_worse": "further than 80% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1733,23 +1727,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_coop",
-          "label": "Straight-line distance to the nearest Co-op within 2,000 m of home",
+          "label": "Distance to the nearest Co-op within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Co-op within 2,000 m of home",
+            "label": "Distance to the nearest Co-op within 2,000 m of home, in a straight line",
             "value": "1,490 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1490",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -1769,23 +1761,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_costa",
-          "label": "Straight-line distance to the nearest Costa within 2,000 m of home",
+          "label": "Distance to the nearest Costa within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Costa within 2,000 m of home",
+            "label": "Distance to the nearest Costa within 2,000 m of home, in a straight line",
             "value": "1,420 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1420",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -1805,23 +1795,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_david_lloyd",
-          "label": "Straight-line distance to the nearest David Lloyd within 2,000 m of home",
+          "label": "Distance to the nearest David Lloyd within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest David Lloyd within 2,000 m of home",
+            "label": "Distance to the nearest David Lloyd within 2,000 m of home, in a straight line",
             "value": "1,360 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1360",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -1841,23 +1829,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_equinox",
-          "label": "Straight-line distance to the nearest Equinox within 2,000 m of home",
+          "label": "Distance to the nearest Equinox within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Equinox within 2,000 m of home",
+            "label": "Distance to the nearest Equinox within 2,000 m of home, in a straight line",
             "value": "1,420 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1420",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -1877,18 +1863,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_gails",
-          "label": "Straight-line distance to the nearest Gail's within 2,000 m of home",
+          "label": "Distance to the nearest Gail's within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Gail's within 2,000 m of home",
+            "label": "Distance to the nearest Gail's within 2,000 m of home, in a straight line",
             "value": "1,400 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "9",
-            "standing": "closer than 9% of the 21 areas compared in this release",
+            "standing": "closer than 9% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "90",
-            "standing_worse": "further than 90% of the 21 areas compared in this release",
+            "standing_worse": "further than 90% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1915,23 +1901,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_greggs",
-          "label": "Straight-line distance to the nearest Greggs within 2,000 m of home",
+          "label": "Distance to the nearest Greggs within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Greggs within 2,000 m of home",
+            "label": "Distance to the nearest Greggs within 2,000 m of home, in a straight line",
             "value": "1,270 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1270",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -1951,23 +1935,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_gymbox",
-          "label": "Straight-line distance to the nearest Gymbox within 2,000 m of home",
+          "label": "Distance to the nearest Gymbox within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Gymbox within 2,000 m of home",
+            "label": "Distance to the nearest Gymbox within 2,000 m of home, in a straight line",
             "value": "1,380 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1380",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -1987,16 +1969,16 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_iceland",
-          "label": "Straight-line distance to the nearest Iceland within 2,000 m of home",
+          "label": "Distance to the nearest Iceland within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Iceland within 2,000 m of home",
+            "label": "Distance to the nearest Iceland within 2,000 m of home, in a straight line",
             "value": "1,440 m",
             "band": "5",
-            "standing": "the same as 1 of the 21 other areas compared in this release",
+            "standing": "the same as 1 of the 21 other areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "95",
-            "standing_worse": "further than 95% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "further than 95% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -2024,18 +2006,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_lidl",
-          "label": "Straight-line distance to the nearest Lidl within 2,000 m of home",
+          "label": "Distance to the nearest Lidl within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Lidl within 2,000 m of home",
+            "label": "Distance to the nearest Lidl within 2,000 m of home, in a straight line",
             "value": "1,220 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "4",
-            "standing": "closer than 4% of the 21 areas compared in this release",
+            "standing": "closer than 4% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "95",
-            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "standing_worse": "further than 95% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -2062,23 +2044,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_mands",
-          "label": "Straight-line distance to the nearest M&S within 2,000 m of home",
+          "label": "Distance to the nearest M&S within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest M&S within 2,000 m of home",
+            "label": "Distance to the nearest M&S within 2,000 m of home, in a straight line",
             "value": "1,430 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1430",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2098,18 +2078,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_morrisons",
-          "label": "Straight-line distance to the nearest Morrisons within 2,000 m of home",
+          "label": "Distance to the nearest Morrisons within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Morrisons within 2,000 m of home",
+            "label": "Distance to the nearest Morrisons within 2,000 m of home, in a straight line",
             "value": "1,420 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "4",
-            "standing": "closer than 4% of the 21 areas compared in this release, and the same as 1 other",
+            "standing": "closer than 4% of the 21 areas Burro compared, and the same as 1 other",
             "comparative_worse": "further than",
             "pct_worse": "90",
-            "standing_worse": "further than 90% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "further than 90% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -2138,18 +2118,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_nero",
-          "label": "Straight-line distance to the nearest Nero within 2,000 m of home",
+          "label": "Distance to the nearest Nero within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Nero within 2,000 m of home",
+            "label": "Distance to the nearest Nero within 2,000 m of home, in a straight line",
             "value": "1,200 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "14",
-            "standing": "closer than 14% of the 21 areas compared in this release",
+            "standing": "closer than 14% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "85",
-            "standing_worse": "further than 85% of the 21 areas compared in this release",
+            "standing_worse": "further than 85% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -2176,18 +2156,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_nuffield",
-          "label": "Straight-line distance to the nearest Nuffield within 2,000 m of home",
+          "label": "Distance to the nearest Nuffield within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Nuffield within 2,000 m of home",
+            "label": "Distance to the nearest Nuffield within 2,000 m of home, in a straight line",
             "value": "1,450 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "14",
-            "standing": "closer than 14% of the 21 areas compared in this release, and the same as 1 other",
+            "standing": "closer than 14% of the 21 areas Burro compared, and the same as 1 other",
             "comparative_worse": "further than",
             "pct_worse": "80",
-            "standing_worse": "further than 80% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "further than 80% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -2216,23 +2196,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_ole_and_steen",
-          "label": "Straight-line distance to the nearest Ole & Steen within 2,000 m of home",
+          "label": "Distance to the nearest Ole & Steen within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Ole & Steen within 2,000 m of home",
+            "label": "Distance to the nearest Ole & Steen within 2,000 m of home, in a straight line",
             "value": "1,380 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1380",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2252,18 +2230,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_pret",
-          "label": "Straight-line distance to the nearest Pret within 2,000 m of home",
+          "label": "Distance to the nearest Pret within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Pret within 2,000 m of home",
+            "label": "Distance to the nearest Pret within 2,000 m of home, in a straight line",
             "value": "1,210 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "9",
-            "standing": "closer than 9% of the 21 areas compared in this release",
+            "standing": "closer than 9% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "90",
-            "standing_worse": "further than 90% of the 21 areas compared in this release",
+            "standing_worse": "further than 90% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -2290,23 +2268,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_puregym",
-          "label": "Straight-line distance to the nearest PureGym within 2,000 m of home",
+          "label": "Distance to the nearest PureGym within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest PureGym within 2,000 m of home",
+            "label": "Distance to the nearest PureGym within 2,000 m of home, in a straight line",
             "value": "1,190 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1190",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2326,18 +2302,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_sainsburys",
-          "label": "Straight-line distance to the nearest Sainsbury's within 2,000 m of home",
+          "label": "Distance to the nearest Sainsbury's within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Sainsbury's within 2,000 m of home",
+            "label": "Distance to the nearest Sainsbury's within 2,000 m of home, in a straight line",
             "value": "1,260 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "14",
-            "standing": "closer than 14% of the 21 areas compared in this release",
+            "standing": "closer than 14% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "85",
-            "standing_worse": "further than 85% of the 21 areas compared in this release",
+            "standing_worse": "further than 85% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -2364,23 +2340,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_starbucks",
-          "label": "Straight-line distance to the nearest Starbucks within 2,000 m of home",
+          "label": "Distance to the nearest Starbucks within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Starbucks within 2,000 m of home",
+            "label": "Distance to the nearest Starbucks within 2,000 m of home, in a straight line",
             "value": "1,480 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1480",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2400,23 +2374,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_tesco",
-          "label": "Straight-line distance to the nearest Tesco within 2,000 m of home",
+          "label": "Distance to the nearest Tesco within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Tesco within 2,000 m of home",
+            "label": "Distance to the nearest Tesco within 2,000 m of home, in a straight line",
             "value": "1,190 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1190",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2436,23 +2408,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_the_gym_group",
-          "label": "Straight-line distance to the nearest gym of The Gym Group within 2,000 m of home",
+          "label": "Distance to the nearest gym of The Gym Group within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest gym of The Gym Group within 2,000 m of home",
+            "label": "Distance to the nearest gym of The Gym Group within 2,000 m of home, in a straight line",
             "value": "1,470 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1470",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2472,18 +2442,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_third_space",
-          "label": "Straight-line distance to the nearest Third Space within 2,000 m of home",
+          "label": "Distance to the nearest Third Space within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Third Space within 2,000 m of home",
+            "label": "Distance to the nearest Third Space within 2,000 m of home, in a straight line",
             "value": "1,350 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "9",
-            "standing": "closer than 9% of the 21 areas compared in this release",
+            "standing": "closer than 9% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "90",
-            "standing_worse": "further than 90% of the 21 areas compared in this release",
+            "standing_worse": "further than 90% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -2510,23 +2480,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_virgin_active",
-          "label": "Straight-line distance to the nearest Virgin Active within 2,000 m of home",
+          "label": "Distance to the nearest Virgin Active within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Virgin Active within 2,000 m of home",
+            "label": "Distance to the nearest Virgin Active within 2,000 m of home, in a straight line",
             "value": "1,200 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1200",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2546,18 +2514,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_waitrose",
-          "label": "Straight-line distance to the nearest Waitrose within 2,000 m of home",
+          "label": "Distance to the nearest Waitrose within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Waitrose within 2,000 m of home",
+            "label": "Distance to the nearest Waitrose within 2,000 m of home, in a straight line",
             "value": "1,470 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "4",
-            "standing": "closer than 4% of the 21 areas compared in this release",
+            "standing": "closer than 4% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "95",
-            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "standing_worse": "further than 95% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -2584,23 +2552,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "brand_whole_foods",
-          "label": "Straight-line distance to the nearest Whole Foods within 2,000 m of home",
+          "label": "Distance to the nearest Whole Foods within 2,000 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Whole Foods within 2,000 m of home",
+            "label": "Distance to the nearest Whole Foods within 2,000 m of home, in a straight line",
             "value": "1,340 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1340",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2626,17 +2592,15 @@
             "label": "Bus routes that stop within 400 m of home, in a straight line",
             "value": "2.1",
             "band": "1",
-            "standing": "more than none of the 21 other areas compared in this release",
+            "standing": "fewer than all 21 areas Burro compared",
             "comparative": "more than",
+            "standing_worse": "fewer than all 21 areas Burro compared",
             "comparative_worse": "fewer than",
-            "pct_worse": "100",
-            "standing_worse": "fewer than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "2.1",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2662,17 +2626,15 @@
             "label": "Bus stops within 400 m of home, in a straight line",
             "value": "2.6",
             "band": "1",
-            "standing": "more than none of the 21 other areas compared in this release",
+            "standing": "fewer than all 21 areas Burro compared",
             "comparative": "more than",
+            "standing_worse": "fewer than all 21 areas Burro compared",
             "comparative_worse": "fewer than",
-            "pct_worse": "100",
-            "standing_worse": "fewer than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "2.6",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2700,10 +2662,10 @@
             "band": "3",
             "comparative": "more than",
             "pct": "52",
-            "standing": "more than 52% of the 21 areas compared in this release, and the same as 1 other",
+            "standing": "more than 52% of the 21 areas Burro compared, and the same as 1 other",
             "comparative_worse": "less than",
             "pct_worse": "42",
-            "standing_worse": "less than 42% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "less than 42% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -2732,23 +2694,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "coffee_mid_distance",
-          "label": "Straight-line distance to the nearest mid-range coffee place within 2,000 m of home, by Burro's table of tiers",
+          "label": "Distance to the nearest mid-range coffee place within 2,000 m of home, in a straight line, as Burro sorts the chains",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest mid-range coffee place within 2,000 m of home, by Burro's table of tiers",
+            "label": "Distance to the nearest mid-range coffee place within 2,000 m of home, in a straight line, as Burro sorts the chains",
             "value": "1,520 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1520",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2768,18 +2728,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "coffee_premium_distance",
-          "label": "Straight-line distance to the nearest premium coffee place within 2,000 m of home, by Burro's table of tiers",
+          "label": "Distance to the nearest premium coffee place within 2,000 m of home, in a straight line, as Burro sorts the chains",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest premium coffee place within 2,000 m of home, by Burro's table of tiers",
+            "label": "Distance to the nearest premium coffee place within 2,000 m of home, in a straight line, as Burro sorts the chains",
             "value": "1,540 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "4",
-            "standing": "closer than 4% of the 21 areas compared in this release",
+            "standing": "closer than 4% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "95",
-            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "standing_worse": "further than 95% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -2806,23 +2766,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "coffee_value_distance",
-          "label": "Straight-line distance to the nearest value coffee place within 2,000 m of home, by Burro's table of tiers",
+          "label": "Distance to the nearest value coffee place within 2,000 m of home, in a straight line, as Burro sorts the chains",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest value coffee place within 2,000 m of home, by Burro's table of tiers",
+            "label": "Distance to the nearest value coffee place within 2,000 m of home, in a straight line, as Burro sorts the chains",
             "value": "1,510 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1510",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2842,16 +2800,16 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "conservation_cover",
-          "label": "Share of the area in a conservation area",
+          "label": "Land in a conservation area, as a share of the area",
           "template": "feature",
           "slots": {
-            "label": "Share of the area in a conservation area",
+            "label": "Land in a conservation area, as a share of the area",
             "value": "0%",
             "band": "1",
-            "standing": "the same as 4 of the 19 other areas compared in this release",
+            "standing": "the same as 4 of the 19 other areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "78",
-            "standing_worse": "less than 78% of the 19 areas compared in this release, and the same as 4 others",
+            "standing_worse": "less than 78% of the 19 areas Burro compared, and the same as 4 others",
             "compared": "19",
             "level": "4"
           },
@@ -2885,17 +2843,15 @@
             "label": "Museums, galleries, theatres, cinemas, music venues and libraries within 800 m of home, in a straight line",
             "value": "0.2",
             "band": "1",
-            "standing": "more than none of the 21 other areas compared in this release",
+            "standing": "fewer than all 21 areas Burro compared",
             "comparative": "more than",
+            "standing_worse": "fewer than all 21 areas Burro compared",
             "comparative_worse": "fewer than",
-            "pct_worse": "100",
-            "standing_worse": "fewer than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "0.2",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2923,10 +2879,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "90",
-            "standing": "more than 90% of the 22 areas compared in this release, and the same as 1 other",
+            "standing": "more than 90% of the 22 areas Burro compared, and the same as 1 other",
             "comparative_worse": "less than",
             "pct_worse": "4",
-            "standing_worse": "less than 4% of the 22 areas compared in this release, and the same as 1 other",
+            "standing_worse": "less than 4% of the 22 areas Burro compared, and the same as 1 other",
             "compared": "22",
             "level": "1"
           },
@@ -2955,23 +2911,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "grocer_mid_distance",
-          "label": "Straight-line distance to the nearest mid-range grocer within 2,000 m of home, by Burro's table of tiers",
+          "label": "Distance to the nearest mid-range grocer within 2,000 m of home, in a straight line, as Burro sorts the chains",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest mid-range grocer within 2,000 m of home, by Burro's table of tiers",
+            "label": "Distance to the nearest mid-range grocer within 2,000 m of home, in a straight line, as Burro sorts the chains",
             "value": "1,560 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1560",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -2991,18 +2945,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "grocer_premium_distance",
-          "label": "Straight-line distance to the nearest premium grocer within 2,000 m of home, by Burro's table of tiers",
+          "label": "Distance to the nearest premium grocer within 2,000 m of home, in a straight line, as Burro sorts the chains",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest premium grocer within 2,000 m of home, by Burro's table of tiers",
+            "label": "Distance to the nearest premium grocer within 2,000 m of home, in a straight line, as Burro sorts the chains",
             "value": "1,520 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "14",
-            "standing": "closer than 14% of the 21 areas compared in this release",
+            "standing": "closer than 14% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "85",
-            "standing_worse": "further than 85% of the 21 areas compared in this release",
+            "standing_worse": "further than 85% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -3029,23 +2983,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "grocer_value_distance",
-          "label": "Straight-line distance to the nearest value grocer within 2,000 m of home, by Burro's table of tiers",
+          "label": "Distance to the nearest value grocer within 2,000 m of home, in a straight line, as Burro sorts the chains",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest value grocer within 2,000 m of home, by Burro's table of tiers",
+            "label": "Distance to the nearest value grocer within 2,000 m of home, in a straight line, as Burro sorts the chains",
             "value": "1,580 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1580",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -3065,23 +3017,21 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "grocery_walk",
-          "label": "Straight-line distance to the nearest food shop",
+          "label": "Distance to the nearest food shop, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest food shop",
+            "label": "Distance to the nearest food shop, in a straight line",
             "value": "1,200 m",
             "band": "5",
-            "standing": "closer than none of the 21 other areas compared in this release",
+            "standing": "further than all 21 areas Burro compared",
             "comparative": "closer than",
+            "standing_worse": "further than all 21 areas Burro compared",
             "comparative_worse": "further than",
-            "pct_worse": "100",
-            "standing_worse": "further than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1200",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -3101,16 +3051,16 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "gym_mid_distance",
-          "label": "Straight-line distance to the nearest mid-range gym within 2,000 m of home, by Burro's table of tiers",
+          "label": "Distance to the nearest mid-range gym within 2,000 m of home, in a straight line, as Burro sorts the chains",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest mid-range gym within 2,000 m of home, by Burro's table of tiers",
+            "label": "Distance to the nearest mid-range gym within 2,000 m of home, in a straight line, as Burro sorts the chains",
             "value": "1,580 m",
             "band": "5",
-            "standing": "the same as 1 of the 21 other areas compared in this release",
+            "standing": "the same as 1 of the 21 other areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "95",
-            "standing_worse": "further than 95% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "further than 95% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -3138,18 +3088,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "gym_premium_distance",
-          "label": "Straight-line distance to the nearest premium gym within 2,000 m of home, by Burro's table of tiers",
+          "label": "Distance to the nearest premium gym within 2,000 m of home, in a straight line, as Burro sorts the chains",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest premium gym within 2,000 m of home, by Burro's table of tiers",
+            "label": "Distance to the nearest premium gym within 2,000 m of home, in a straight line, as Burro sorts the chains",
             "value": "1,620 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "9",
-            "standing": "closer than 9% of the 21 areas compared in this release, and the same as 1 other",
+            "standing": "closer than 9% of the 21 areas Burro compared, and the same as 1 other",
             "comparative_worse": "further than",
             "pct_worse": "85",
-            "standing_worse": "further than 85% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "further than 85% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -3178,18 +3128,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "gym_value_distance",
-          "label": "Straight-line distance to the nearest value gym within 2,000 m of home, by Burro's table of tiers",
+          "label": "Distance to the nearest value gym within 2,000 m of home, in a straight line, as Burro sorts the chains",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest value gym within 2,000 m of home, by Burro's table of tiers",
+            "label": "Distance to the nearest value gym within 2,000 m of home, in a straight line, as Burro sorts the chains",
             "value": "1,570 m",
             "band": "4",
             "comparative": "closer than",
             "pct": "14",
-            "standing": "closer than 14% of the 21 areas compared in this release, and the same as 2 others",
+            "standing": "closer than 14% of the 21 areas Burro compared, and the same as 2 others",
             "comparative_worse": "further than",
             "pct_worse": "76",
-            "standing_worse": "further than 76% of the 21 areas compared in this release, and the same as 2 others",
+            "standing_worse": "further than 76% of the 21 areas Burro compared, and the same as 2 others",
             "compared": "21",
             "level": "2"
           },
@@ -3222,19 +3172,17 @@
           "template": "feature",
           "slots": {
             "label": "Homes per hectare",
-            "value": "7.2 per ha",
+            "value": "7.2 per hectare",
             "band": "1",
-            "standing": "denser than none of the 22 other areas compared in this release",
+            "standing": "less dense than all 22 areas Burro compared",
             "comparative": "denser than",
+            "standing_worse": "less dense than all 22 areas Burro compared",
             "comparative_worse": "less dense than",
-            "pct_worse": "100",
-            "standing_worse": "less dense than 100% of the 22 areas compared in this release",
             "compared": "22"
           },
           "numbers": [
             "7.2",
-            "22",
-            "100%"
+            "22"
           ],
           "names": [],
           "sources": [
@@ -3254,18 +3202,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "independents_nearby",
-          "label": "Share of the places to eat and drink within 800 m of home, in a straight line, that belong to no chain",
+          "label": "Places to eat and drink that belong to no chain, as a share of those within 800 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Share of the places to eat and drink within 800 m of home, in a straight line, that belong to no chain",
+            "label": "Places to eat and drink that belong to no chain, as a share of those within 800 m of home, in a straight line",
             "value": "18%",
             "band": "1",
             "comparative": "more than",
             "pct": "4",
-            "standing": "more than 4% of the 21 areas compared in this release",
+            "standing": "more than 4% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "95",
-            "standing_worse": "fewer than 95% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 95% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -3298,16 +3246,14 @@
             "label": "Land that is residential garden",
             "value": "32%",
             "band": "5",
+            "standing": "more than all 21 areas Burro compared",
             "comparative": "more than",
-            "pct": "100",
-            "standing": "more than 100% of the 21 areas compared in this release",
-            "standing_worse": "less than none of the 21 other areas compared in this release",
+            "standing_worse": "more than all 21 areas Burro compared",
             "comparative_worse": "less than",
             "compared": "21"
           },
           "numbers": [
             "32%",
-            "100%",
             "21"
           ],
           "names": [],
@@ -3336,10 +3282,10 @@
             "band": "3",
             "comparative": "more than",
             "pct": "47",
-            "standing": "more than 47% of the 21 areas compared in this release, and the same as 1 other",
+            "standing": "more than 47% of the 21 areas Burro compared, and the same as 1 other",
             "comparative_worse": "less than",
             "pct_worse": "47",
-            "standing_worse": "less than 47% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "less than 47% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -3375,10 +3321,10 @@
             "band": "2",
             "comparative": "more than",
             "pct": "38",
-            "standing": "more than 38% of the 21 areas compared in this release",
+            "standing": "more than 38% of the 21 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "61",
-            "standing_worse": "less than 61% of the 21 areas compared in this release",
+            "standing_worse": "less than 61% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -3411,17 +3357,15 @@
             "label": "Land used for transport other than roads, such as railways, airports and docks",
             "value": "1%",
             "band": "1",
-            "standing": "more than none of the 21 other areas compared in this release",
+            "standing": "less than all 21 areas Burro compared",
             "comparative": "more than",
-            "comparative_worse": "fewer than",
-            "pct_worse": "100",
-            "standing_worse": "fewer than 100% of the 21 areas compared in this release",
+            "standing_worse": "less than all 21 areas Burro compared",
+            "comparative_worse": "less than",
             "compared": "21"
           },
           "numbers": [
             "1%",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -3449,10 +3393,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "95",
-            "standing": "more than 95% of the 21 areas compared in this release",
+            "standing": "more than 95% of the 21 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "4",
-            "standing_worse": "less than 4% of the 21 areas compared in this release",
+            "standing_worse": "less than 4% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -3483,14 +3427,14 @@
           "template": "feature",
           "slots": {
             "label": "Listed buildings",
-            "value": "1.1 per km²",
+            "value": "1.1 per square kilometre",
             "band": "1",
             "comparative": "more than",
             "pct": "19",
-            "standing": "more than 19% of the 21 areas compared in this release, and the same as 1 other",
+            "standing": "more than 19% of the 21 areas Burro compared, and the same as 1 other",
             "comparative_worse": "fewer than",
             "pct_worse": "76",
-            "standing_worse": "fewer than 76% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "fewer than 76% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -3519,18 +3463,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "overground_proximity",
-          "label": "Straight-line distance to the nearest Overground or Elizabeth line station",
+          "label": "Distance to the nearest Overground or Elizabeth line station, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Overground or Elizabeth line station",
+            "label": "Distance to the nearest Overground or Elizabeth line station, in a straight line",
             "value": "1,860 m",
             "band": "4",
             "comparative": "closer than",
             "pct": "28",
-            "standing": "closer than 28% of the 21 areas compared in this release",
+            "standing": "closer than 28% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "71",
-            "standing_worse": "further than 71% of the 21 areas compared in this release",
+            "standing_worse": "further than 71% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -3565,10 +3509,10 @@
             "band": "2",
             "comparative": "more than",
             "pct": "23",
-            "standing": "more than 23% of the 21 areas compared in this release, and the same as 6 others",
+            "standing": "more than 23% of the 21 areas Burro compared, and the same as 6 others",
             "comparative_worse": "fewer than",
             "pct_worse": "47",
-            "standing_worse": "fewer than 47% of the 21 areas compared in this release, and the same as 6 others",
+            "standing_worse": "fewer than 47% of the 21 areas Burro compared, and the same as 6 others",
             "compared": "21",
             "level": "6"
           },
@@ -3597,18 +3541,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "park_large_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 20 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 20 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 20 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 20 hectares or more, in a straight line",
             "value": "2,220 m",
             "band": "3",
             "comparative": "closer than",
             "pct": "57",
-            "standing": "closer than 57% of the 21 areas compared in this release",
+            "standing": "closer than 57% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "42",
-            "standing_worse": "further than 42% of the 21 areas compared in this release",
+            "standing_worse": "further than 42% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -3635,22 +3579,20 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "280 m",
             "band": "1",
+            "standing": "closer than all 21 areas Burro compared",
             "comparative": "closer than",
-            "pct": "100",
-            "standing": "closer than 100% of the 21 areas compared in this release",
-            "standing_worse": "further than none of the 21 other areas compared in this release",
+            "standing_worse": "closer than all 21 areas Burro compared",
             "comparative_worse": "further than",
             "compared": "21"
           },
           "numbers": [
             "280",
-            "100%",
             "21"
           ],
           "names": [],
@@ -3671,18 +3613,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "play_space_proximity",
-          "label": "Straight-line distance to the nearest marked way into a play space",
+          "label": "Distance to the nearest marked entrance to a play space, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a play space",
+            "label": "Distance to the nearest marked entrance to a play space, in a straight line",
             "value": "750 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "9",
-            "standing": "closer than 9% of the 21 areas compared in this release",
+            "standing": "closer than 9% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "90",
-            "standing_worse": "further than 90% of the 21 areas compared in this release",
+            "standing_worse": "further than 90% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -3709,18 +3651,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "price_median",
-          "label": "Median price paid for a home",
+          "label": "The middle price paid for a home",
           "template": "feature",
           "slots": {
-            "label": "Median price paid for a home",
+            "label": "The middle price paid for a home",
             "value": "£314,500",
             "band": "1",
             "comparative": "dearer than",
             "pct": "14",
-            "standing": "dearer than 14% of the 21 areas compared in this release",
+            "standing": "dearer than 14% of the 21 areas Burro compared",
             "comparative_worse": "cheaper than",
             "pct_worse": "85",
-            "standing_worse": "cheaper than 85% of the 21 areas compared in this release",
+            "standing_worse": "cheaper than 85% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -3747,18 +3689,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "price_rise_10y",
-          "label": "Median price paid for a home, for each £100 of the median ten years before",
+          "label": "The middle price paid for a home in the latest year, for each £100 of the middle price ten years before",
           "template": "feature",
           "slots": {
-            "label": "Median price paid for a home, for each £100 of the median ten years before",
+            "label": "The middle price paid for a home in the latest year, for each £100 of the middle price ten years before",
             "value": "£113",
             "band": "2",
             "comparative": "a steeper rise than",
             "pct": "38",
-            "standing": "a steeper rise than 38% of the 21 areas compared in this release",
+            "standing": "a steeper rise than 38% of the 21 areas Burro compared",
             "comparative_worse": "a smaller rise than",
             "pct_worse": "61",
-            "standing_worse": "a smaller rise than 61% of the 21 areas compared in this release",
+            "standing_worse": "a smaller rise than 61% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -3785,18 +3727,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "price_rise_5y",
-          "label": "Median price paid for a home, for each £100 of the median five years before",
+          "label": "The middle price paid for a home in the latest year, for each £100 of the middle price five years before",
           "template": "feature",
           "slots": {
-            "label": "Median price paid for a home, for each £100 of the median five years before",
+            "label": "The middle price paid for a home in the latest year, for each £100 of the middle price five years before",
             "value": "£97",
             "band": "2",
             "comparative": "a steeper rise than",
             "pct": "28",
-            "standing": "a steeper rise than 28% of the 21 areas compared in this release, and the same as 1 other",
+            "standing": "a steeper rise than 28% of the 21 areas Burro compared, and the same as 1 other",
             "comparative_worse": "a smaller rise than",
             "pct_worse": "66",
-            "standing_worse": "a smaller rise than 66% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "a smaller rise than 66% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -3825,18 +3767,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "rail_proximity",
-          "label": "Straight-line distance to the nearest National Rail station or tram stop",
+          "label": "Distance to the nearest National Rail station or tram stop, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest National Rail station or tram stop",
+            "label": "Distance to the nearest National Rail station or tram stop, in a straight line",
             "value": "2,910 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "19",
-            "standing": "closer than 19% of the 21 areas compared in this release",
+            "standing": "closer than 19% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "80",
-            "standing_worse": "further than 80% of the 21 areas compared in this release",
+            "standing_worse": "further than 80% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -3869,17 +3811,15 @@
             "label": "State primary schools within 800 m in a straight line",
             "value": "1",
             "band": "1",
-            "standing": "more than none of the 22 other areas compared in this release",
+            "standing": "fewer than all 22 areas Burro compared",
             "comparative": "more than",
+            "standing_worse": "fewer than all 22 areas Burro compared",
             "comparative_worse": "fewer than",
-            "pct_worse": "100",
-            "standing_worse": "fewer than 100% of the 22 areas compared in this release",
             "compared": "22"
           },
           "numbers": [
             "1",
-            "22",
-            "100%"
+            "22"
           ],
           "names": [],
           "sources": [
@@ -3899,18 +3839,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "school_secondary_attainment",
-          "label": "Attainment 8 at nearby secondaries",
+          "label": "Average Attainment 8 score at nearby secondary schools",
           "template": "feature",
           "slots": {
-            "label": "Attainment 8 at nearby secondaries",
+            "label": "Average Attainment 8 score at nearby secondary schools",
             "value": "43.6 points",
             "band": "1",
             "comparative": "higher than",
             "pct": "9",
-            "standing": "higher than 9% of the 21 areas compared in this release, and the same as 1 other",
+            "standing": "higher than 9% of the 21 areas Burro compared, and the same as 1 other",
             "comparative_worse": "lower than",
             "pct_worse": "85",
-            "standing_worse": "lower than 85% of the 21 areas compared in this release, and the same as 1 other",
+            "standing_worse": "lower than 85% of the 21 areas Burro compared, and the same as 1 other",
             "compared": "21",
             "level": "1"
           },
@@ -3945,10 +3885,10 @@
             "label": "Lines within a 10-minute walk",
             "value": "0",
             "band": "1",
-            "standing": "the same as 7 of the 22 other areas compared in this release",
+            "standing": "the same as 7 of the 22 other areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "68",
-            "standing_worse": "fewer than 68% of the 22 areas compared in this release, and the same as 7 others",
+            "standing_worse": "fewer than 68% of the 22 areas Burro compared, and the same as 7 others",
             "compared": "22",
             "level": "7"
           },
@@ -3976,18 +3916,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "2,960 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "9",
-            "standing": "closer than 9% of the 22 areas compared in this release",
+            "standing": "closer than 9% of the 22 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "90",
-            "standing_worse": "further than 90% of the 22 areas compared in this release",
+            "standing_worse": "further than 90% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -4014,18 +3954,18 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "underground_proximity",
-          "label": "Straight-line distance to the nearest Underground or DLR station",
+          "label": "Distance to the nearest Underground or DLR station, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest Underground or DLR station",
+            "label": "Distance to the nearest Underground or DLR station, in a straight line",
             "value": "2,940 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "4",
-            "standing": "closer than 4% of the 21 areas compared in this release",
+            "standing": "closer than 4% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "95",
-            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "standing_worse": "further than 95% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -4060,10 +4000,10 @@
             "band": "4",
             "comparative": "closer than",
             "pct": "22",
-            "standing": "closer than 22% of the 22 areas compared in this release",
+            "standing": "closer than 22% of the 22 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "77",
-            "standing_worse": "further than 77% of the 22 areas compared in this release",
+            "standing_worse": "further than 77% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -4096,17 +4036,15 @@
             "label": "Cafes and coffee shops within 800 m of home, in a straight line",
             "value": "1.4",
             "band": "1",
-            "standing": "more than none of the 21 other areas compared in this release",
+            "standing": "fewer than all 21 areas Burro compared",
             "comparative": "more than",
+            "standing_worse": "fewer than all 21 areas Burro compared",
             "comparative_worse": "fewer than",
-            "pct_worse": "100",
-            "standing_worse": "fewer than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1.4",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -4134,10 +4072,10 @@
             "band": "1",
             "comparative": "more than",
             "pct": "4",
-            "standing": "more than 4% of the 21 areas compared in this release",
+            "standing": "more than 4% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "95",
-            "standing_worse": "fewer than 95% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 95% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -4170,17 +4108,15 @@
             "label": "Places to eat and drink within 800 m of home, in a straight line",
             "value": "1.4",
             "band": "1",
-            "standing": "more than none of the 21 other areas compared in this release",
+            "standing": "fewer than all 21 areas Burro compared",
             "comparative": "more than",
+            "standing_worse": "fewer than all 21 areas Burro compared",
             "comparative_worse": "fewer than",
-            "pct_worse": "100",
-            "standing_worse": "fewer than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "1.4",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -4206,17 +4142,15 @@
             "label": "Gyms and fitness studios within 800 m of home, in a straight line",
             "value": "0",
             "band": "1",
-            "standing": "more than none of the 21 other areas compared in this release",
+            "standing": "fewer than all 21 areas Burro compared",
             "comparative": "more than",
+            "standing_worse": "fewer than all 21 areas Burro compared",
             "comparative_worse": "fewer than",
-            "pct_worse": "100",
-            "standing_worse": "fewer than 100% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
             "0",
-            "21",
-            "100%"
+            "21"
           ],
           "names": [],
           "sources": [
@@ -4244,10 +4178,10 @@
             "band": "1",
             "comparative": "more than",
             "pct": "14",
-            "standing": "more than 14% of the 21 areas compared in this release",
+            "standing": "more than 14% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "85",
-            "standing_worse": "fewer than 85% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 85% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -4274,16 +4208,16 @@
           "area_id": "syn-n0020",
           "kind": "feature",
           "key": "water_access",
-          "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+          "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
           "template": "feature",
           "slots": {
-            "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+            "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
             "value": "0%",
             "band": "1",
-            "standing": "the same as 13 of the 22 other areas compared in this release",
+            "standing": "the same as 13 of the 22 other areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "40",
-            "standing_worse": "less than 40% of the 22 areas compared in this release, and the same as 13 others",
+            "standing_worse": "less than 40% of the 22 areas Burro compared, and the same as 13 others",
             "compared": "22",
             "level": "13"
           },
@@ -4591,8 +4525,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -4634,9 +4568,9 @@
             "known": "3",
             "parts": "4",
             "share": "60",
-            "partly": "Worked out from 3 of its 4 parts, 60 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 4 measurements that go into this vibe, and they count for 60 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -4745,8 +4679,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -4820,8 +4754,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -4960,8 +4894,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",

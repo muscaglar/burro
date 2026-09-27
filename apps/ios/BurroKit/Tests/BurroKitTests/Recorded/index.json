@@ -1,6 +1,78 @@
 {
   "scenarios": [
     {
+      "scenario": "added/01-first",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A first sentence, whose budget is a firm limit"
+    },
+    {
+      "scenario": "added/02-first-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Its ranking"
+    },
+    {
+      "scenario": "added/03-first-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "added/04-budget-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "The budget set by hand"
+    },
+    {
+      "scenario": "added/05-budget-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "added/06-journey-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "The longest the journey may take, set by hand"
+    },
+    {
+      "scenario": "added/07-journey-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "added/08-leafy-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "How much a vibe counts, set by hand"
+    },
+    {
+      "scenario": "added/09-leafy-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "added/10-more",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "What was typed after the first sentence, sent without it: what was set by hand stands"
+    },
+    {
+      "scenario": "added/11-more-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Its ranking"
+    },
+    {
+      "scenario": "added/12-more-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
       "scenario": "area",
       "operation_id": "get_area",
       "status": 200,
@@ -670,7 +742,7 @@
       "scenario": "interpret-rules-at-once",
       "operation_id": "interpret",
       "status": 200,
-      "shows": "The same, asked of the rules alone: what they offer is served at once, with a guess at what was plainly said of the journey and of the home and at no wish, and the answer says that a model has more to read"
+      "shows": "The same, asked of the rules alone: what they offer is served at once, with a guess at what was plainly said of the journey and of the home and at each wish whose way the words give, and the answer says that a model has more to read"
     },
     {
       "scenario": "interpret-scale",
@@ -724,7 +796,7 @@
       "scenario": "interpret-suggest-rough-guide",
       "operation_id": "interpret",
       "status": 200,
-      "shows": "A vibe that is a rough guide: offered with its label and its sentence, never applied, and never taken by the one press that takes what stands beside it"
+      "shows": "A vibe that is a rough guide: offered with no word that says so, never applied, and never taken by the one press that takes what stands beside it"
     },
     {
       "scenario": "interpret-suggest-who-is-counted",
@@ -1318,13 +1390,13 @@
       "scenario": "visit/09-place",
       "operation_id": "interpret",
       "status": 200,
-      "shows": "A place named in part: a question, and no edit applied"
+      "shows": "A place named in part: the places that bear the name, and no edit applied"
     },
     {
       "scenario": "visit/10-answered-rank",
       "operation_id": "rank",
       "status": 200,
-      "shows": "The question answered: the edit, with the id picked"
+      "shows": "The first of the places taken: the edit, with its id"
     },
     {
       "scenario": "visit/11-answered-reasons",
@@ -1438,13 +1510,115 @@
       "scenario": "visit/29-chosen-rank",
       "operation_id": "rank",
       "status": 200,
-      "shows": "One of the things noticed, chosen: the edits the API gave with the choice"
+      "shows": "What was noticed, taken: the edits the API gave with the way taken of each thing"
     },
     {
       "scenario": "visit/30-chosen-reasons",
       "operation_id": "explain_top",
       "status": 200,
       "shows": "Its reasons"
+    },
+    {
+      "scenario": "visiting/compare",
+      "operation_id": "compare",
+      "status": 200,
+      "shows": "Three areas compared for a visit: a row for the journey, and none for a budget"
+    },
+    {
+      "scenario": "visiting/explanations",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons: no sentence and no fact of what a home costs"
+    },
+    {
+      "scenario": "visiting/interpret",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence that says a visit, typed into a renter's search: the search becomes a visit"
+    },
+    {
+      "scenario": "visiting/interpret-home",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A home and an amount typed into a visit: each is said, and nothing is set"
+    },
+    {
+      "scenario": "visiting/interpret-mother",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "Whom the speaker visits: the place is offered, and the search is no visit"
+    },
+    {
+      "scenario": "visiting/interpret-night",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "What a night costs: no budget is offered, and it is said to be what Burro cannot hold"
+    },
+    {
+      "scenario": "visiting/interpret-said",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A visit that is plainly said in a sentence that is not plain: offered, with Burro's guess"
+    },
+    {
+      "scenario": "visiting/invalid-spec",
+      "operation_id": "rank",
+      "status": 422,
+      "shows": "A visit sent with a budget: refused, and nothing that was sent is said back"
+    },
+    {
+      "scenario": "visiting/preview-meta",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "A release that holds no cost: what a visit starts from there"
+    },
+    {
+      "scenario": "visiting/preview-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A visit on a release that holds no cost: ranked, with nothing said to be missing"
+    },
+    {
+      "scenario": "visiting/rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Its ranking: no area holds a fit to a budget, and none is left out for a cost"
+    },
+    {
+      "scenario": "visiting/rank-back",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A visit that becomes a search to rent: the usual budget of renting, with no amount"
+    },
+    {
+      "scenario": "visiting/rank-becomes",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A search for a home that becomes a visit: the budget and the home go, the journey stays"
+    },
+    {
+      "scenario": "visiting/rank-rejected",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "An amount and a kind of home sent to a visit: each is turned away, and says why"
+    },
+    {
+      "scenario": "visiting/rank-usual",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "What a visitor is taken to mind, where they have said nothing: the usual settings"
+    },
+    {
+      "scenario": "visiting/share",
+      "operation_id": "create_share",
+      "status": 200,
+      "shows": "A visit, shared"
+    },
+    {
+      "scenario": "visiting/share-opened",
+      "operation_id": "get_share",
+      "status": 200,
+      "shows": "The share, opened: a visit, ranked as it is now"
     }
   ]
 }
