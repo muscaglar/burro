@@ -13,6 +13,11 @@ client which takes what is offered has a way to take that leaves no area out
 on an estimate (ADR 0027). Every sentence of the first list is one the service
 was driven with. No call is made: where a model reads, a stand-in hands the
 answer to the reader.
+
+Since 2026-09-27 the grammar reads a journey with its place first, so three of
+the twelve are plain lists of wishes. Each is applied, at the minutes that were
+typed and as firm as its words make it: `test_a_limit_that_stands_after_its_place.py`
+holds the rule.
 """
 
 from typing import Any
@@ -47,6 +52,17 @@ DRIVEN = [
     ("no more than 35 minutes on the tube to Tallowgate Guild Quarter", QUARTER, 35, True, "pt"),
     ("35 minute commute, Tallowgate Guild Quarter", QUARTER, 35, False, "unchanged"),
 ]
+# Of the twelve, those that the rules apply: the place and then its time, and the name of a
+# place with a time beside it that is said apart from any place.
+NOW_PLAIN = frozenset(
+    {
+        "Cindermoor Works within 40 minutes",
+        "Cindermoor Works, 40 minutes",
+        "35 minute commute, Tallowgate Guild Quarter",
+    }
+)
+OFFERED = [row for row in DRIVEN if row[0] not in NOW_PLAIN]
+APPLIED = [row for row in DRIVEN if row[0] in NOW_PLAIN]
 
 
 @pytest.fixture(scope="module")
@@ -69,7 +85,29 @@ def ways_of(offer: dict[str, Any]) -> list[tuple[str, str, int, str, str]]:
     ]
 
 
-@pytest.mark.parametrize(("text", "place", "minutes", "firm", "mode"), DRIVEN)
+def test_three_of_the_twelve_are_plain_and_the_rest_are_offered():
+    assert (len(DRIVEN), len(APPLIED), len(OFFERED)) == (12, 3, 9)
+
+
+@pytest.mark.parametrize(("text", "place", "minutes", "firm", "mode"), APPLIED)
+def test_route_1_applies_a_plain_journey_at_the_minutes_that_were_typed(
+    client: TestClient, text: str, place: str, minutes: int, firm: bool, mode: str
+):
+    found = read(client, text)
+
+    assert (found["status"], found["suggestions"], found["unread"]) == ("ok", [], [])
+    [journey] = found["operations"]["commute_ops"]
+    limit = "hard" if firm else "unchanged"
+    assert (journey["place_id"], journey["max_minutes"]) == (place, minutes)
+    assert (journey["strictness"], journey["mode"]) == (limit, mode)
+    # It is never said that the person gave no number of minutes: they gave one.
+    assert "max_minutes" not in [assumed["code"] for assumed in found["assumptions"]]
+    [held] = found["spec"]["commutes"]
+    firmness = "hard" if firm else "soft"
+    assert (held["place_id"], held["max_minutes"], held["strictness"]) == (place, minutes, firmness)
+
+
+@pytest.mark.parametrize(("text", "place", "minutes", "firm", "mode"), OFFERED)
 def test_route_1_offers_the_journey_at_the_minutes_that_were_typed(
     client: TestClient, text: str, place: str, minutes: int, firm: bool, mode: str
 ):
@@ -100,7 +138,7 @@ def test_route_1_offers_the_journey_at_the_minutes_that_were_typed(
     assert journey["note"] == ""
 
 
-@pytest.mark.parametrize(("text", "place", "minutes", "firm", "mode"), DRIVEN)
+@pytest.mark.parametrize(("text", "place", "minutes", "firm", "mode"), OFFERED)
 def test_the_journey_that_is_taken_holds_the_minutes_and_leaves_no_area_out(
     client: TestClient, text: str, place: str, minutes: int, firm: bool, mode: str
 ):

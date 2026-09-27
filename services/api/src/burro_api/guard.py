@@ -105,6 +105,7 @@ from burro_api.offers import (
     changes,
     for_a_house,
     journey_ways,
+    of_the_rules,
     ways_of,
 )
 from burro_api.typed import (
@@ -128,6 +129,7 @@ from burro_api.typed import (
     somebody_elses,
     stands_against,
     turned_about,
+    turned_beside,
     turned_once,
     without,
 )
@@ -977,6 +979,9 @@ class _Sayings:
     read: dict[str, InterpretResult] = field(default_factory=dict[str, InterpretResult])
     # What a part of a sentence is to a thing that stands beside it, by where it stands.
     beside: dict[Span, str] = field(default_factory=dict[Span, str])
+    # The ways the rules offer of each thing, of the text less what is said of the words
+    # alone. Nothing until it is asked for, which few requests do.
+    offered: dict[str, frozenset[str]] | None = None
 
 
 # What a part of a sentence is to a thing that stands in another part of it. The rules
@@ -1290,6 +1295,49 @@ def _read_by_itself(
     return of_it(read) if read.status is InterpretStatus.OK else ()
 
 
+def _offered_without_asides(
+    target: str, typed: Typed, spec: PreferenceSpec, sayings: _Sayings
+) -> frozenset[str]:
+    """The ways the rules offer of a thing, were what is said of the words alone not typed.
+
+    A word that is read several ways names no measure: "posh" is read as
+    the mix of brands, towards Polished, as what homes sell for and as the
+    homes in the higher council tax bands. The rules offer each the one way
+    the word gives where the grammar makes the whole of its sentence, and
+    every way where it does not, since nobody can say which is meant:
+    "anything but posh". One word that is said of the words alone made the
+    sentence one the grammar does not make. So "somewhere posh, honestly"
+    was offered every way, and whoever takes what is offered and asks
+    nothing took neither of two, and ranked nothing.
+
+    The rules read the whole of what was typed, with what is said of the
+    words alone left out of it wherever it stands. What they offer of the
+    thing there is what they offer of the same words by themselves, by
+    their own rule and no other: one way only where the grammar makes the
+    whole of the sentence, no sentence beside it takes it back, and the
+    thing stands nowhere else that gives more. A word they do not know,
+    beside the thing or beyond a mark, leaves every way offered, as it did:
+    "somewhere posh, bleh", "posh but not stuffy".
+
+    Nothing where nothing of the text is said of the words alone. It is
+    read once while an answer is made, however many things ask.
+    """
+    if sayings.offered is None:
+        words = typed.without_asides_wherever()
+        sayings.offered = {}
+        if words != typed.text and words.strip():
+            asked = InterpretRequest(text=words, spec=spec, release=typed.release)
+            for noticed in _RULES.interpret(asked).suggestions:
+                ways = frozenset(
+                    way.id
+                    for way in of_the_rules(noticed).choices
+                    if way.direction is not SuggestionDirection.IGNORE
+                )
+                held = sayings.offered.get(noticed.target, frozenset[str]())
+                sayings.offered[noticed.target] = held | ways
+    return sayings.offered.get(target, frozenset[str]())
+
+
 def _read_of(words: str, typed: Typed, spec: PreferenceSpec, sayings: _Sayings) -> InterpretResult:
     """What the rules make of some words, were they all that was typed. It is read once."""
     if words not in sayings.read:
@@ -1444,6 +1492,12 @@ def _wish_as_said(
     thing waits for them** (`_is_for_the_person`). Where they name no way,
     "pubs are so noisy", nothing is the guess, and every way is offered as
     it was.
+
+    **A word that the rules only offer, one way, is offered beside what is
+    said of the words alone as it is by itself** (mended on 2026-09-27):
+    `_offered_without_asides`. No way of it is the guess, there
+    as anywhere, since the words name none of what it is read as, and what
+    waits for a person waits as it did.
     """
     thing = thing_named(offer.target)
     if thing is None:
@@ -1484,6 +1538,13 @@ def _wish_as_said(
     if two_ways and unread and WHERE_A_TURN_IS_NOT_READ == BOTH:
         dropped = set()
     kept = [way for way in ways if way.id not in dropped]
+    # A word that is only offered, one way, is offered as the rules offer it of the same
+    # words with what is said of the words alone left out: "somewhere posh, honestly".
+    one_way = all(target.one_way for _, target in stands)
+    if one_way and len(kept) > 1 and not any(one.against for one in said):
+        by_itself = _offered_without_asides(offer.target, typed, spec, sayings)
+        if by_itself and by_itself < {way.id for way in kept}:
+            kept = [way for way in kept if way.id in by_itself]
     # A phrase that asks for the thing whatever is said of it gives the way of a phrase
     # beside it that names the thing, where the two ask for the same.
     named = [one for one in said if not one.whatever]
@@ -1592,15 +1653,38 @@ def _plainly_said_of(
     Nothing where it is not: something beside it puts it in doubt, its
     sentence holds another time, or the rules would not apply its clause
     were it all that was typed.
+
+    **A journey whose place and whose time stand either side of a mark is
+    read with both** (2026-09-27): "Cindermoor Works, 40 minutes max", "I
+    work at Cindermoor Works, 40 minutes max". Each clause was read by
+    itself, and neither says the journey alone, so a limit that stood after
+    its place was offered with no guess, and whoever takes what is offered
+    took the guide. What is read is all that stands from the one clause to
+    the other, so a word between them that the rules do not know leaves
+    the journey with no guess, as one in its own clause does.
+
+    **Nor is it plainly said where what stands beside it turns it away**:
+    a part of its sentence that turns and says no more, "Cindermoor Works
+    within 40 minutes, no thanks", or a sentence beside it that takes it
+    back, "Not really." The clause alone is one the rules would apply, so
+    the limit was marked as the guess, and whoever takes what is offered
+    left areas out for a journey that the person had turned away. It is
+    asked by the words core lists (`turned_beside` of `typed.py`).
     """
     if not settled(offer, typed):
+        return None
+    if any(turned_beside(typed, (span.start, span.end)) for span in offer.spans):
         return None
     stands = typed.sentences(
         (min(span.start for span in offer.spans), max(span.end for span in offer.spans))
     )
     if typed.minutes(stands) - typed.range_of(stands, noticed.max_minutes):
         return None
-    said = [_journey_alone(typed, (span.start, span.end), spec, clauses) for span in offer.spans]
+    spans = [(span.start, span.end) for span in offer.spans]
+    if len({typed.clause(span) for span in spans}) > 1:
+        said = [_the_one_journey(_applied_of(typed.together(spans), typed, spec, clauses))]
+    else:
+        said = [_journey_alone(typed, span, spec, clauses) for span in spans]
     journey = said[0] if said else None
     if journey is None or any(one != journey for one in said):
         return None
@@ -1623,7 +1707,13 @@ def _read_alone(
     sixty times in one clause had the clause read sixty times, and anybody
     may send such a sentence. `clauses` holds what was made of each.
     """
-    words = typed.alone(span)
+    return _applied_of(typed.alone(span), typed, spec, clauses)
+
+
+def _applied_of(
+    words: str, typed: Typed, spec: PreferenceSpec, clauses: _Clauses
+) -> InterpretResult | None:
+    """What the rules make of some words, were they all that was typed, where they apply them."""
     if not words:
         return None
     if words not in clauses:
@@ -1642,6 +1732,10 @@ def _journey_alone(
     typed: Typed, span: Span, spec: PreferenceSpec, clauses: _Clauses
 ) -> CommuteEdit | None:
     """The one journey the rules would apply of a clause, were it all that was typed."""
-    read = _read_alone(typed, span, spec, clauses)
+    return _the_one_journey(_read_alone(typed, span, spec, clauses))
+
+
+def _the_one_journey(read: InterpretResult | None) -> CommuteEdit | None:
+    """The journey that the rules applied, where they applied one and no second."""
     journeys = () if read is None else read.operations.commute_ops
     return journeys[0] if len(journeys) == 1 else None

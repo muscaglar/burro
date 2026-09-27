@@ -204,8 +204,14 @@ def test_a_measure_with_a_word_of_its_own_for_each_way_says_what_the_word_is_of(
         for clause in (more, less):
             assert clause[0].islower() and not clause.endswith(".")
         assert more != less
-    # The mix of brands is the first reading of a word for a smart area, and carries the guess.
+    # Beside what is said of the words alone a word for a smart area is offered as it is by
+    # itself, the one way the word gives, and says what an area has where it ranks higher.
     found = by_target(offered(client, "somewhere affluent, I think"))
+    one_way = found["feature:price_median"]
+    assert one_way["does"] == "Rank an area higher when homes there sell for more."
+    assert one_way == by_target(offered(client, "somewhere affluent"))["feature:price_median"]
+    # Where the words do not say which way is meant it asks, in the word of each way.
+    found = by_target(offered(client, "somewhere affluent, bleh"))
     asked = found["feature:price_median"]
     assert asked["does"] == "What homes sell for: do you want dearer, or cheaper?"
     assert asked["follows"] == (

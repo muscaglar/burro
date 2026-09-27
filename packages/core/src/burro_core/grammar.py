@@ -16,8 +16,9 @@ a budget. It is all or nothing, because no single word is ever the fault:
     home      = { tenure | visit | size | budget | cheaper }
     visit     = visits [ stay ] | stays ( stay | ( "in" | "at" ) [ article ] lodging )
     stay      = "overnight" | [ "for" ] ( "the" "weekend" | ( article | number ) nights )
-    journey   = cue place [ mode ] | time to place [ mode ] | reach place [ time ] [ mode ]
-              | near place | "to get there" time [ mode ]
+    journey   = cue place [ after ] | time to place [ mode ] | reach place [ after ]
+              | near place [ after ] | place [ after ] | "to get there" time [ mode ]
+    after     = [ mode ] [ [ "in" ] time [ mode ] ]
     rule      = ( not-in | only-in ) the whole name of an area
 
 The words of each part are in `vocabulary.py`, and a thing is a phrase of the
@@ -620,6 +621,10 @@ class Wish:
     there: bool = False
     # Minutes said apart from any place: "a 40 minute commute".
     loose: bool = False
+    # It is the name of a place and nothing else, with no time of its own: "Cindermoor
+    # Works", of "Cindermoor Works, 40 minutes max". It says a journey only where a time
+    # that is said apart from any place stands beside it, which is then the time of it.
+    named_alone: bool = False
     # They are said with no word for a journey, so they need one beside them.
     beside: bool = False
     action: AreaAction = AreaAction.EXCLUDE
@@ -1057,7 +1062,14 @@ class _Segment:
 
     def journey(self) -> Wish | None:
         start = self.at
-        for read in (self._by_a_cue, self._by_a_time, self._by_reaching, self._there, self._loose):
+        for read in (
+            self._by_a_cue,
+            self._by_a_time,
+            self._by_reaching,
+            self._by_a_name,
+            self._there,
+            self._loose,
+        ):
             found = read()
             if found is not None and self.done:
                 found.spans = [_span(self.items[start : self.at])]
@@ -1162,6 +1174,26 @@ class _Segment:
         found.options = self.reader.offered(" ".join(words))
         return True
 
+    def _after_its_place(self, found: Wish) -> None:
+        """What is said of a journey after its place: how it is made, and the time of it.
+
+        "Within 40 minutes", "in under 40 minutes by bike", "by bike in no more
+        than 40 minutes". The time is read in the words a time is read in
+        anywhere, so what makes it a limit is what makes it one before its
+        place. Until 2026-09-27 a time was read here only after words that
+        reach a place, "get to", and a limit that stood after any other place
+        was offered and never applied.
+        """
+        self._mode(found)
+        start = self.at
+        self.take({"in"})
+        time = self._time()
+        if time is None:
+            self.at = start
+            return
+        found.minutes, found.firm, found.at_least = time
+        self._mode(found)
+
     def _by_a_cue(self) -> Wish | None:
         found = Wish(kind=Kind.JOURNEY, spans=[])
         goes = self.take(GOES_TO)
@@ -1182,11 +1214,36 @@ class _Segment:
                 # "Walking distance to" a place is a walk to it, and no journey by
                 # public transport.
                 found.mode = ModeChoice.WALK
-            self._mode(found)
+            self._after_its_place(found)
             return found
         if not self._place(found, asks=True):
             return None
-        self._mode(found)
+        self._after_its_place(found)
+        return found
+
+    def _by_a_name(self) -> Wish | None:
+        """ "X within 40 minutes", "X in under 40 minutes by bike": the place, and then the time.
+
+        The whole of a name that the release holds for a place, with nothing
+        to lead it in. With a time after it, it is the journey that the same
+        words say with the time first: "within 40 minutes of X". With none, it
+        is a name and nothing else, and says a journey only where a time that
+        is said apart from any place stands straight before it or straight
+        after it: "X, 40 minutes max" (`_a_name_alone_is_given_a_time`). A
+        name that is an area's too is no journey alone, since it may as well
+        say where a person wants to live: "Foxholt, 30 minutes max".
+        """
+        found = Wish(kind=Kind.JOURNEY, spans=[])
+        self.take(_BEFORE_A_NAME)
+        named = self.take_a(Is.NAME)
+        if named is None or not named.place:
+            return None
+        found.place_id = named.place
+        self._after_its_place(found)
+        if not found.minutes:
+            if named.area:
+                return None
+            found.named_alone = True
         return found
 
     def _by_a_time(self) -> Wish | None:
@@ -1215,12 +1272,7 @@ class _Segment:
         self.take(AT_WORK)
         if not self._place(found, asks=True):
             return None
-        self._mode(found)
-        self.take({"in"})
-        time = self._time()
-        if time is not None:
-            found.minutes, found.firm, found.at_least = time
-        self._mode(found)
+        self._after_its_place(found)
         return found
 
     def _there(self) -> Wish | None:
@@ -1850,6 +1902,7 @@ class Grammar:
                 found.append(self._checked(wish))
         found = [self._checked(wish) for wish in self._one_turn_one_thing(found)]
         self._there(found)
+        self._a_name_alone_is_given_a_time(found)
         self._an_m_is_money(found)
         self._a_person_is_no_place(found)
         return found
@@ -1870,6 +1923,40 @@ class Grammar:
             if wish.near_before or wish.near_after:
                 continue
             if wish.of_the_speaker or not (_led_near(found, at) or _closed_near(found, at)):
+                raise NotPlain
+
+    @staticmethod
+    def _a_name_alone_is_given_a_time(found: Sequence[Wish]) -> None:
+        """Raises `NotPlain` for the name of a place alone, where no time stands beside it.
+
+        "Cindermoor Works, 40 minutes max" says a journey, and the time is
+        the time of it. "Cindermoor Works" says nothing of what is wanted of
+        the place, and nor does "Cindermoor Works, leafy": it is offered, as
+        it was, and never applied.
+
+        The time is the item straight before the name or straight after it,
+        is said apart from any place, and a mark stands between the two: a
+        word that joins them says something of its own, "40 minutes max or
+        Cindermoor Works". A name says nothing of itself, so a time that
+        stands further off is as likely said of what stands between them:
+        "Cindermoor Works, a park, 10 minutes max". A time that stands
+        before the name is as likely said of what stands before the time,
+        where that is some way off too: "a park, 10 minutes max, Cindermoor
+        Works". And one sentence holds one such name: of two, nobody can say
+        which the time is for.
+        """
+
+        def is_a_time(at: int) -> bool:
+            return 0 <= at < len(found) and found[at].kind is Kind.JOURNEY and found[at].loose
+
+        alone = [at for at, wish in enumerate(found) if wish.named_alone and not wish.minutes]
+        if len(alone) > 1:
+            raise NotPlain
+        for at in alone:
+            after = is_a_time(at + 1) and found[at + 1].join is Join.MARK
+            follows = at > 1 and _is_at_a_distance(found[at - 2])
+            before = is_a_time(at - 1) and found[at].join is Join.MARK and not follows
+            if not (after or before):
                 raise NotPlain
 
     @staticmethod

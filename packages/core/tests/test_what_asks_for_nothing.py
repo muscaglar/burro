@@ -7,6 +7,11 @@ somewhere". A person reads that as something Burro missed. How a wish is led in
 to is no wish, so a stretch that holds nothing else is left out of what is said
 to be unread. Nothing is guessed at: a word that is on none of core's lists is
 unread wherever nothing was made of it, with the whole of the stretch it stands in.
+
+What a person says of their own words is no wish either: "honestly", "I think".
+Since 2026-09-27 a part of a sentence that is the whole of such a phrase, set
+apart by a mark, asks for nothing. "Somewhere cheap, I think" was answered as
+"somewhere cheap" is, but that the person was told that "I think" was not read.
 """
 
 import pytest
@@ -21,6 +26,7 @@ from burro_core.interpret import (
 from burro_core.ops import NO_OPERATIONS
 from burro_core.spec import default_spec
 from burro_core.vocabulary import (
+    ASIDES,
     CAPS_FIRMLY,
     DREADS,
     ESSENTIAL,
@@ -95,8 +101,8 @@ def test_how_a_wish_is_led_in_to_is_not_said_to_be_unread():
         ("a park for the zebra", ["for the zebra"], ["a"]),
         ("I want a park, maybe", ["maybe"], ["I want a"]),
         (
-            "I'd like somewhere leafy, not too far from a station, if possible",
-            ["if possible"],
+            "I'd like somewhere leafy, not too far from a station, if you can",
+            ["if you can"],
             ["I'd like somewhere", "not too far from a"],
         ),
         (
@@ -204,3 +210,85 @@ def test_what_is_left_out_is_where_the_words_stand_and_never_the_words():
     assert [(span.start, span.end) for span in result.unread] == [(32, 50)]
     assert canary not in result.model_dump_json()
     assert "somewhere" not in result.model_dump_json()
+
+
+# --- What is said of the words alone -----------------------------------------------------
+
+# What was typed, and the words nothing was made of, none of which asks for anything.
+SAID_OF_THE_WORDS = [
+    ("somewhere cheap, I think", ["I think"]),
+    ("leafy and quiet, I guess", ["and", "I guess"]),
+    ("a park, to be honest", ["a", "to be honest"]),
+    ("Honestly, somewhere calm", ["Honestly, somewhere"]),
+    ("I think, a park, ideally", ["I think, a", "ideally"]),
+    (
+        "I'd like somewhere leafy, not too far from a station, if possible",
+        ["I'd like somewhere", "not too far from a", "if possible"],
+    ),
+]
+
+
+@pytest.mark.parametrize(("text", "not_said"), SAID_OF_THE_WORDS)
+def test_what_is_said_of_the_words_alone_is_not_said_to_be_unread(text: str, not_said: list[str]):
+    result = read(text)
+
+    assert (unread(text), left_out(text)) == ([], not_said)
+    # Nothing was made of it all the same, which is said as it was.
+    assert UnmetCategory.OTHER in result.unmet
+    assert result.operations == NO_OPERATIONS
+
+
+@pytest.mark.parametrize(
+    ("text", "alone"),
+    [
+        ("somewhere cheap, I think", "somewhere cheap"),
+        ("honestly, somewhere cheap", "somewhere cheap"),
+        ("somewhere cheap, to be honest", "somewhere cheap"),
+    ],
+)
+def test_somewhere_cheap_is_read_beside_what_is_said_of_the_words_as_it_is_by_itself(
+    text: str, alone: str
+):
+    """ "Cheap" is heard as a word for what a person can afford, of which Burro says nothing.
+
+    It is no word for the mix of brands, as "cheap and cheerful" is, so
+    nothing is offered of it, by itself or beside what is said of the words.
+    """
+    found, by_itself = read(text), read(alone)
+
+    assert (found.status, found.operations) == (by_itself.status, by_itself.operations)
+    assert (found.suggestions, found.unread) == (by_itself.suggestions, by_itself.unread)
+    assert (found.status, found.suggestions, found.unread) == (InterpretStatus.OK, (), ())
+    assert by_itself.unmet == (UnmetCategory.AFFORDABILITY_VERDICT,)
+    assert found.unmet == (UnmetCategory.AFFORDABILITY_VERDICT, UnmetCategory.OTHER)
+
+
+@pytest.mark.parametrize(
+    ("text", "said"),
+    [
+        # A word that is on no list stands in the stretch, which is unread whole, as it was.
+        ("a park, honestly, bleh", ["honestly, bleh"]),
+        ("honestly bleh, a park", ["honestly bleh, a"]),
+        # No mark sets it apart, so it is said with the words it stands among.
+        ("a park I think", ["I think"]),
+        ("honestly a park", ["honestly a"]),
+        ("a park, I think not", ["I think not"]),
+        # It is in quotes, and may be named and not said.
+        ('a park, "honestly"', ["honestly"]),
+        # "Maybe" is none of them: it may stand for a wish that is not.
+        ("a park, maybe", ["maybe"]),
+    ],
+)
+def test_what_is_not_set_apart_or_is_no_such_phrase_is_said_to_be_unread_as_it_was(
+    text: str, said: list[str]
+):
+    assert unread(text) == said
+
+
+def test_every_phrase_that_is_said_of_the_words_alone_asks_for_nothing_between_two_marks():
+    for phrase in sorted(ASIDES):
+        text = f"a park, {phrase}, leafy"
+        assert unread(text) == [], phrase
+        assert phrase in left_out(text), phrase
+        # Standing among other words it is one the reader does not know.
+        assert unread(f"a park {phrase} bleh") == [f"{phrase} bleh"], phrase

@@ -144,7 +144,12 @@ from burro_core.spec import (
 # words that begin what is said next, so that a word that turns leads up to the thing it
 # is said of and no further, and the words that turn only where they stand alone between
 # two marks. It says too which sentences a sentence beside them takes back. It moves no
-# arithmetic: a search is ranked as it was.
+# arithmetic: a search is ranked as it was. In the same version the reader reads a journey
+# with its place first as it reads one with its time first: "Cindermoor Works within 40
+# minutes" and "Cindermoor Works, 40 minutes max" were offered and never applied, and are
+# plain prompts now, with a limit as firm as the words make it. And what a person says of
+# their own words, "honestly", "I think", is not said to be unread where it is the whole of
+# a part of its sentence. It moves no arithmetic.
 ENGINE_VERSION = "1.19.0"
 
 FULL_UNTIL_MIN = 15  # a journey this short is as good as any shorter

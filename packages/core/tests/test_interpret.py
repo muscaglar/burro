@@ -1820,9 +1820,10 @@ def test_a_budget_is_offered_as_its_amount_and_the_size_of_home_as_a_choice_of_i
     rested = [[text[s.start : s.end] for s in found.spans] for found in result.suggestions]
     assert rested == [["£2,000 a month"], ["a two bed flat"]]
     unread = [text[span.start : span.end] for span in result.unread]
-    assert unread == ["My budget is about", "I think"]
+    assert unread == ["My budget is about"]
     # What stands between the amount and the home asks for nothing, and is not called unread.
-    assert [text[span.start : span.end] for span in result.asks_nothing] == ["for"]
+    # Nor is what is said of the words alone, in a part of the sentence of its own.
+    assert [text[span.start : span.end] for span in result.asks_nothing] == ["for", "I think"]
 
 
 def test_words_that_say_what_the_search_already_holds_are_not_called_unread():

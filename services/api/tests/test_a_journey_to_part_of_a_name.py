@@ -60,7 +60,8 @@ def test_route_1_asks_which_place_is_meant_as_it_does_of_a_plain_list(client: Te
         "tag:leafy",
         "tag:quiet_residential",
     ]
-    assert words(TYPED, found["unread"]) == ["honestly"]
+    # What is said of the words alone asks for nothing, and is not said to be unread.
+    assert (found["unread"], "other" in found["unmet"]) == ([], True)
 
 
 def test_a_client_that_takes_the_first_place_leaves_no_area_out(client: TestClient):
@@ -122,11 +123,21 @@ def test_where_a_model_reads_nothing_of_a_journey_its_words_are_said_to_be_unrea
 
 
 def test_what_is_unread_beside_a_question_that_is_dropped_is_one_stretch_with_it():
-    text = "honestly, I work at Pellam"
+    text = "bleh, I work at Pellam"
 
     found = through_the_route(model_output(), text)
 
     assert words(text, found["unread"]) == [text]
+
+
+def test_what_asks_for_nothing_beside_a_question_that_is_dropped_is_not_said_with_it():
+    """What is said of the words alone asks for nothing, as the speaker does after it."""
+    text = "honestly, I work at Pellam"
+
+    found = through_the_route(model_output(), text)
+
+    assert words(text, found["unread"]) == ["work at Pellam"]
+    assert "other" in found["unmet"]
 
 
 @pytest.mark.parametrize("text", ASKED_BY_THE_RULES)

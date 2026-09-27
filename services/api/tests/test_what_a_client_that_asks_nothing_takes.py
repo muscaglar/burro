@@ -36,10 +36,13 @@ from .support import scorer
 # marked where the rules would apply the whole sentence, it read 31 backwards and 33
 # unasked, and was right in 704. Since the rules read what is said of a thing by itself
 # it is right in 716 of those, and in all 36 of the sentences that say what is left behind
-# and then what is wanted, which the set has held since: 752 of 1,062.
+# and then what is wanted, which the set has held since: 752 of 1,062. And it is right in
+# 31 of the 35 sentences the set has held since a limit is read after its place and a word
+# that is read several ways is offered beside what is said of the words alone: 783 of
+# 1,097. It takes a journey as a guide, as the website does.
 READ_BACKWARDS_AT_MOST = 31
 UNASKED_AT_MOST = 33
-RIGHT_AT_LEAST = 752
+RIGHT_AT_LEAST = 783
 
 
 def _stops(way: Way) -> bool:

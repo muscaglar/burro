@@ -49,6 +49,14 @@ SAID = [
     "of a ",
     "posh, ",
     "gritty gyms, ",
+    # A place and then its time, and the name of a place beside a time, which the grammar
+    # has read since 2026-09-27. And a word that is read several ways beside what is said of
+    # the words alone, for which the rules read the text once more. None was found slow.
+    "QH1 within 30 minutes, ",
+    "QH1, 30 minutes max, ",
+    "QH1 in under 30 minutes and ",
+    "posh, honestly, ",
+    "posh honestly ",
 ]
 # A run of one word of one letter, with something said in the middle of it or at its end.
 # Each held the processor for a second and a half or more, and the first for three.

@@ -779,7 +779,12 @@ def test_a_wish_that_is_hedged_is_worth_what_a_mention_is():
 def test_a_hedge_that_may_say_whether_a_thing_is_wanted_is_still_not_plain(text: str):
     result = read(text)
     assert result.operations == NO_OPERATIONS
-    assert UnmetCategory.OTHER in result.unmet and result.unread
+    assert UnmetCategory.OTHER in result.unmet
+    # Nothing is made of it. What is said of the words alone in a part of the sentence of
+    # its own asks for nothing, and is not said to be unread: the prompt is no more plain.
+    set_apart = text == "leafy, I suppose"
+    assert bool(result.unread) is not set_apart
+    assert bool(result.asks_nothing) or not set_apart
 
 
 # --- P2. Where a sentence ends ---------------------------------------------------------

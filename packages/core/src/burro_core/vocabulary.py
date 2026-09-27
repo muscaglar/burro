@@ -659,7 +659,9 @@ WORDS_OF_DOUBT: frozenset[str] = (
 #
 # What a person says of their own words: that they mean them, that it is what they think,
 # that it is how they would have it. The reader reads none of these, and none is a word of
-# the grammar: a prompt that holds one is not plain, and nothing of it is applied. They are
+# the grammar: a prompt that holds one is not plain, and nothing of it is applied. The
+# reader holds one to ask for nothing where it is the whole of a part of its sentence, so
+# that it is not said to be unread, and makes nothing else of it. They are
 # written down for whoever marks which way the words give of a thing that was noticed. Set
 # apart by a mark, in a part of its sentence that holds nothing else, one of these says
 # nothing of which way a thing is wanted, so the rest of the sentence gives the way it would

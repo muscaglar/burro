@@ -17,6 +17,10 @@ journey it is for, the journey is offered with no time, and its note says that
 a time was given: whoever words the offer never says that the person gave
 none. Every name and every sentence here is made up, and the first twelve are
 the ones the service was driven with.
+
+Since 2026-09-27 the grammar reads a journey with its place first, so three of
+the twelve are plain and are applied, each with the journey it was offered
+with: `test_a_time_after_its_place.py` holds the rule.
 """
 
 import pytest
@@ -105,12 +109,29 @@ def test_a_time_typed_beside_a_place_is_the_time_of_the_journey(
     assert not [left for left in unread(text, result) if any(c.isdigit() for c in left)]
 
 
+# Of the twelve, those that the grammar makes since it reads a journey with its place first:
+# the place and then its time, and the name of a place beside a time that stands apart.
+NOW_PLAIN = frozenset(
+    {
+        "Cindermoor Works within 40 minutes",
+        "Cindermoor Works, 40 minutes",
+        "35 minute commute, Tallowgate Guild Quarter",
+    }
+)
+
+
 @pytest.mark.parametrize(("text", "journey"), DRIVEN)
 def test_nothing_else_is_made_of_the_words_of_the_time(
     text: str, journey: tuple[str, int, StrictnessChoice, ModeChoice]
 ):
     """ "On the tube" is how the journey is made, and no wish to be well connected."""
     result = read(text)
+    if text in NOW_PLAIN:
+        # It is applied, as the same words are with the time first, and nothing is offered.
+        assert (result.status, result.suggestions) == (InterpretStatus.OK, ())
+        assert result.operations == NO_OPERATIONS.replace(commute_ops=result.operations.commute_ops)
+        assert len(result.operations.commute_ops) == 1
+        return
     assert [found.target for found in result.suggestions] == ["commute"]
     assert result.operations == NO_OPERATIONS
 
@@ -170,11 +191,18 @@ def test_the_time_is_read_wherever_the_words_give_it_to_the_one_place(
     assert not [left for left in unread(text, result) if any(c.isdigit() for c in left)]
 
 
-def test_a_name_that_is_an_areas_too_is_a_place_where_a_time_stands_after_it():
+@pytest.mark.parametrize(
+    "text", ["Pellam Cross in under 25 minutes", "Pellam Cross in under 25 minutes, I think"]
+)
+def test_a_name_that_is_an_areas_too_is_a_place_where_a_time_stands_after_it(text: str):
     """It was offered as an area to look only in, or to leave out."""
-    result = read("Pellam Cross in under 25 minutes")
+    result = read(text)
     assert said_of(result) == [(CROSS, 25, AS_IT_IS, NO_WAY)]
-    assert [found.target for found in result.suggestions] == ["commute"]
+    assert result.operations.area_ops == ()
+    # The first is a plain prompt since 2026-09-27, and is applied. The second is offered.
+    offered = [] if result.operations.commute_ops else ["commute"]
+    assert [found.target for found in result.suggestions] == offered
+    assert bool(result.operations.commute_ops) == ("think" not in text)
 
 
 def test_a_time_with_a_word_for_a_journey_is_the_limit_of_each_journey_of_the_prompt():

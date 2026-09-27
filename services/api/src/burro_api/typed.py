@@ -816,6 +816,24 @@ class Typed:
             begins = first.end
         return self.text[begins:ends].strip()
 
+    def together(self, spans: Sequence[Span]) -> str:
+        """The clauses some stretches stand in, as they would be typed were they all that was said.
+
+        A journey may rest on words either side of a mark, its place and the
+        time of it: "Cindermoor Works, 40 minutes max". What is said of it is
+        then all that stands from the clause of the one to the clause of the
+        other, with whatever stands between them, less each part that is said
+        of the words alone: "Cindermoor Works, honestly, 40 minutes max". It
+        is handed to the rules and kept nowhere.
+        """
+        held = [self.clause(span) for span in spans]
+        begins, ends = min(start for start, _ in held), max(end for _, end in held)
+        first = next((word for word in self._words if word.start >= begins), None)
+        if first is not None and first.word in IN_CASE and first.end < ends:
+            begins = first.end
+        # A mark that stood after an aside stands after a space, and is read as it was.
+        return " ".join(self.without_asides()[begins:ends].split())
+
     def _stands(self, span: Span) -> tuple[Sequence[Token], int, int, set[int]] | None:
         """The sentence a thing stands in, its first and last token there, and what else is there.
 
@@ -1148,6 +1166,40 @@ class Typed:
                 start = line.start if first == 0 else tokens[first - 1].end
                 end = tokens[after].start if first == 0 and after < len(tokens) else part[1]
                 left[start:end] = " " * (end - start)
+        return "".join(left)
+
+    def without_asides_wherever(self) -> str:
+        """The text, less what is said of the words and of no wish, wherever it stands.
+
+        A part of a sentence that is such a phrase is left out with its mark,
+        as `without_asides` leaves it out. So is one that stands among other
+        words, with no mark to set it apart, since a person types as they
+        speak: "honestly somewhere posh", "somewhere posh I think". Its words
+        stand side by side, and none of them is in quotes or holds a mark.
+        The text keeps its length. It is handed to the rules and kept
+        nowhere, and is for whoever asks what they make of all that is left:
+        a word they do not know among it leaves the sentence one that they do
+        not read, as it was.
+        """
+        left = list(self.without_asides())
+        for line in self._lines:
+            tokens = line.tokens
+            at = 0
+            while at < len(tokens):
+                size = next(
+                    (
+                        size
+                        for size in range(min(_LONGEST_ASIDE, len(tokens) - at), 0, -1)
+                        if not any(token.apart for token in tokens[at + 1 : at + size])
+                        and not any(token.odd for token in tokens[at : at + size])
+                        and self.said((tokens[at].start, tokens[at + size - 1].end)) in _ASIDES
+                    ),
+                    0,
+                )
+                if size:
+                    start, end = tokens[at].start, tokens[at + size - 1].end
+                    left[start:end] = " " * (end - start)
+                at += size or 1
         return "".join(left)
 
     def _sentence_of(self, span: Span) -> tuple[Sequence[Token], Sequence[Item], int] | None:
@@ -1599,6 +1651,22 @@ def turned_about(typed: Typed, where: Span, thing: FeatureId | TagId | None) -> 
         or _turns_alone(typed.said(beyond))
         or _turns_alone(typed.said(before))
     )
+
+
+def turned_beside(typed: Typed, where: Span) -> bool:
+    """Whether the words beside a journey turn it away, wherever they stand in its sentence.
+
+    A part of its sentence, between two marks, that turns and says no more:
+    "Cindermoor Works within 40 minutes, no thanks", "within 40 minutes of
+    Cindermoor Works, leafy - scrap that". Or a sentence beside it that
+    takes it back: "Not really." A journey is nobody's wish, so whose it is
+    is not asked, and words that go on to say something are said of that:
+    "no pubs". Every list is core's.
+    """
+    if typed.taken_back(where) or turned_about(typed, where, None):
+        return True
+    parts, held = typed.parts(where)
+    return any(at != held and _turns_alone(typed.said(part)) for at, part in enumerate(parts))
 
 
 def somebody_elses(typed: Typed, where: Span) -> bool:

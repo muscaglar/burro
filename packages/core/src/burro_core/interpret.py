@@ -156,6 +156,7 @@ from burro_core.release import Release
 from burro_core.spec import DEFAULT_HOUSE, LIMITS, PreferenceSpec
 from burro_core.vocabulary import (
     ARTICLE,
+    ASIDES,
     AT_LEAST,
     AT_THE_END,
     BY_ANOTHER_PERIOD,
@@ -4433,6 +4434,29 @@ def asks_for_nothing(words: str) -> bool:
     return all(_asks_nothing(line.tokens) for line in lines)
 
 
+def _said_of_the_words_alone(tokens: Sequence[Token]) -> list[Token]:
+    """The tokens of a sentence that stand in a part of it which is said of the words alone.
+
+    A part is what stands between two marks, and the whole of it is a phrase
+    of `ASIDES`: "honestly", "I think". It says nothing of what is wanted, so
+    it asks for nothing, as the words that lead a wish in ask for nothing.
+    "Somewhere cheap, I think" was answered as "somewhere cheap" is, but that
+    the person was told that "I think" was not read.
+
+    One that stands among other words is said with them, as it was, since
+    there it is a word the reader does not know: "honestly bleh", "a park I
+    think". So is one in quotes, which may be named and not said.
+    """
+    begins = [at for at, token in enumerate(tokens) if at == 0 or token.apart]
+    found: list[Token] = []
+    for first, after in zip(begins, [*begins[1:], len(tokens)], strict=True):
+        part = tokens[first:after]
+        said = " ".join(token.word for token in part)
+        if said in ASIDES and not any(token.odd for token in part):
+            found += part
+    return found
+
+
 def _unread(
     sentences: Sequence["_Sentence"], rested_on: Sequence[_Span]
 ) -> tuple[tuple[Span, ...], tuple[Span, ...]]:
@@ -4440,11 +4464,16 @@ def _unread(
 
     Those that may have asked for something come first, and are what is said
     to be unread. Those that hold nothing but words that ask for nothing come
-    second, and are not.
+    second, and are not. What is said of the words alone, in a part of a
+    sentence of its own, asks for nothing: a stretch that holds a word which
+    is on no list beside it is unread whole, as it was.
     """
     runs: list[list[list[Token]]] = []
     open_run = False
+    asides: set[_Span] = set()
     for sentence in sentences:
+        said = _said_of_the_words_alone(sentence.line.tokens)
+        asides |= {(token.start, token.end) for token in said}
         heard = _heard(sentence)
         for index, token in enumerate(sentence.line.tokens):
             read = index in heard or any(
@@ -4462,7 +4491,10 @@ def _unread(
                 open_run = True
     found: tuple[list[Span], list[Span]] = ([], [])
     for run in runs:
-        nothing = all(_asks_nothing(part) for part in run)
+        nothing = all(
+            _asks_nothing([token for token in part if (token.start, token.end) not in asides])
+            for part in run
+        )
         found[nothing].append(Span(start=run[0][0].start, end=run[-1][-1].end))
     return tuple(found[False]), tuple(found[True])
 
