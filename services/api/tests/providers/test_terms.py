@@ -24,6 +24,7 @@ from burro_api.providers.terms import (
     Read,
     Terms,
 )
+from burro_core.ids import Tenure
 
 each = pytest.mark.parametrize("terms", TERMS.values(), ids=lambda terms: terms.provider.value)
 every_question = pytest.mark.parametrize("question", Question, ids=lambda question: question.value)
@@ -298,7 +299,9 @@ def test_no_entry_of_the_table_has_been_checked_by_a_person():
 
 
 def test_the_notice_says_that_the_search_goes_with_the_words_where_it_does():
-    assert SETTINGS.startswith("With it go your search settings: ")
+    assert SETTINGS.startswith("With it go your space requirements: ")
+    # The founder named them "Space requirements", and no page says "settings".
+    assert "settings" not in SETTINGS and "settings" not in WORDS_ALONE
     for told in ("your budget", "the areas you have ruled in or out", "how long you will travel"):
         assert told in SETTINGS
     # Each thing the table says is sent is a thing the sentence names.
@@ -310,8 +313,26 @@ def test_the_notice_says_that_the_search_goes_with_the_words_where_it_does():
         assert "sends your words to" not in terms.notice(with_settings=True)
 
 
+def test_the_notice_names_every_kind_of_search_that_is_sent():
+    """A search may be a visit, and its kind goes with the words as renting and buying do.
+
+    The notice said "whether you rent or buy" where three kinds of search were
+    sent: a person who was visiting was told of two, and neither was theirs.
+    """
+    told = SENT_WITH["tenure"]
+    assert told is not None and told in SETTINGS
+    named = {Tenure.RENT: "rent", Tenure.BUY: "buy", Tenure.VISIT: "visit"}
+    assert set(named) == set(Tenure)
+    for tenure, word in named.items():
+        assert word in told, tenure
+    for terms in TERMS.values():
+        assert told in terms.notice(with_settings=True)
+
+
 def test_the_notice_says_that_the_words_go_alone_where_they_do():
-    assert WORDS_ALONE == "Your words go alone: none of your search settings is sent with them."
+    assert WORDS_ALONE == (
+        "Your words go alone: none of your space requirements is sent with them."
+    )
     for terms in TERMS.values():
         notice = terms.notice(with_settings=False)
         assert WORDS_ALONE in notice and SETTINGS not in notice

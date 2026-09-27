@@ -414,7 +414,7 @@ def test_access_that_is_turned_away_raises_nothing(text: str):
 
 # --- A journey in a prompt that is not plain ---------------------------------------------
 
-RANGE_25_30 = "You gave 25 to 30 minutes. Burro has taken the longer."
+RANGE_25_30 = "You gave 25 to 30 minutes, so Burro has used 30, the longer of the two."
 
 
 def test_a_journey_in_a_sentence_the_grammar_makes_is_offered_with_all_that_was_said_of_it():
@@ -551,7 +551,7 @@ def test_a_place_is_asked_about_only_in_a_sentence_the_grammar_makes(text: str):
         ),
         (
             "a 25 minute walk to Pellam Cross would suit",
-            "Add a journey to Pellam Cross within 25 minutes",
+            "Add a journey to Pellam Cross within 25 minutes on foot",
             "",
             "25 minute walk to Pellam Cross",
         ),
@@ -566,15 +566,16 @@ def test_a_place_is_asked_about_only_in_a_sentence_the_grammar_makes(text: str):
 def test_a_journey_in_a_sentence_the_grammar_does_not_make_holds_its_place_and_its_minutes(
     text: str, label: str, note: str, words: str
 ):
-    # Nobody can say there how it is travelled, so the choice holds no way of travelling.
-    # Its minutes are a limit where the words against them make them one, or they are a
+    # It holds a way of travelling only where the words beside the place say one: a walk
+    # to a place was offered as a journey by public transport, which one press took. Its
+    # minutes are a limit where the words against them make them one, or they are a
     # range. It is still a journey, and never a rule for an area.
     result = read(text)
     assert result.operations == NO_OPERATIONS
     (journey,) = result.suggestions
     assert (journey.target, journey.choices[0].label, journey.note) == ("commute", label, note)
     edit = said(journey.choices[0].operations.commute_ops[0])
-    assert "mode" not in edit
+    assert ("mode" in edit) is ("on foot" in label)
     assert ("strictness" in edit) is ("no more than" in label)
     assert rested(text, result) == [[words]]
 
@@ -648,9 +649,14 @@ def test_two_words_that_join_are_still_not_plain_where_nobody_can_say_what_they_
 
 # --- The size and the kind of a home --------------------------------------------------------
 
-BY_KIND = "Burro holds what homes sell for by kind of home, and not by the number of bedrooms."
-BY_BEDROOMS = "Burro holds rents by the number of bedrooms, and not by kind of home."
-TO_RENT_ALONE = "Burro holds what a studio or a room costs to rent, and not to buy."
+BY_KIND = (
+    "Burro knows what homes sell for by kind of home, such as a flat or a terraced house, "
+    "and not by the number of bedrooms."
+)
+BY_BEDROOMS = "Burro knows what homes rent for by the number of bedrooms, and not by kind of home."
+TO_RENT_ALONE = (
+    "Burro knows what a studio or a room costs to rent, and not what either costs to buy."
+)
 
 
 def homes(result: InterpretResult) -> list[tuple[str, list[str], str]]:
@@ -960,10 +966,13 @@ def test_what_says_near_or_says_the_most_is_no_wish_to_stay_away(
 
 # --- A house, of no kind that was named ----------------------------------------------------
 
-BY_KIND_OF_HOUSE = "Burro holds what houses sold for by kind of house, so it asks which kind."
+BY_KIND_OF_HOUSE = (
+    "Burro knows what houses sold for by kind of house, so it asks which kind you mean."
+)
 A_TERRACED_HOUSE = (
-    "You named no kind of house, so Burro has taken a terraced house, the least dear kind "
-    "in most areas. Semi-detached and detached are one press away."
+    "You did not say what kind of house, so Burro has assumed a terraced house, which is the "
+    "kind of house that costs the least in most areas. You can choose a semi-detached or a "
+    "detached house instead."
 )
 KINDS_OF_HOUSE = ["terraced", "semi_detached", "detached"]
 
@@ -999,8 +1008,14 @@ def test_a_budget_for_a_house_of_no_kind_is_held_against_a_terraced_house_and_sa
     which the founder may overturn."""
     result = read(text, spec)
 
-    # The prompt is plain, and is applied whole: no press is asked for.
-    assert (result.status, result.suggestions) == (InterpretStatus.OK, ())
+    # The prompt is plain, and is applied whole: no press is asked for. What it says of
+    # the bedrooms is said, and is nothing to choose.
+    assert result.status is InterpretStatus.OK
+    assert [found.label for found in result.suggestions] == (
+        ["A 2-bedroom home"] if "two bed" in text else []
+    )
+    ways = [way for found in result.suggestions for way in found.choices]
+    assert all(way.operations == NO_OPERATIONS for way in ways)
     after = apply(spec, result.operations, small_release())
     assert after.rejected == ()
     held = after.spec.budget
@@ -1111,8 +1126,8 @@ def test_a_terraced_house_is_said_to_be_the_least_dear_only_where_it_is():
     (budget,) = budgets(RuleInterpreter().interpret(request))
 
     assert budget.note == (
-        "You named no kind of house, so Burro has taken a terraced house. "
-        "Semi-detached and detached are one press away."
+        "You did not say what kind of house, so Burro has assumed a terraced house. "
+        "You can choose a semi-detached or a detached house instead."
     )
 
 
@@ -1141,34 +1156,25 @@ def test_what_is_said_of_any_other_home_is_applied_as_it_was(
     assert (after.tenure, after.budget.amount, after.budget.segment) == (tenure, amount, segment)
 
 
-@pytest.mark.parametrize(
-    ("text", "spec"),
-    [
-        ("a two bed house", BUYER),
-        ("two bedrooms", BUYER),
-        ("studio", BUYER),
-        ("a terraced house", RENTER),
-    ],
-)
-def test_a_plain_home_of_which_no_edit_can_be_made_is_said_to_be_unread(
-    text: str, spec: PreferenceSpec
-):
-    # Each was answered with no edit, no offer and nothing unread: nothing at all.
-    result = read(text, spec)
-    assert result.operations == NO_OPERATIONS
+@pytest.mark.parametrize("text", ["a flat", "an apartment", "a maisonette"])
+def test_a_plain_home_of_which_no_edit_can_be_made_and_nothing_is_said_is_unread(text: str):
+    # A flat to rent says nothing the search could hold, and Burro has no words for it.
+    # It was answered with no edit, no offer and nothing unread: nothing at all. What
+    # Burro has words for is said in them: `test_what_a_home_cannot_hold.py`.
+    result = read(text, RENTER)
+    assert (result.operations, result.suggestions) == (NO_OPERATIONS, ())
     assert [text[span.start : span.end] for span in result.unread] == [text]
     assert result.unmet == (UnmetCategory.OTHER,)
     # The status of a plain prompt does not say whether the search is to rent or to buy.
-    other = BUYER if spec is RENTER else RENTER
-    assert result.status is read(text, other).status is InterpretStatus.OK
+    assert result.status is read(text, BUYER).status is InterpretStatus.OK
 
 
-def test_the_rest_of_a_plain_prompt_is_applied_beside_a_home_that_cannot_be_held():
-    text = "leafy, a two bed house"
-    result = read(text, BUYER)
+def test_the_rest_of_a_plain_prompt_is_applied_beside_a_home_that_is_unread():
+    text = "leafy, a flat"
+    result = read(text, RENTER)
     assert [edit.tag_id for edit in result.operations.tag_ops] == ["leafy"]
     assert result.operations.count == 1
-    assert [text[span.start : span.end] for span in result.unread] == ["a two bed house"]
+    assert [text[span.start : span.end] for span in result.unread] == ["a flat"]
     assert (result.status, result.unmet) == (InterpretStatus.OK, (UnmetCategory.OTHER,))
 
 
@@ -1178,7 +1184,6 @@ def test_the_rest_of_a_plain_prompt_is_applied_beside_a_home_that_cannot_be_held
         ("a two bed house", RENTER, "bed_2"),
         ("studio", RENTER, "studio"),
         ("a terraced house", BUYER, "terraced"),
-        ("max £350k for a 1 bed flat", RENTER, "flat"),
         ("a 2 bed flat to rent", BUYER, "bed_2"),
     ],
 )
@@ -1202,7 +1207,9 @@ def test_a_home_that_is_turned_away_is_not_offered(text: str):
 
 # --- A smart area -------------------------------------------------------------------------
 
-PLACES_NOT_PEOPLE = "Burro reads this of the place, and not of the people who live there."
+PLACES_NOT_PEOPLE = (
+    "Burro takes this to be about the place, and not about the people who live there."
+)
 COUNTS_CRIME = (
     "Gritty counts recorded criminal damage and arson, and recorded anti-social behaviour. "
     "Recorded crime depends on what is reported, and locations are approximate."
@@ -1835,16 +1842,13 @@ def test_gritty_is_a_request_for_the_scale_by_name_and_is_applied_where_the_prom
 # --- A place with character ----------------------------------------------------------------
 
 NO_IDENTITY = (
-    "Burro cannot measure the character of a place. The nearest it can count are a village "
-    "feel (rough guide), the age of the buildings and a town centre nearby. Choose any that "
-    "fit what you mean."
+    "Burro has no way of measuring the character of a place. The nearest things it can count "
+    "are a village feel, the age of the buildings and a town centre nearby, so choose any of "
+    "these that fit what you mean."
 )
-# Village feel is a rough guide, and every offer of it says so after whatever else is said.
-A_ROUGH_GUIDE = (
-    "Rough guide. Of the areas it puts highest, about half read as villages to people, and it "
-    "takes some busy main roads and some grand inner streets for villages."
-)
-NOTES_OF_THE_THREE = [f"{NO_IDENTITY} {A_ROUGH_GUIDE}", NO_IDENTITY, NO_IDENTITY]
+# Village feel is a rough guide, and no offer of it says so: the founder asked on 2026-09-26
+# that no person is told. Every offer of it said so after whatever else was said.
+NOTES_OF_THE_THREE = [NO_IDENTITY, NO_IDENTITY, NO_IDENTITY]
 THREE = [
     ("tag:village_feel", ["Add Village feel", LEAVE]),
     ("tag:built_age", ["Towards Historic", LEAVE]),
@@ -1893,12 +1897,12 @@ def test_one_of_the_three_that_is_named_beside_the_word_is_applied_and_the_rest_
 # What the note says where a release lacks one or two of the three. A build of London places
 # no area on Village feel, so it offers the other two, and the note names those two.
 TWO_OF_THREE = (
-    "Burro cannot measure the character of a place. The nearest it can count are the age of "
-    "the buildings and a town centre nearby. Choose either or both."
+    "Burro has no way of measuring the character of a place. The nearest things it can count "
+    "are the age of the buildings and a town centre nearby, so choose either or both."
 )
 ONE_OF_THREE = (
-    "Burro cannot measure the character of a place. The nearest it can count is a town centre "
-    "nearby."
+    "Burro has no way of measuring the character of a place. The nearest thing it can count "
+    "is a town centre nearby."
 )
 
 
@@ -1928,13 +1932,14 @@ def test_where_one_of_the_three_is_offered_the_note_names_that_one():
     ]
 
 
-def test_where_all_three_are_offered_the_note_names_the_three_and_village_feel_by_its_label():
+def test_where_all_three_are_offered_the_note_names_the_three_each_by_what_it_is():
     result = read("somewhere with a real identity")
     assert offers(result) == THREE
     assert [found.note for found in result.suggestions] == NOTES_OF_THE_THREE
     for named in ("a village feel", "the age of the buildings", "a town centre nearby"):
         assert named in NO_IDENTITY
-    assert "a village feel (rough guide)" in NO_IDENTITY
+    # A village feel was named with its label, "(a rough guide)", which no person is told.
+    assert "rough guide" not in NO_IDENTITY.lower()
 
 
 # --- The names of the scales -----------------------------------------------------------------

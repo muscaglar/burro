@@ -215,7 +215,7 @@ def test_the_release_holds_what_a_home_of_any_kind_sold_for_as_a_measure(build: 
     release = read_release(build.release)
     held = {metric.feature_id: metric for metric in release.metrics}
     metric = held[FeatureId.PRICE_MEDIAN]
-    assert (metric.label, metric.unit) == ("Median price paid for a home", "£")
+    assert (metric.label, metric.unit) == ("The middle price paid for a home", "£")
     assert (metric.rankable, metric.in_likeness) == (True, False)
     assert metric.source_ids == tuple(sorted((price.SOURCE, LOOKUP)))
     found = {area: release.feature(area, FeatureId.PRICE_MEDIAN) for area in (ONE, TWO, THREE)}

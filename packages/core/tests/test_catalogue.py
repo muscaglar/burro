@@ -55,6 +55,7 @@ from burro_core.ids import (
     GrittyVariant,
     Method,
     NativeResolution,
+    Notice,
     Polarity,
     Sureness,
     TagId,
@@ -63,6 +64,8 @@ from burro_core.ids import (
     TermReading,
     Toward,
 )
+from burro_core.interpret import NOTICES
+from burro_core.lexicon import COUNTED_AT_THE_CENSUS
 from burro_core.ops import TagEdit, WeightEdit
 from burro_core.spec import FeatureWeight, default_spec
 from pydantic import ValidationError
@@ -308,13 +311,15 @@ def test_the_distance_to_a_park_is_named_a_straight_line_and_never_a_walk(
 ):
     """No network of streets is built, so the distance is across whatever lies between.
 
-    The name says so, and says what it is measured to: a way in that the publisher
+    The name says so, and says what it is measured to: an entrance that the publisher
     marks. It becomes a walk on the day a walk is worked out, and not before.
     """
     park = FEATURES[feature_id]
     assert park.label == (
-        f"Straight-line distance to the nearest marked way into a park of {least} ha or more"
+        f"Distance to the nearest marked entrance to a park of {least} hectares or more, in a "
+        "straight line"
     )
+    assert "marked" in park.label and "in a straight line" in park.label
     assert "walk" not in park.label.lower()
     assert park.native_resolution.value == "point"
     assert (park.unit, park.polarity, park.kind) == ("m", Polarity.LESS, FeatureKind.AMENITY)
@@ -417,25 +422,28 @@ def test_no_recipe_holds_a_measure_that_is_shown_and_never_ranked_on():
 
 STRAIGHT_LINES = {
     FeatureId.PLAY_SPACE_PROXIMITY: (
-        "Straight-line distance to the nearest marked way into a play space",
+        "Distance to the nearest marked entrance to a play space, in a straight line",
         "m",
     ),
     FeatureId.SCHOOL_PRIMARY_NEARBY: (
         "State primary schools within 800 m in a straight line",
         "count",
     ),
-    FeatureId.STATION_WALK: ("Straight-line distance to the nearest way in to a station", "m"),
-    FeatureId.GROCERY_WALK: ("Straight-line distance to the nearest food shop", "m"),
+    FeatureId.STATION_WALK: ("Distance to the nearest station entrance, in a straight line", "m"),
+    FeatureId.GROCERY_WALK: ("Distance to the nearest food shop, in a straight line", "m"),
     FeatureId.HIGHSTREET_ACCESS: (
-        "Straight-line distance to the nearest town centre boundary",
+        "Distance to the edge of the nearest town centre, in a straight line",
         "m",
     ),
+    # A practice and a pharmacy stand where their postcode does, and the name says so.
     FeatureId.GP_WALK: (
-        "Straight-line distance to the nearest GP practice, placed by its postcode",
+        "Distance to the nearest GP practice, in a straight line, with each practice placed "
+        "by its postcode",
         "m",
     ),
     FeatureId.PHARMACY_WALK: (
-        "Straight-line distance to the nearest pharmacy, placed by its postcode",
+        "Distance to the nearest pharmacy, in a straight line, with each pharmacy placed by "
+        "its postcode",
         "m",
     ),
 }
@@ -491,9 +499,11 @@ def test_two_measures_take_the_name_that_says_what_the_figure_is():
     assert "depot" not in f"{transport.label} {transport.short_label}".lower()
     water = FEATURES[FeatureId.WATER_ACCESS]
     assert water.label == (
-        "Share of homes within 300 m, in a straight line, of the centre line of a river, "
-        "canal or lake"
+        "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, "
+        "as a share of all homes"
     )
+    # Less of a share of land is less of it, and never fewer.
+    assert (transport.higher, transport.lower) == ("more", "less")
 
 
 def test_three_measures_keep_cores_names_until_the_founder_has_decided():
@@ -550,7 +560,7 @@ def test_village_feel_is_the_recipe_the_founder_chose_to_serve():
 def test_the_traffic_near_homes_is_a_nuisance_that_a_person_may_rank_on():
     traffic = FEATURES[FeatureId.ROAD_TRAFFIC_NEARBY]
     assert traffic.label == (
-        "Traffic past the busiest count point within 500 m of home, in a straight line"
+        "Traffic past the busiest counting point within 500 m of home, in a straight line"
     )
     assert traffic.short_label == "Less traffic nearby"
     assert (traffic.unit, traffic.polarity, traffic.kind) == (
@@ -567,7 +577,7 @@ def test_the_traffic_near_homes_is_a_nuisance_that_a_person_may_rank_on():
         Method.MODELLED,
     )
     assert traffic.describes is Describes.PLACE
-    # The name says how near a count point stands, which is one line of the catalogue.
+    # The name says how near a counting point stands, which is one line of the catalogue.
     assert f"within {TRAFFIC_WITHIN_M} m" in traffic.label and TRAFFIC_WITHIN_M == 500
     # No likeness counts a nuisance, and a person is ranked on the figure itself.
     assert traffic.in_likeness is False
@@ -671,9 +681,18 @@ def test_a_rough_guide_has_one_short_label_and_one_sentence_that_says_why():
     assert set(WHY_A_ROUGH_GUIDE) == ROUGH_GUIDES
     why = WHY_A_ROUGH_GUIDE[TagId.VILLAGE_FEEL]
     assert why == (
-        "Of the areas it puts highest, about half read as villages to people, and it "
-        "takes some busy main roads and some grand inner streets for villages."
+        "This vibe is less sure than the others, because only about half of the areas it "
+        "puts highest seemed like villages to the people who were asked, and it also "
+        "takes some busy main roads and some grand streets near the centre of the city for "
+        "villages."
     )
+    # It says that the vibe is less sure, and the two things that make it so.
+    assert why.startswith("This vibe is less sure than the others, because ")
+    assert "busy main roads" in why and "for villages" in why
+    # The people who read the areas read a name and a borough, and none knew the places
+    # (ADR 0013). So they are said to have been asked, and never to have looked or been.
+    assert "to the people who were asked" in why
+    assert not re.search(r"\b(?:looked|saw|seen|visited|went|walked|know|knew)\b", why)
     assert says_rough(TagId.VILLAGE_FEEL) == f"Rough guide. {why}"
     for sentence in WHY_A_ROUGH_GUIDE.values():
         # One sentence, which gives no figure that a build could make false.
@@ -736,13 +755,16 @@ def test_the_places_of_each_tier_are_counted_and_the_nearest_is_measured():
             count = FEATURES[of_a_tier(kind, tier, NEARBY)]
             far = FEATURES[of_a_tier(kind, tier, DISTANCE)]
             assert count.label == (
-                f"{said.capitalize()} {many} within 800 m of home, in a straight line, by "
-                "Burro's table of tiers"
+                f"{said.capitalize()} {many} within 800 m of home, in a straight line, as "
+                "Burro sorts the chains"
             )
             assert far.label == (
-                f"Straight-line distance to the nearest {said} {one} within 2,000 m of home, "
-                "by Burro's table of tiers"
+                f"Distance to the nearest {said} {one} within 2,000 m of home, in a straight "
+                "line, as Burro sorts the chains"
             )
+            # Which chain is of which tier is Burro's judgement, and each name says whose.
+            for label in (count.label, far.label):
+                assert label.endswith("in a straight line, as Burro sorts the chains")
             assert (count.short_label, far.short_label) == (
                 f"{said.capitalize()} {many} within reach",
                 f"Nearer a {said} {one}",
@@ -772,8 +794,8 @@ def test_the_mix_of_brands_is_a_measure_of_the_place_that_stands_in_no_vibe():
     """
     mix = FEATURES[FeatureId.BRAND_MIX]
     assert mix.label == (
-        "Share of the chain grocers, gyms and coffee places within 800 m of home that are "
-        "premium, with a mid-range one counted as half, by Burro's table of tiers"
+        "Premium chains as a share of the chain grocers, gyms and coffee places within 800 m "
+        "of home, with a mid-range chain counted as half, as Burro sorts the chains"
     )
     assert (mix.short_label, mix.unit) == ("Mix of brands", "%")
     assert (mix.polarity, mix.kind) == (Polarity.EITHER, FeatureKind.TASTE)
@@ -810,7 +832,7 @@ def test_a_chain_is_named_so_that_a_person_can_ask_to_be_near_one():
         feature = FEATURES[feature_id]
         assert feature_id.value.startswith("brand_") and chain.feature_id is feature_id
         assert feature.label == (
-            f"Straight-line distance to the nearest {chain.nearest} within 2,000 m of home"
+            f"Distance to the nearest {chain.nearest} within 2,000 m of home, in a straight line"
         )
         assert feature.short_label == f"Nearer {chain.one}"
         assert chain.name in chain.one and chain.name in chain.nearest
@@ -840,8 +862,8 @@ def test_independent_places_are_a_share_of_the_places_within_reach_in_a_straight
     Village feel until 2026-09-25."""
     independent = FEATURES[FeatureId.INDEPENDENTS_NEARBY]
     assert independent.label == (
-        "Share of the places to eat and drink within 800 m of home, in a straight line, that "
-        "belong to no chain"
+        "Places to eat and drink that belong to no chain, as a share of those within 800 m of "
+        "home, in a straight line"
     )
     assert (independent.short_label, independent.unit) == ("More independent places nearby", "%")
     assert (independent.polarity, independent.kind) == (Polarity.MORE, FeatureKind.TASTE)
@@ -1020,8 +1042,8 @@ def test_family_area_and_family_amenities_each_say_how_they_differ():
         FeatureId.PLAY_SPACE_PROXIMITY: (35, TermReading.LOW),
         FeatureId.PARK_PROXIMITY: (25, TermReading.LOW),
     }
-    assert area.meaning.endswith("It counts who lived there beside what is there")
-    assert amenities.meaning.endswith("It counts places alone")
+    assert area.meaning.endswith("It counts who lived there as well as what is there")
+    assert amenities.meaning.endswith("It counts places, and nothing about who lives there")
     assert "Who lives there." in amenities.cannot_see
 
 
@@ -1095,7 +1117,7 @@ def test_what_homes_sell_for_is_a_measure_of_the_place_that_stands_in_no_vibe():
     """
     price = FEATURES[FeatureId.PRICE_MEDIAN]
     assert (price.label, price.short_label) == (
-        "Median price paid for a home",
+        "The middle price paid for a home",
         "What homes sell for",
     )
     assert (price.unit, price.polarity) == ("£", Polarity.EITHER)
@@ -1109,6 +1131,23 @@ def test_what_homes_sell_for_is_a_measure_of_the_place_that_stands_in_no_vibe():
     assert price.in_likeness is False
     for tenure in Tenure:
         assert FeatureId.PRICE_MEDIAN not in {w.feature_id for w in default_spec(tenure).weights}
+
+
+def test_no_name_of_a_measure_says_that_its_figure_is_of_now():
+    """A figure is of the period its release gives, which stands beside it as its date.
+
+    A rise in what was paid was named "The middle price paid for a home now", and its
+    figure is of the latest year its publisher gives, which has ended. A name that says
+    now, or today, says a date the figure does not have.
+    """
+    for span, feature_id in (("five", FeatureId.PRICE_RISE_5Y), ("ten", FeatureId.PRICE_RISE_10Y)):
+        assert FEATURES[feature_id].label == (
+            "The middle price paid for a home in the latest year, for each £100 of the middle "
+            f"price {span} years before"
+        )
+    for feature in FEATURES.values():
+        named = f"{feature.label} {feature.short_label}".lower()
+        assert not re.search(r"\b(?:now|today|current|currently|this year)\b", named), named
 
 
 def test_going_out_is_pubs_places_to_eat_and_drink_high_streets_and_culture():
@@ -1198,7 +1237,8 @@ def test_the_homes_near_a_cluster_of_pubs_are_named_for_what_is_counted():
     """The file of places cannot say how late a place is open, so no name says late."""
     near = FEATURES[FeatureId.EVENING_CLUSTER_EXPOSURE]
     assert near.label == (
-        "Share of homes with three or more pubs or bars within 150 m, in a straight line"
+        "Homes with three or more pubs or bars within 150 m, in a straight line, as a share of "
+        "all homes"
     )
     assert near.short_label == "Away from clusters of pubs and bars"
     assert (near.unit, near.polarity, near.kind) == ("%", Polarity.LESS, FeatureKind.NUISANCE)
@@ -1265,7 +1305,12 @@ def test_an_area_with_no_figure_of_traffic_is_not_placed_as_though_it_had_no_tra
     # And an area that is known to have the most traffic of all stands lower.
     busiest = tag_raw(TagId.QUIET_RESIDENTIAL, middling | {FeatureId.ROAD_TRAFFIC_NEARBY: 100.0})
     assert (busiest.raw, busiest.coverage) == (0.4, 1.0)
-    assert "is not taken to have none" in " ".join(TAGS[TagId.QUIET_RESIDENTIAL].cannot_see)
+    # It is said so in words a person knows, and of what Burro does.
+    assert (
+        "How busy a street is where no traffic is counted near it: for an area with no "
+        "figure for traffic, Burro works this vibe out from its other measurements, and "
+        "does not take the area to have no traffic."
+    ) in TAGS[TagId.QUIET_RESIDENTIAL].cannot_see
 
 
 def test_gritty_is_one_vibe_on_a_scale_that_counts_recorded_crime():
@@ -1414,11 +1459,51 @@ def test_every_vibe_says_what_it_cannot_see_and_the_same_line_comes_first(tag: T
     assert (
         tag.cannot_see[0]
         == COMMON_CANNOT_SEE
-        == ("One street or one home. An area is many streets.")
+        == ("What one street or one home is like, because an area is made up of many streets.")
     )
     assert len(tag.cannot_see) >= 4
     assert all(line.endswith(".") and line[0].isupper() for line in tag.cannot_see)
+    # Each line is one sentence, so that a client may set each on a line of its own.
+    assert all(line.count(".") == 1 for line in tag.cannot_see)
     assert tag.meaning and tag.short_label and tag.family in FAMILIES
+
+
+def test_what_a_vibe_cannot_see_says_what_each_thing_is_a_thing_of():
+    """Seen on the page of vibes: "Its inside.", "Upkeep.", "Prices.", "Catchments.".
+
+    Each stood in a list under what a vibe cannot see, and nothing said what the word was
+    of. A line says it: what a building is like inside, how well a park is kept. And a line
+    that stated something, and named nothing a vibe cannot see, names it first.
+    """
+    lines = {line for tag in TAGS.values() for line in tag.cannot_see}
+    assert not lines & {
+        "Its inside.",
+        "Upkeep.",
+        "Prices.",
+        "Catchments.",
+        "School places.",
+        "Opening hours.",
+        "What is on.",
+        "No open rating of parks exists.",
+        "Hygiene ratings are never shown.",
+        "It is mostly a map of how built up a place is.",
+        "An area the conservation data does not cover is unknown, not zero.",
+    }
+    assert "What a building is like inside." in TAGS[TagId.BUILT_AGE].cannot_see
+    assert "How well a park is kept." in TAGS[TagId.PARKS_CLOSE_BY].cannot_see
+    assert "What a meal or a drink costs." in TAGS[TagId.FOODIE].cannot_see
+    for tag_id in (TagId.FAMILY_AMENITIES, TagId.FAMILY_AREA):
+        assert "Which school catchment a home is in." in TAGS[tag_id].cannot_see
+        assert "Whether a school has places." in TAGS[tag_id].cannot_see
+    # What is not known is said to be not known, and never nought.
+    assert (
+        TAGS[TagId.BUILT_AGE]
+        .cannot_see[-1]
+        .endswith("Burro treats that as not known, and never as none.")
+    )
+    # No line says a word of the design, and none says that an area is placed.
+    assert not any(re.search(r"\b(?:releases?|recipes?|parts)\b", line) for line in lines)
+    assert not any(re.search(r"\bplaced on\b", line) for line in lines)
 
 
 def test_what_a_vibe_cannot_tell_apart_is_said_in_a_whole_sentence():
@@ -1434,20 +1519,28 @@ def test_what_a_vibe_cannot_tell_apart_is_said_in_a_whole_sentence():
 def test_leafy_says_that_a_wood_that_is_a_public_park_is_counted_twice():
     """No file of woodland outlines is held, so the figure cannot be put right. It is said."""
     assert TAGS[TagId.LEAFY].cannot_see[-1] == (
-        "A wood that is a public park is counted twice, by woodland and by public parks."
+        "Whether a wood is also a public park: a wood that is one is counted twice, by "
+        "woodland and by public parks."
     )
 
 
 def test_the_families_are_five_in_the_order_of_the_settings():
     # What counts who lives somewhere stands in a group of its own, last, apart from what
-    # counts places. Its name says the census.
+    # counts places. Its name says the census, and says who lived there: a census is of
+    # the day it was taken, and every line beside the name says so.
     assert list(FAMILIES.items()) == [
         (Family.STREETS_HOMES, "Streets and homes"),
-        (Family.PACE_FOOD, "Pace and food"),
-        (Family.GREEN, "Green"),
+        # Going out is the name of the vibe that was Pace, and its group is named with it.
+        (Family.PACE_FOOD, "Going out and food"),
+        # It is named for what is in it, and never green space: public parks and gardens
+        # are not to be described as all green space.
+        (Family.GREEN, "Parks, gardens and water"),
         (Family.DAILY_LIFE, "Daily life"),
-        (Family.WHO_LIVES_THERE, "Who lives there, at the 2021 census"),
+        (Family.WHO_LIVES_THERE, "Who lived there, at the census of 2021"),
     ]
+    # The census is named as every sentence of core names it.
+    assert "the census of 2021" in COUNTED_AT_THE_CENSUS
+    assert "the census of 2021" in NOTICES[Notice.NEUTRAL_PLACES]
     inside = {f for f, feature in FEATURES.items() if feature.family == "who_lives_there"}
     assert inside == COUNTS_RESIDENTS
     assert {t for t, tag in TAGS.items() if tag.family == "who_lives_there"} == HOLDS_RESIDENTS
@@ -1502,7 +1595,9 @@ def test_a_figure_that_its_publisher_models_is_said_to_be_modelled():
     # measured until a real build finds one that is not.
     modelled = {f for f, feature in FEATURES.items() if feature.method is Method.MODELLED}
     assert modelled == {FeatureId.AIR_NO2, FeatureId.ROAD_TRAFFIC_NEARBY}
-    assert "Modelled" in FEATURES[FeatureId.AIR_NO2].label
+    assert FEATURES[FeatureId.AIR_NO2].label == (
+        "Nitrogen dioxide in the air, as a modelled average over a year"
+    )
     averaged = {f for f, feature in FEATURES.items() if feature.method is Method.AVERAGED}
     others = [feature for f, feature in FEATURES.items() if f not in modelled | averaged]
     assert all(feature.method is Method.MEASURED for feature in others)
@@ -1777,15 +1872,22 @@ def test_everyday_on_foot_says_what_its_distances_cannot_see():
     said = TAGS[TagId.EVERYDAY_ON_FOOT].cannot_see
     assert said == (
         COMMON_CANNOT_SEE,
-        "It is mostly a map of how built up a place is.",
+        "Much more than how built up a place is, which is mostly what this vibe shows.",
         "How long the walk is: each distance is a straight line.",
         "Which side of a railway a home is on.",
         "How large a food shop is, and what it sells.",
         "Whether a surgery takes new patients.",
-        "Opening hours.",
-        "Step-free access at every station.",
+        "When places are open.",
+        "Whether every station has step-free access.",
     )
     assert "straight line" in said[2] and "walk" not in TAGS[TagId.EVERYDAY_ON_FOOT].meaning
+    # The vibe is made of how close five things are, and says so where it says what it
+    # means. So no line of what it cannot see says that it cannot see what is close:
+    # "Whether what you need is close or the place is simply built up" said that it could
+    # not. What was found of it is that it mostly shows how built up a place is.
+    assert "close to home" in TAGS[TagId.EVERYDAY_ON_FOOT].meaning
+    assert "mostly what this vibe shows" in said[1] and "how built up a place is" in said[1]
+    assert not any(re.search(r"\bclose\b|\bnear\b", line) for line in said)
 
 
 def test_a_recipe_runs_short_where_a_release_holds_no_figure_for_a_part():
@@ -1839,7 +1941,7 @@ def test_near_a_station_is_said_as_the_figure_core_holds_and_the_figure_is_no_wa
     assert NEAR_A_STATION == "Within 800 m in a straight line is about a 10 to 15 minute walk."
     assert NEAR_A_STATION.startswith(f"Within {floor} m in a straight line ")
     station = FEATURES[FeatureId.STATION_WALK]
-    assert station.label == "Straight-line distance to the nearest way in to a station"
+    assert station.label == "Distance to the nearest station entrance, in a straight line"
     assert (station.unit, station.polarity) == ("m", Polarity.LESS)
     for words in (station.label, station.short_label, station.higher, station.lower):
         assert "walk" not in words.lower() and "minute" not in words.lower()

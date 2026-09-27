@@ -222,41 +222,59 @@ def test_a_spec_cannot_hold_a_place_name_or_any_other_text(text: str):
         )
 
 
+# What a search of each kind starts from, as section 4.1 of the contract lists it.
+LISTED = {
+    Tenure.RENT: {
+        "station_walk": 0.5,
+        "station_lines": 0.3,
+        "park_proximity": 0.3,
+        "highstreet_access": 0.3,
+        "noise_exposure": 0.2,
+        "air_no2": 0.2,
+    },
+    Tenure.BUY: {
+        "station_walk": 0.4,
+        "park_proximity": 0.4,
+        "green_cover": 0.3,
+        "highstreet_access": 0.3,
+        "noise_exposure": 0.3,
+        "station_lines": 0.2,
+        "air_no2": 0.2,
+    },
+    Tenure.VISIT: {
+        "station_walk": 0.5,
+        "station_lines": 0.3,
+        "venue_food_drink_per_homes": 0.3,
+        "venue_evening_per_homes": 0.3,
+        "culture_venues_per_homes": 0.3,
+        "park_proximity": 0.3,
+    },
+}
+# The kind of home a budget is held against until one is named, and what a budget counts for.
+# A visit holds no budget: the kind its record holds stands for nothing, and it counts for
+# nothing.
+BUDGETS = {
+    Tenure.RENT: (Segment.BED_1, 0.30),
+    Tenure.BUY: (Segment.FLAT, 0.30),
+    Tenure.VISIT: (Segment.BED_1, 0.0),
+}
+
+
 @pytest.mark.parametrize("tenure", list(Tenure))
 def test_the_default_spec_is_what_the_contract_lists(tenure: Tenure):
+    assert set(LISTED) == set(BUDGETS) == set(Tenure)
     spec = default_spec(tenure)
-    rent = tenure is Tenure.RENT
+    assert spec.tenure is tenure
     assert spec.budget.amount is None
-    assert spec.budget.segment is (Segment.BED_1 if rent else Segment.FLAT)
+    assert (spec.budget.segment, spec.budget.weight) == BUDGETS[tenure]
     assert spec.budget.strictness is Strictness.SOFT
-    assert spec.budget.weight == 0.30
     assert (spec.commutes, spec.tags, spec.areas) == ((), (), ())
     assert (spec.commute_combine, spec.pt_basis, spec.commute_weight) == (
         "slowest",
         "typical",
         0.40,
     )
-    expected = (
-        {
-            "station_walk": 0.5,
-            "station_lines": 0.3,
-            "park_proximity": 0.3,
-            "highstreet_access": 0.3,
-            "noise_exposure": 0.2,
-            "air_no2": 0.2,
-        }
-        if rent
-        else {
-            "station_walk": 0.4,
-            "park_proximity": 0.4,
-            "green_cover": 0.3,
-            "highstreet_access": 0.3,
-            "noise_exposure": 0.3,
-            "station_lines": 0.2,
-            "air_no2": 0.2,
-        }
-    )
-    assert {w.feature_id.value: w.weight for w in spec.weights} == expected
+    assert {w.feature_id.value: w.weight for w in spec.weights} == LISTED[tenure]
     provenances = {w.provenance for w in spec.weights} | {
         spec.budget.provenance,
         spec.tenure_from,

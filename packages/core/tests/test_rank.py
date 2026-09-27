@@ -148,7 +148,7 @@ def test_the_result_records_what_it_was_ranked_from():
     result = rank(spec, build_worked_release())
     assert result.spec_hash == spec_hash(spec)
     assert result.release_id == "syn-2026-09-23-01"
-    assert result.engine_version == ENGINE_VERSION == "1.15.0"
+    assert result.engine_version == ENGINE_VERSION == "1.19.0"
     assert result.synthetic is True
 
 
@@ -551,10 +551,12 @@ def test_a_usual_setting_with_no_figure_moves_no_area(tenure: Tenure, given: boo
     release = small_release()
     before = rank(spec, release)
     first = before.ranked[0].area_id
-    lacking = without(release, first, "feature:noise_exposure")
+    # The lines that call nearby are a usual setting of a search of every kind.
+    assert all(FeatureId.STATION_LINES in held for held in DEFAULT_WEIGHTS.values())
+    lacking = without(release, first, "feature:station_lines")
     after = rank(spec, lacking)
     assert [c.component for c in by_area(after)[first].contributions if not c.present] == [
-        "feature:noise_exposure"
+        "feature:station_lines"
     ]
     # Its fit moves, as the weights are shared out again. It is put below nobody for it.
     assert not lacks_what_was_asked(by_area(after)[first], spec)

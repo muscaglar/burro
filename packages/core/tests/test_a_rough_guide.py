@@ -3,8 +3,13 @@
 The founder decided on 2026-09-25 that Village feel is served though it did
 not reach the bar they had set, and that it says it is less sure than the
 other vibes (ADR 0013, as amended). So it is never taken without a press of
-its own: the rules apply it from no word, and offer it with its label and its
-sentence. Every area here is made up.
+its own: the rules apply it from no word, and offer it.
+
+On 2026-09-26 the founder asked that no person who uses Burro is told: "remove
+the concept of rough guide, we don't want to pass this on to a user". So no
+offer says that the vibe is one, and no note names it with its label. Core
+holds the label and the sentence still, for whoever decides a recipe. How the
+vibe is handled is as it was. Every area here is made up.
 """
 
 import pytest
@@ -67,11 +72,13 @@ def offer_of(result: InterpretResult, target: str = VILLAGE):
     return found
 
 
-def test_village_feel_is_the_one_rough_guide_and_says_so_in_these_words():
+def test_village_feel_is_the_one_rough_guide_and_core_holds_why_in_these_words():
     assert set(ROUGH_GUIDES) == {TagId.VILLAGE_FEEL}
     assert SAID == (
-        "Rough guide. Of the areas it puts highest, about half read as villages to people, "
-        "and it takes some busy main roads and some grand inner streets for villages."
+        "Rough guide. This vibe is less sure than the others, because only about half of the "
+        "areas it puts highest seemed like villages to the people who were asked, and it also "
+        "takes some busy main roads and some grand streets near the centre of the city for "
+        "villages."
     )
     assert f"{ROUGH_GUIDE}. {WHY_A_ROUGH_GUIDE[TagId.VILLAGE_FEEL]}" == SAID
 
@@ -89,9 +96,16 @@ def test_the_rules_never_apply_a_rough_guide_from_a_plain_prompt(text: str):
     assert [tag.tag_id for tag in pressed.spec.active_tags] == [TagId.VILLAGE_FEEL]
 
 
-@pytest.mark.parametrize("text", BY_ITS_NAME)
-def test_its_offer_holds_its_label_and_its_sentence(text: str):
-    assert offer_of(read(text)).note == SAID
+@pytest.mark.parametrize("text", [*BY_ITS_NAME, *WITH_MORE])
+def test_no_offer_of_it_says_that_it_is_a_rough_guide_or_why(text: str):
+    """Its offer held its label and its sentence, which a client showed as they came."""
+    result = read(text)
+    assert offer_of(result).note == ""
+    for found in result.suggestions:
+        said = " ".join((found.label, found.note, *(choice.label for choice in found.choices)))
+        assert ROUGH_GUIDE.lower() not in said.lower()
+        assert WHY_A_ROUGH_GUIDE[TagId.VILLAGE_FEEL] not in said
+        assert "less sure" not in said
 
 
 def test_what_else_a_plain_prompt_asks_for_is_offered_beside_it_and_not_applied():
@@ -125,20 +139,20 @@ def test_every_phrase_that_reaches_a_rough_guide_is_offered_and_never_applied():
 
 def test_a_word_for_community_is_offered_village_feel_and_says_what_it_counts():
     assert NO_NEIGHBOURS == (
-        "Burro cannot measure whether neighbours know each other. The nearest it can count is "
-        "a village feel: a high street in a conservation area, homes that stand apart and "
-        "period homes."
+        "Burro has no way of measuring whether neighbours know each other. The nearest thing "
+        "it can count is a village feel: a high street in a conservation area, homes that "
+        "stand apart and period homes."
     )
     for text in ("a sense of community", "somewhere neighbourly"):
         found = offer_of(read(text))
-        assert found.note == f"{NO_NEIGHBOURS} {SAID}"
+        assert found.note == NO_NEIGHBOURS
 
 
-def test_the_note_under_a_word_for_character_names_village_feel_with_its_label():
+def test_the_note_under_a_word_for_character_names_village_feel_as_it_names_the_rest():
     assert NO_IDENTITY == (
-        "Burro cannot measure the character of a place. The nearest it can count are a village "
-        "feel (rough guide), the age of the buildings and a town centre nearby. Choose any that "
-        "fit what you mean."
+        "Burro has no way of measuring the character of a place. The nearest things it can "
+        "count are a village feel, the age of the buildings and a town centre nearby, so "
+        "choose any of these that fit what you mean."
     )
     result = read("somewhere with a real identity")
     assert result.operations == NO_OPERATIONS
@@ -147,10 +161,8 @@ def test_the_note_under_a_word_for_character_names_village_feel_with_its_label()
         "tag:built_age",
         "feature:highstreet_access",
     ]
-    # Each way says what the word is offered as. The offer of Village feel says too that
-    # it is a rough guide, and why.
-    assert offer_of(result).note == f"{NO_IDENTITY} {SAID}"
-    for target in ("tag:built_age", "feature:highstreet_access"):
+    # Each way says what the word is offered as, and the offer of Village feel no more.
+    for target in (VILLAGE, "tag:built_age", "feature:highstreet_access"):
         assert offer_of(result, target).note == NO_IDENTITY
 
 
@@ -168,7 +180,7 @@ def test_on_a_release_that_places_no_area_on_it_the_note_names_no_village_feel()
 
 def test_named_twice_it_is_offered_once_with_all_that_is_said_of_it():
     result = read("villagey, with a real identity")
-    assert offer_of(result).note == f"{NO_IDENTITY} {SAID}"
+    assert offer_of(result).note == NO_IDENTITY
 
 
 def test_a_vibe_that_is_as_sure_as_the_rest_is_applied_as_it_was_and_says_nothing_of_it():

@@ -126,7 +126,10 @@ METHOD = nearest_by_postcode.METHOD
 METHODS: tuple[Method, ...] = (METHOD,)
 # What a person reads beside the figure: it is a straight line, and no walk, and a practice
 # is put where its postcode is.
-LABEL = "Straight-line distance to the nearest GP practice, placed by its postcode"
+LABEL = (
+    "Distance to the nearest GP practice, in a straight line, with each practice placed by its "
+    "postcode"
+)
 # What the measure is, from whom, for what period, and what it is not.
 DEFINITION = (
     "The distance in a straight line, in metres, from the point the statistics office gives as "

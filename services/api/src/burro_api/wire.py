@@ -131,6 +131,22 @@ class ErrorCode(StrEnum):
     RELEASE_CHANGED = "release_changed"
     CENSUS_NOT_AVAILABLE = "census_not_available"
     INCOME_NOT_AVAILABLE = "income_not_available"
+    # What the routes of accounts refuse with.
+    NOT_THE_WEBSITE = "not_the_website"
+    NOT_SIGNED_IN = "not_signed_in"
+    SIGN_IN_AGAIN = "sign_in_again"
+    RATE_LIMITED = "rate_limited"
+    SIGN_IN_BUSY = "sign_in_busy"
+    SIGN_IN_UNAVAILABLE = "sign_in_unavailable"
+    INVALID_EMAIL = "invalid_email"
+    LINK_NOT_VALID = "link_not_valid"
+    LINK_EXPIRED = "link_expired"
+    LINK_USED = "link_used"
+    OTHER_BROWSER = "other_browser"
+    AGE_NOT_CONFIRMED = "age_not_confirmed"
+    TOO_MANY_SEARCHES = "too_many_searches"
+    SEARCH_NOT_FOUND = "search_not_found"
+    SESSION_NOT_FOUND = "session_not_found"
 
 
 class Problem(StrEnum):
@@ -424,6 +440,19 @@ class Suggestion(Wire):
     named_at: Span | None
     # What the release holds that the name may mean. Empty where nothing is alike.
     options: tuple[ClarifyOption, ...]
+    # The person's own words name what the offer counts. Of a measure or a vibe: some
+    # words the offer rests on are a name of it, as "gritty" and "low crime" are names
+    # of what counts recorded crime, and not a word that it is only read into, as
+    # "safe" and "posh" are. The name of a scale names neither of its ends. What is
+    # read from a name or a number that was typed is named by it: a journey, a budget,
+    # a home, an area. A journey to a place that is yet to be chosen is not.
+    by_name: bool = False
+    # What is offered waits for a person to choose it. A client that takes what is
+    # offered and asks nothing takes none of its ways, whatever else is said of them:
+    # what counts who lived somewhere, whatever the words, and what counts recorded
+    # crime or is a measure that is offered and never applied, where the words do not
+    # name it. A client that asks a person may pass it over.
+    only_by_choice: bool = False
 
 
 class UnmetAt(Wire):
@@ -727,8 +756,13 @@ class ShareData(Ranking):
 
 
 class Defaults(Wire):
+    """What a search of each kind starts from, before a person has chosen anything."""
+
     rent: PreferenceSpec
     buy: PreferenceSpec
+    # A visit holds no budget and no kind of home: its `budget` holds no amount and counts
+    # for nothing, and the kind of home in it stands for nothing and is shown by nobody.
+    visit: PreferenceSpec
 
 
 class ServedLimits(Limits):
@@ -833,10 +867,11 @@ class MetaData(Wire):
     # Whether household income is served for the areas of this release, and the words of
     # the block that offers it. It holds no figure and names no area.
     income: IncomeOffer
-    # What each vibe of `tags` that is a rough guide says of itself wherever it is shown:
-    # one short label, and one sentence that says why. The words are core's, and no client
-    # writes its own. Empty where the release carries no such vibe, which is what a
-    # client takes it to be where it is absent.
+    # What stood beside each vibe of `tags` that is a rough guide: one short label, and
+    # one sentence that said why. The founder asked on 2026-09-26 that no person is told,
+    # so the service passes on no word of it, and the list is always empty. It is kept so
+    # that the shape of the answer is as it was, and empty is what a client took it to be
+    # where a release carried no such vibe. `Tag.sureness` says which vibe is less sure.
     rough_guides: tuple[RoughGuide, ...] = ()
 
 

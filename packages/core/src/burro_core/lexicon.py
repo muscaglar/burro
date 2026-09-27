@@ -41,7 +41,6 @@ from burro_core.catalogue import (
     MIXED_WORDS,
     NUISANCES,
     RANKED_AS,
-    ROUGH_GUIDE,
     ROUGH_GUIDES,
     TAGS,
     tags_of,
@@ -162,31 +161,35 @@ def _tag(
 # The first words a newcomer reaches for, of which Burro has no measure. Each
 # is offered what is nearest, and says what Burro cannot do and why.
 CANNOT_SAY_SAFE = (
-    f"Burro cannot say how safe a place is. It can count recorded crime. {CRIME_CAVEAT}"
+    "Burro cannot tell you how safe a place is. What it can do is count recorded crime. "
+    f"{CRIME_CAVEAT}"
 )
 NO_POOLS = (
     "Burro cannot tell a swimming pool or a leisure centre from any other place to train. "
-    "The nearest it can count is gyms and fitness studios."
+    "The nearest thing it can count is gyms and fitness studios."
 )
 NO_NEIGHBOURS = (
-    "Burro cannot measure whether neighbours know each other. The nearest it can count is "
-    "a village feel: a high street in a conservation area, homes that stand apart and "
-    "period homes."
+    "Burro has no way of measuring whether neighbours know each other. The nearest thing it "
+    "can count is a village feel: a high street in a conservation area, homes that stand "
+    "apart and period homes."
 )
 NOT_ONE_HOME = (
-    "Burro cannot see whether one home has a garden. "
-    "It can count how much of an area is residential garden."
+    "Burro cannot see whether one home has a garden, but it can count how much of an area "
+    "is residential garden."
 )
 # A word for a smart area is read as of the place, and never of who lives there:
 # not of what they earn, and not of who they are (ADR 0006).
-PLACES_NOT_PEOPLE = "Burro reads this of the place, and not of the people who live there."
+PLACES_NOT_PEOPLE = (
+    "Burro takes this to be about the place, and not about the people who live there."
+)
 # What a word for character is offered as, each as the note names it, in the order the note
 # names them. The note names what is offered and nothing else: a release that places no
 # area on Village feel offers none, and a note that named one would promise a person what
-# no press can give. Village feel is a rough guide, and is named with its label.
+# no press can give. Village feel is a rough guide, and was named with its label until the
+# founder asked that no person is told that a vibe is one (2026-09-26).
 NEAREST_TO_CHARACTER: Mapping[str, str] = MappingProxyType(
     {
-        f"tag:{TagId.VILLAGE_FEEL}": f"a village feel ({ROUGH_GUIDE.lower()})",
+        f"tag:{TagId.VILLAGE_FEEL}": "a village feel",
         f"tag:{TagId.BUILT_AGE}": "the age of the buildings",
         f"feature:{FeatureId.HIGHSTREET_ACCESS}": "a town centre nearby",
     }
@@ -196,18 +199,17 @@ NEAREST_TO_CHARACTER: Mapping[str, str] = MappingProxyType(
 def no_identity(offered: Collection[str]) -> str:
     """What is said beside a word for character, of the things that are offered for it.
 
-    `offered` holds the target of each. A vibe that is a rough guide is named
-    with its label.
+    `offered` holds the target of each, and each is named as any other is.
     """
-    cannot = "Burro cannot measure the character of a place."
+    cannot = "Burro has no way of measuring the character of a place."
     named = [words for target, words in NEAREST_TO_CHARACTER.items() if target in offered]
     if not named:
         return cannot
     if len(named) == 1:
-        return f"{cannot} The nearest it can count is {named[0]}."
+        return f"{cannot} The nearest thing it can count is {named[0]}."
     listed = f"{', '.join(named[:-1])} and {named[-1]}"
-    choose = "Choose either or both." if len(named) == 2 else "Choose any that fit what you mean."
-    return f"{cannot} The nearest it can count are {listed}. {choose}"
+    choose = "either or both" if len(named) == 2 else "any of these that fit what you mean"
+    return f"{cannot} The nearest things it can count are {listed}, so choose {choose}."
 
 
 NO_IDENTITY = no_identity(NEAREST_TO_CHARACTER)
@@ -230,7 +232,8 @@ OF_A_CHAIN = (
 )
 # What is said wherever a thing that counts who lives somewhere is offered.
 COUNTED_AT_THE_CENSUS = (
-    "Burro counts who was living there at the census of 2021. It measures places first."
+    "Burro measures places first. When it counts people, it counts who was living there at "
+    "the census of 2021."
 )
 # A person's own age is not known to Burro, and it counts two ages and no other. So the
 # words are answered with a question, and the two it counts are offered to choose from.
@@ -248,6 +251,19 @@ def counts_residents(target: Target) -> bool:
     a group of people, which nothing reads (ADR 0006).
     """
     return bool(COUNTS_RESIDENTS & set(target.features) or HOLDS_RESIDENTS & set(target.tags))
+
+
+def names_it(target: Target) -> bool:
+    """Whether a phrase names what it asks for, and is no word that the thing is read into.
+
+    "Gritty" names the vibe that counts recorded crime, and "low crime" names
+    recorded crime: to type either is to ask for it by name. "Safe", "posh"
+    and "edgy" name neither. Each is read into it, and a thing that is read
+    into a word was not asked for by name (ADR 0013). The name of a scale
+    names neither of its ends, and what is offered of a scale counts towards
+    one of them: "street character" asks for no end of Gritty.
+    """
+    return target.provenance is EditProvenance.STATED and not target.no_end
 
 
 def is_a_rough_guide(target: Target) -> bool:

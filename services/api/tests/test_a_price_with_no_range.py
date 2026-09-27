@@ -245,7 +245,8 @@ def test_a_firm_budget_for_a_flat_says_how_far_over_it_a_middle_price_may_be(cli
         "left out. About half of the homes sold in an area went for under its middle price."
     )
     assert [way["label"] for way in budget["choices"]] == [
-        "Set as a firm limit: areas where the middle price is more than 25% over it are left out",
+        "Set it as a firm limit, which leaves out areas where the middle price is more than "
+        "25% over it",
         "Skip",
     ]
 
@@ -254,4 +255,6 @@ def test_a_firm_budget_for_a_rent_says_what_it_said(client: TestClient):
     """A rent is a range, and is held against its upper end as it was."""
     budget = offered_budget(client, "Somewhere lovely. If I'm renting, max £1,900 a month.")
     assert budget["follows"] == "Dearer areas are left out."
-    assert budget["choices"][0]["label"] == "Set as a firm limit: dearer areas are left out"
+    assert budget["choices"][0]["label"] == (
+        "Set it as a firm limit, which leaves out areas that cost more"
+    )

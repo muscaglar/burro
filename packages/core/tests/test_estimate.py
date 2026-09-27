@@ -107,7 +107,10 @@ def test_the_numbers_of_an_estimate_are_named_in_one_place():
         "near_the_underground_m": 800,
         "within_by": 10,
         "beyond_by": 10,
-        "said": "Estimated from distance, not from a timetable.",
+        "said": (
+            "This is an estimate that Burro worked out from the distance, and not a time "
+            "from a timetable."
+        ),
     }
 
 
@@ -245,13 +248,22 @@ def test_the_fact_of_an_estimate_says_that_it_is_one():
     }
     assert said == {
         WITHIN: "By public transport to Pellam Cross: likely within the 40 minutes you set. "
-        "Estimated from distance, not from a timetable.",
+        "This is an estimate that Burro worked out from the distance, and not a time from a "
+        "timetable.",
         BORDERLINE: "By public transport to Pellam Cross: borderline for the 40 minutes you "
-        "set. Estimated from distance, not from a timetable.",
+        "set. This is an estimate that Burro worked out from the distance, and not a time "
+        "from a timetable.",
         BEYOND: "By public transport to Pellam Cross: likely beyond the 40 minutes you set. "
-        "Estimated from distance, not from a timetable.",
+        "This is an estimate that Burro worked out from the distance, and not a time from a "
+        "timetable.",
     }
-    assert ESTIMATED == "Estimated from distance, not from a timetable."
+    # It says that it is an estimate, what it was worked out from, and that no timetable
+    # stands behind it. It gives no reason of its own.
+    assert ESTIMATED == (
+        "This is an estimate that Burro worked out from the distance, and not a time from a "
+        "timetable."
+    )
+    assert "because" not in ESTIMATED
     assert TEMPLATES[TemplateId.TRAVEL_ESTIMATED].endswith("{estimated}")
 
 

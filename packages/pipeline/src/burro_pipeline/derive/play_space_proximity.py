@@ -67,7 +67,7 @@ CENSUS, NEAREST = park_proximity.CENSUS, park_proximity.NEAREST
 METHOD = park_proximity.STRAIGHT_LINE
 METHODS: tuple[Method, ...] = (METHOD,)
 # What a person reads beside the figure: it is a straight line, and no walk.
-LABEL = "Straight-line distance to the nearest marked way into a play space"
+LABEL = "Distance to the nearest marked entrance to a play space, in a straight line"
 # What the measure is, from whom, for what period, and what it is not.
 DEFINITION = (
     "The distance in a straight line, in metres, from the point the statistics office gives as "

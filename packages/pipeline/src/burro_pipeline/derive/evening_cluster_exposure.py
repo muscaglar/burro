@@ -81,7 +81,10 @@ FEWEST = 3
 # How far the file is looked in to see that it holds something, in whole metres.
 SEEN_WITHIN = culture_reach.METRES
 DECIMALS = 1
-LABEL = f"Share of homes with three or more pubs or bars within {METRES} m, in a straight line"
+LABEL = (
+    f"Homes with three or more pubs or bars within {METRES} m, in a straight line, as a share "
+    "of all homes"
+)
 METHOD = homes_within_at(METRES)
 METHODS: tuple[Method, ...] = (METHOD,)
 DEFINITION = (

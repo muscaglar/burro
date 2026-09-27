@@ -413,8 +413,8 @@ def test_an_area_near_the_line_is_kept_and_says_that_about_half_sold_for_less(bu
     price_of = facts[f"{ONE}/cost/buy.flat"]
     assert price_of.template is TemplateId.COST_BUY_SOLD
     assert render(price_of).text == (
-        "Price for a flat: £250,000. This is the middle price of the 11 flats of all sizes "
-        "sold from January 2023 to December 2025."
+        "The middle price of the 11 flats of all sizes sold from January 2023 to December "
+        "2025 was £250,000."
     )
 
 

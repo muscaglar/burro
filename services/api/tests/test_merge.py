@@ -93,6 +93,7 @@ def test_a_person_never_sees_less_than_the_rules_alone_give():
     # The guard that went applied only what the model said, and lost 14 right
     # readings of the rules on these sentences. None may be lost.
     rules = RuleInterpreter()
+    nothing = FakeModelClient(model_output())
     missing: dict[str, list[str]] = {}
     for (case, look), row in answers_on_disk().items():
         if "output" not in row:
@@ -101,7 +102,10 @@ def test_a_person_never_sees_less_than_the_rules_alone_give():
         request = InterpretRequest(text=text, spec=spec, release=release())
         ruled, result = rules.interpret(request), reader_asking(client).interpret(request)
         assert result.operations == ruled.operations, case
-        gone = lost(ruled, result)
+        # What the rules alone give is what is served of them where a model reads and
+        # answers nothing: a way that the words turn round is offered by neither.
+        alone = reader_asking(nothing).interpret(request)
+        gone = lost(alone, result)
         if gone:
             missing[f"{case} look {look}"] = gone
     assert missing == {}
@@ -255,7 +259,12 @@ def test_where_the_rules_read_the_sentence_the_other_way_the_whole_of_it_is_show
     # The rules read "not near a station", and apply nothing, since the prompt is not plain.
     assert found["applied"] == []
     [station] = found["suggestions"]
-    assert not any(way["guess"] for way in station["choices"])
+    # The raise is no guess, and is not offered. The guess is the rules' own reading of
+    # the sentence, which takes the station off, and no press takes that with others.
+    assert [(way["id"], way["guess"]) for way in station["choices"]] == [
+        (OFF, True),
+        ("ignore", False),
+    ]
     assert station["add_all"] == ""
     shown = text[station["shown"]["start"] : station["shown"]["end"]]
     assert shown == "not near a station"
@@ -276,7 +285,10 @@ def test_cores_own_word_for_an_end_outweighs_the_end_a_model_names():
 
     result, _ = asked(model_output(tag_ops=[calm]), text=text)
 
-    assert list(offers(result)) == ["tag:pace"] and guessed(result) == {}
+    # The end a model names against the words is no guess. The end the rules read of the
+    # sentence is, as it is where no model reads.
+    assert list(offers(result)) == ["tag:pace"] and guessed(result) == {"tag:pace": MORE}
+    assert guessed(asked(model_output(), text=text)[0]) == {"tag:pace": MORE}
 
 
 # A budget.

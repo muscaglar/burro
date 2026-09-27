@@ -131,9 +131,9 @@ def _vocabulary() -> str:
 
 
 _INSTRUCTIONS = """\
-You turn what a person says about where they want to live into typed edits to their \
-preference spec. That is your whole job. You never rank, score, recommend or describe a place, \
-and you never use what you know about any city.
+You turn what a person says about where they want to live, or where they want to stay on a \
+visit, into typed edits to their preference spec. That is your whole job. You never rank, \
+score, recommend or describe a place, and you never use what you know about any city.
 
 What you are sent
 {sent}
@@ -156,7 +156,10 @@ not bear out.
 
 The edits
 - budget_ops. `set` writes tenure, amount, segment and strictness, each unless it is its \
-sentinel. `nudge` moves the amount by `step`. `clear` removes the amount. Amounts are whole \
+sentinel. `nudge` moves the amount by `step`. `clear` removes the amount. The tenure is what \
+the person looks for: rent, buy or visit. It is visit where they are visiting and look for \
+somewhere to stay, such as a hotel. A visit has no amount and no segment: leave both at their \
+sentinels, and make no edit for what a night or a stay costs. Amounts are whole \
 pounds: rent per calendar month, or a purchase price. Rent segments: room, studio, bed_1, \
 bed_2, bed_3, bed_4plus. Purchase segments: flat, terraced, semi_detached, detached.
 - commute_ops. `add` a destination with its mode (pt, cycle, walk), `max_minutes` and \
@@ -229,8 +232,8 @@ as every edit's words are. The categories are broadband, flood_risk, health_serv
 listings, affordability_verdict, community_amenities, outside_the_city, or other.
 
 Off topic
-If nothing in the request is about choosing where to live, set `status` to "off_topic" and \
-leave every array empty. Otherwise `status` is "ok".
+If nothing in the request is about choosing where to live, or where to stay on a visit, set \
+`status` to "off_topic" and leave every array empty. Otherwise `status` is "ok".
 
 {vocabulary}
 """
@@ -294,8 +297,43 @@ def asks_a_model(read: InterpretResult) -> bool:
     the name of a scale alone, or a name that stands alone. Words that ask for
     nothing are words all the same: they are not said to be unread, and a
     model is asked where the rules made nothing of them, as it was.
+
+    **A prompt the rules applied is never handed on**, though a word of it is
+    unread. They apply a prompt only where the grammar places every word of
+    it, and a word it places is unread where the search cannot hold what it
+    asks: "a flat", of a search to rent. A model was asked for such a word,
+    and what comes of asking holds no edit, so the wish beside it was applied
+    by nobody: of "leafy, a flat" the wish for leafy was lost.
+
+    A journey to a place that is yet to be chosen is the one edit a prompt may
+    hold that the rules did not apply: it is a question, and carries no place.
     """
+    edits = read.operations
+    asked = [journey for journey in edits.commute_ops if not journey.place_id]
+    if edits.count > len(asked):
+        return False
     return bool(read.unread or read.asks_nothing)
+
+
+def _with_what_was_asked(read: InterpretResult, text: str) -> list[Span]:
+    """What the rules left unread, with the words that a question of theirs rested on.
+
+    A question the rules asked is in no answer that follows a call, which
+    holds no edit. The words it rested on are then said to be unread, unless
+    an offer rests on them: nothing that was typed is dropped without a word.
+    Two stretches that touch are one, as they are where the rules say them.
+    """
+    asked = [Span(start=rests.start, end=rests.end) for rests in read.rests_on]
+    found: list[Span] = []
+    for span in sorted([*read.unread, *asked], key=lambda span: span.start):
+        touches = bool(found) and not any(
+            letter.isalnum() for letter in text[found[-1].end : span.start]
+        )
+        if touches:
+            found[-1] = Span(start=found[-1].start, end=max(found[-1].end, span.end))
+        else:
+            found.append(span)
+    return found
 
 
 def _left_unread(
@@ -455,7 +493,8 @@ class ModelInterpreter:
         with self._lock:
             self.fired.update(found.fired)
             self.fired.update(more)
-        unread, asks_nothing = _left_unread(read.unread, offers, request.text)
+        left = _with_what_was_asked(read, request.text)
+        unread, asks_nothing = _left_unread(left, offers, request.text)
         # What an offer rests on was not left out, whatever a model files it as.
         filed = [
             (category, where)

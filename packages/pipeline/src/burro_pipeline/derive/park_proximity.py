@@ -102,7 +102,10 @@ METHODS: tuple[Method, ...] = (METHOD,)
 # What a person reads beside the figure: it is a straight line, and no walk. It is measured
 # to a way in that the publisher marks, and not to the edge of the park, so the name says a
 # way in. It is core's name for the measure too.
-LABEL = "Straight-line distance to the nearest marked way into a park of {least} ha or more"
+LABEL = (
+    "Distance to the nearest marked entrance to a park of {least} hectares or more, in a "
+    "straight line"
+)
 # What the measure is, from whom, for what period, and what it is not.
 DEFINITION = (
     "The distance in a straight line, in metres, from the point the statistics office gives as "

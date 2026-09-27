@@ -11,9 +11,9 @@ import json
 import math
 from collections.abc import Hashable, Mapping, Sequence
 from types import MappingProxyType
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
-from pydantic import AfterValidator, Field, field_validator
+from pydantic import AfterValidator, Field, field_validator, model_validator
 
 from burro_core._record import Record
 from burro_core.catalogue import TAGS, default_direction, direction_allowed
@@ -64,12 +64,15 @@ class Limits(Record):
     minutes_step_large: int = 15
     max_commutes: int = 3
 
-    def money(self, tenure: Tenure) -> MoneyLimits:
-        return self.rent if tenure is Tenure.RENT else self.buy
+    def money(self, tenure: Tenure) -> MoneyLimits | None:
+        """What an amount is held to, for a search of this kind. A visit holds no amount."""
+        return {Tenure.RENT: self.rent, Tenure.BUY: self.buy}.get(tenure)
 
 
 LIMITS = Limits()
 
+# The kind of home a budget is held against until a person names one. A visit has no kind of
+# home, so it has no entry: `NO_BUDGET` says what a visit holds in the place of a budget.
 DEFAULT_SEGMENT = {Tenure.RENT: Segment.BED_1, Tenure.BUY: Segment.FLAT}
 # The kind of house a budget is held against where a person names a house and no kind of
 # house. Decided on 2026-09-25, and the founder's to overturn: a house is no flat, a price is
@@ -130,6 +133,20 @@ class Budget(Record):
     strictness: Strictness
     weight: Weight
     provenance: Provenance
+
+
+# What a visit holds in the place of a budget, and the whole of it: no amount, which is no
+# budget, and a weight of nothing, so that what homes cost is no part of how an area is
+# ranked. The record of a budget has a kind of home and none may be left out of it, so this
+# one holds the first kind there is. It stands for nothing: no cost is read by it, nothing is
+# held against it, and no client shows it. A visit holds this record and no other.
+NO_BUDGET = Budget(
+    amount=None,
+    segment=Segment.BED_1,
+    strictness=DEFAULT_STRICTNESS,
+    weight=0.0,
+    provenance=Provenance.DEFAULT,
+)
 
 
 class Commute(Record):
@@ -211,6 +228,18 @@ class PreferenceSpec(Record):
     def _areas_in_order(cls, value: tuple[AreaRule, ...]) -> tuple[AreaRule, ...]:
         return _in_order(value, "area_id")
 
+    @model_validator(mode="after")
+    def _a_visit_holds_no_budget(self) -> Self:
+        # It names no value: what was sent may be what a person typed.
+        if self.tenure is Tenure.VISIT and self.budget != NO_BUDGET:
+            raise ValueError("a visit holds no budget and no kind of home")
+        return self
+
+    @property
+    def visiting(self) -> bool:
+        """Whether the search is for somewhere to stay, and so holds no budget and no home."""
+        return self.tenure is Tenure.VISIT
+
     @property
     def commute_requested(self) -> bool:
         return bool(self.commutes) and self.commute_weight > 0
@@ -261,6 +290,29 @@ _BUYER_WEIGHTS = (
     (FeatureId.STATION_LINES, 0.20),
     (FeatureId.AIR_NO2, 0.20),
 )
+# What somebody who is choosing where to stay for a few nights is likely to mind: being able
+# to get about, places to eat and drink and to go out, and something to walk to. It is a
+# judgement, made for the founder on 2026-09-26, and theirs to change: this table is the one
+# place that holds it.
+#
+# Getting about leads, as it does for a renter, and is a station nearby and the lines that
+# call there. Places to eat and drink, pubs and bars, and museums, theatres and the like are
+# each counted for every 1,000 homes, because a count of them is shown and never ranked on
+# (`RANKED_AS` in the catalogue). A park is something to walk to, and so are the museums.
+# Noise and the air are left out: they are what a person lives with, and a visitor stays a
+# few nights. So is the town centre, which the places that stand in one already speak for.
+#
+# Given way they come to 0.35 in all, as a renter's do. A visit has no budget to stand beside
+# a journey, so that is what lets one place to reach, at 0.40, outweigh all that nobody said.
+# A seventh measure, or a second at 0.40 or more, would bring them level with it.
+_VISITOR_WEIGHTS = (
+    (FeatureId.STATION_WALK, 0.50),
+    (FeatureId.STATION_LINES, 0.30),
+    (FeatureId.VENUE_FOOD_DRINK_PER_HOMES, 0.30),
+    (FeatureId.VENUE_EVENING_PER_HOMES, 0.30),
+    (FeatureId.CULTURE_VENUES_PER_HOMES, 0.30),
+    (FeatureId.PARK_PROXIMITY, 0.30),
+)
 
 
 # What each default weight is, for the reducer, which lets them give way.
@@ -268,23 +320,30 @@ DEFAULT_WEIGHTS: Mapping[Tenure, Mapping[FeatureId, float]] = MappingProxyType(
     {
         Tenure.RENT: MappingProxyType(dict(_RENTER_WEIGHTS)),
         Tenure.BUY: MappingProxyType(dict(_BUYER_WEIGHTS)),
+        Tenure.VISIT: MappingProxyType(dict(_VISITOR_WEIGHTS)),
     }
 )
 
 
+def default_budget(tenure: Tenure) -> Budget:
+    """The budget a search of this kind starts from, which nobody chose. A visit holds none."""
+    if tenure is Tenure.VISIT:
+        return NO_BUDGET
+    return Budget(
+        amount=None,
+        segment=DEFAULT_SEGMENT[tenure],
+        strictness=DEFAULT_STRICTNESS,
+        weight=DEFAULT_BUDGET_WEIGHT,
+        provenance=Provenance.DEFAULT,
+    )
+
+
 def default_spec(tenure: Tenure) -> PreferenceSpec:
     """The spec a search starts from. Every provenance is `default`: nobody chose any of it."""
-    weights = _RENTER_WEIGHTS if tenure is Tenure.RENT else _BUYER_WEIGHTS
     return PreferenceSpec(
         schema_version=1,
         tenure=tenure,
-        budget=Budget(
-            amount=None,
-            segment=DEFAULT_SEGMENT[tenure],
-            strictness=DEFAULT_STRICTNESS,
-            weight=DEFAULT_BUDGET_WEIGHT,
-            provenance=Provenance.DEFAULT,
-        ),
+        budget=default_budget(tenure),
         commutes=(),
         commute_combine=DEFAULT_COMBINE,
         pt_basis=DEFAULT_PT_BASIS,
@@ -296,7 +355,7 @@ def default_spec(tenure: Tenure) -> PreferenceSpec:
                 direction=default_direction(feature_id),
                 provenance=Provenance.DEFAULT,
             )
-            for feature_id, weight in weights
+            for feature_id, weight in DEFAULT_WEIGHTS[tenure].items()
         ),
         tags=(),
         areas=(),
@@ -319,8 +378,9 @@ def check_spec(spec: PreferenceSpec, release: Release) -> tuple[SpecProblem, ...
     def problem(path: str, kind: SpecProblemKind) -> None:
         problems.append(SpecProblem(path=path, problem=kind))
 
-    if spec.budget.amount is not None:
-        limits = LIMITS.money(spec.tenure)
+    # A visit holds no amount, which its construction saw to, so it is passed over here.
+    limits = LIMITS.money(spec.tenure)
+    if spec.budget.amount is not None and limits is not None:
         if spec.budget.segment not in segments_for(spec.tenure):
             problem("budget.segment", SpecProblemKind.SEGMENT_NOT_FOR_TENURE)
         if not limits.minimum <= spec.budget.amount <= limits.maximum:

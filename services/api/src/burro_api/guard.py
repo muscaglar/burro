@@ -24,6 +24,7 @@ from collections import Counter
 from collections.abc import Collection, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import NamedTuple
 
 from burro_core.catalogue import (
     COUNTS_RESIDENTS,
@@ -64,13 +65,18 @@ from burro_core.ids import (
 )
 from burro_core.interpret import (
     COMMUTE_TARGET,
+    DOES_NOT_MATTER,
     MAY_BE_ANOTHERS,
+    NOT_SAID_TO_BE_WANTED,
+    NOT_WANTED,
+    NOT_WANTED_AND_COUNTED,
     ClarifyOption,
     InterpretRequest,
     InterpretResult,
     RuleInterpreter,
     Suggestion,
 )
+from burro_core.lexicon import Target
 from burro_core.ops import BudgetEdit, CommuteEdit, TagEdit, WeightEdit
 from burro_core.places import MAX_OPTIONS, Names, normalise
 from burro_core.spec import LIMITS, PreferenceSpec
@@ -117,9 +123,11 @@ from burro_api.typed import (
     is_nuisance,
     not_minded,
     overlap,
+    said_not_to_matter,
     somebody_elses,
     stands_against,
     turned_about,
+    turned_once,
     without,
 )
 
@@ -635,6 +643,9 @@ class _Guard:
         unsaid: list[Unsaid] = []
         tenure = self._tenure(sent)
         held = self._spec.tenure if tenure is TenureChoice.UNCHANGED else Tenure(tenure.value)
+        if held is Tenure.VISIT:
+            self._visit(tenure, sent, span)
+            return
         segment = sent.segment
         suits = {fits.value for fits in segments_for(held)}
         if segment is not SegmentChoice.UNCHANGED and segment.value not in suits:
@@ -656,18 +667,42 @@ class _Guard:
         ways = budget_ways(tenure, sent.amount, segment, firm)
         self._keep("budget", "", span, ways, meant, fired, tuple(unsaid))
 
+    def _visit(self, tenure: TenureChoice, sent: BudgetEdit, span: Span) -> None:
+        """What is kept of a reading that would leave the search a visit: the visit, and no more.
+
+        A visit holds no budget and no home. Where the words say a visit, it
+        is offered, and what a model read of an amount or of a home beside
+        it is left out and said to be. Where the search is a visit already
+        and the words name no other kind, a model has read nothing that the
+        search can hold: what the rules say of the words stands.
+        """
+        if tenure is not TenureChoice.VISIT:
+            self._drop(Check.NOTHING)
+            return
+        fired: set[Check] = set()
+        given = sent.amount or sent.segment is not SegmentChoice.UNCHANGED
+        if given or sent.strictness is not StrictnessChoice.UNCHANGED:
+            fired.add(Check.SIZE)
+        unsaid = (Unsaid(code=UnsaidCode.VISIT),) if given else ()
+        ways = budget_ways(tenure, 0, SegmentChoice.UNCHANGED, False)
+        self._keep("budget", "", span, ways, MORE, fired, unsaid)
+
     def _tenure(self, sent: BudgetEdit) -> TenureChoice:
         """The tenure of a budget, where the words bear it out. Otherwise the search's own.
 
         An amount says which it is of where it cannot be of the other: no
-        rent is as high as a price, and no price as low as a rent. Any other
-        tenure is kept only where the rules noticed a word for it.
+        rent is as high as a price, and no price as low as a rent. A visit
+        holds no amount, so an amount says nothing of whether a search is
+        one, and moves no visit to a home. Any other tenure is kept only
+        where the rules noticed a word for it.
         """
         held = self._spec.tenure
         other = Tenure.BUY if held is Tenure.RENT else Tenure.RENT
         ours, theirs = LIMITS.money(held), LIMITS.money(other)
         if (
             sent.amount
+            and ours is not None
+            and theirs is not None
             and theirs.minimum <= sent.amount <= theirs.maximum
             and not ours.minimum <= sent.amount <= ours.maximum
         ):
@@ -893,6 +928,14 @@ def settled(offer: Suggestion, typed: Typed) -> bool:
     noticed is offered as it was, and a journey is nobody's wish.
     """
     thing = thing_named(offer.target)
+    own = (
+        getattr(way, "guess", False) and not getattr(way, "meant", False) for way in offer.choices
+    )
+    if thing is not None and any(own):
+        # The way is the rules' own reading of the sentence the thing stands in, with
+        # whatever turns it: "fewer pubs". They apply a sentence only where the grammar
+        # makes the whole of it, so it holds no doubt that they did not read.
+        return True
     stands = [(span.start, span.end) for span in offer.spans]
     least = [
         one
@@ -914,6 +957,22 @@ def settled(offer: Suggestion, typed: Typed) -> bool:
 
 # The rules, to say what they would make of a clause were it all that was typed.
 _RULES = RuleInterpreter()
+# What they make of each clause of one request, by its words, and nothing where they would
+# not apply it. It is made while an answer is made, and is let go of with it.
+_Clauses = dict[str, InterpretResult | None]
+# What is offered of a thing that runs two ways, where the words about it turn it round and
+# the rules cannot read the turn: "I hate pubs", "you can't beat a good pub". It was built
+# both ways, and this line chooses.
+#
+# `BOTH`: both ways are offered, and neither is the guess, so whoever takes what is offered
+# takes neither. `AGAINST`: the way against the thing alone is offered, which whoever takes
+# what is offered then takes: "I hate pubs" counts fewer pubs, and so does "you can't beat
+# a good pub", because no list of the words that turn a wish is ever whole. Held to the
+# 1,026 sentences the evaluation set held on 2026-09-27, as a client that asks nothing
+# takes them, the first reads 31 backwards and 704 rightly, and the second 41 backwards
+# and 724 rightly.
+BOTH, AGAINST = "both", "against"
+WHERE_A_TURN_IS_NOT_READ = BOTH
 
 
 def plainly_said(offers: Sequence[Offer], typed: Typed, spec: PreferenceSpec) -> tuple[Offer, ...]:
@@ -952,6 +1011,7 @@ def plainly_said(offers: Sequence[Offer], typed: Typed, spec: PreferenceSpec) ->
         ways = [way for way in offer.choices if way.direction is not SuggestionDirection.IGNORE]
         return ways[:1] if for_a_house(offer) else ways
 
+    clauses: _Clauses = {}
     edits = [
         edit
         for offer in offers
@@ -988,21 +1048,259 @@ def plainly_said(offers: Sequence[Offer], typed: Typed, spec: PreferenceSpec) ->
             and ways[0].ruled
             and not two_of_it
             and settled(offer, typed)
-            and all(_applied_alone(typed, span, spec) for span in spans)
+            and all(_applied_alone(typed, span, spec, clauses) for span in spans)
         )
         if not plain:
             return offer
         return offer.replace(choices=tuple(w.replace(guess=w is ways[0]) for w in offer.choices))
 
+    wishes = any(thing_named(offer.target) is not None for offer in offers)
+    read = _read_without_asides(typed, spec) if wishes else {}
+
     def of_each(offer: Offer) -> Offer:
         if offer.target in OF_A_HOME:
             return as_it_was_said(offer)
-        return _journey_as_said(offer, typed, spec) if offer.target == COMMUTE_TARGET else offer
+        if offer.target == COMMUTE_TARGET:
+            return _journey_as_said(offer, typed, spec, clauses)
+        return _wish_as_said(offer, typed, read)
 
     return tuple(of_each(offer) for offer in offers)
 
 
-def _journey_as_said(offer: Offer, typed: Typed, spec: PreferenceSpec) -> Offer:
+class _Said(NamedTuple):
+    """What the words say of a thing at one place it stands: which way, and whether against it."""
+
+    # The way the phrase names: more of a thing, fewer where the phrase says so, the end
+    # of a scale. Nothing where it names none, as the name of a scale names no end.
+    names: str
+    # The way the rules would apply of the sentence, were it all that was typed. Nothing
+    # where they would apply none of the thing.
+    gives: str
+    # The words turn the thing round: the rules read them so, or core lists a word that
+    # turns about the thing.
+    against: bool
+    # The rules would apply it at a small step: "fairly leafy".
+    little: bool = False
+
+
+_Wish = WeightEdit | TagEdit
+_Read = dict[str, list[_Wish]]
+
+
+def _named_way(thing: FeatureId | TagId, target: Target) -> str:
+    """The way of a thing that a phrase of the lexicon names."""
+    if isinstance(thing, TagId):
+        if TAGS[thing].shape is not TagShape.SCALE:
+            return MORE
+        if target.no_end:
+            return ""
+        return LESS if target.toward is Toward.LOW else MORE
+    if FEATURES[thing].polarity is Polarity.EITHER:
+        return LESS if target.direction is DirectionChoice.LESS else MORE
+    return LESS if is_nuisance(thing) else MORE
+
+
+def _read_without_asides(typed: Typed, spec: PreferenceSpec) -> _Read:
+    """Each wish the rules would apply of a sentence, were it all that was typed.
+
+    It is what they make of each sentence alone, with what is said of the
+    words and of no wish left out of it: "honestly", "I think". They apply a
+    sentence only where the grammar makes the whole of it, so a wish that is
+    read here stands in a sentence that holds no word they do not place.
+    They make one edit of a thing however often it is named, and none where
+    it is said two ways. Nothing of it is applied: it says which way the
+    words give.
+    """
+    words = typed.without_asides()
+    if not words.strip():
+        return {}
+    request = InterpretRequest(text=words, spec=spec, release=typed.release)
+    edits = _RULES.by_sentence(request, listed=True).operations
+    found: _Read = {}
+    for weight in edits.weight_ops:
+        found.setdefault(f"feature:{weight.feature_id.value}", []).append(weight)
+    for tag in edits.tag_ops:
+        found.setdefault(f"tag:{tag.tag_id.value}", []).append(tag)
+    return found
+
+
+def _said_where_it_stands(
+    thing: FeatureId | TagId,
+    where: Span,
+    target: Target,
+    typed: Typed,
+    edits: Sequence[_Wish],
+    others: Sequence[Span],
+) -> _Said:
+    """What the words say of a thing where core finds it named.
+
+    **The rules read first.** `edits` are what they would apply of the
+    thing where it stands, were its sentence all that was typed. The way of
+    their edit is the way the words give, by the reading that applies the
+    word in a plain list: "somewhere calm" is Going out towards Calm, "fewer
+    pubs" is fewer, "no station" takes the station off. A thing that they
+    would turn down, "less station", is turned round, and no way of an offer
+    holds that edit.
+
+    Where they would apply nothing of it, which way is meant is nobody's
+    to say, and what turns the thing is looked for in the words core lists:
+    one before the thing in its clause, what is dreaded about it, and what
+    turns alone beyond the mark either side of it. Two words that turn
+    before a thing may turn it round twice, "I can't live without a park",
+    so they turn nothing here. A nuisance is turned by what says that it is
+    not minded. And a thing is turned by a sentence beside it that takes it
+    back, and by words that close the list it stands in: "I can do without
+    all of them".
+    """
+    names = _named_way(thing, target)
+    # A word for character asks for a place with character whatever is said of it, and
+    # what may ask for fewer of those who are counted draws the notice and no offer.
+    if target.whatever or thing in COUNTS_RESIDENTS or thing in HOLDS_RESIDENTS:
+        return _Said(names, "", against=False)
+    if typed.taken_back(where) or typed.closed_by_a_turn(where):
+        return _Said(names, "", against=True)
+    gave = {_way_of(edit) for edit in edits}
+    if len(gave) == 1:
+        (way,) = gave
+        if way == OFF and any(edit.action is not WeightAction.REMOVE for edit in edits):
+            return _Said(names, "", against=True)
+        little = all(edit.step is Step.UP_SMALL for edit in edits)
+        return _Said(names, way, against=way != names, little=little)
+    if is_nuisance(thing):
+        return _Said(names, "", against=said_not_to_matter(typed, where, others))
+    turned = turned_once(typed, typed.led_up_to(where)) or turned_about(typed, where, thing)
+    return _Said(names, "", against=turned)
+
+
+def _is_for_the_person(
+    typed: Typed, where: Span, thing: FeatureId | TagId, others: Sequence[Span]
+) -> bool:
+    """Whether the words about a thing leave it to the person to say that they want it.
+
+    The rules would apply nothing of it, and the words do not say that the
+    wish is the person's own. It may be somebody else's: "my mum is after a
+    park". It is a nuisance that is only named, which a person may like: "I
+    like noise", "I study crime". It stands later in a list whose words turn
+    a thing before it away, and a turn may reach on: "no parks, playgrounds
+    or schools". Or it stands under a heading that core does not know to
+    head a wish: "Dealbreakers: pubs, a station". Each is offered, and
+    whoever takes what is offered without asking leaves it.
+    """
+    if somebody_elses(typed, where) or typed.listed_after_a_turn(where):
+        return True
+    if typed.under_a_heading_of_other_words(where):
+        return True
+    return is_nuisance(thing) and not_minded(typed, where, thing, others)
+
+
+def _noted(offer: Offer, *said: str) -> str:
+    """The note of an offer, with what more is said of it. Nothing is said twice."""
+    return " ".join(dict.fromkeys(words for words in (offer.note, *said) if words))
+
+
+def _wish_as_said(offer: Offer, typed: Typed, read: _Read) -> Offer:
+    """A measure or a vibe that was noticed, with the way the words give marked as the guess.
+
+    The rules offer a thing wherever it is named, and chose no way of it: of
+    a thing that runs two ways they offered both, though the words plainly
+    named one. While a person chose, that cost a press. A client that takes
+    what is offered and asks nothing takes a way only where it is named or
+    marked, so "somewhere calm" was left out, and to take the first of two
+    read it as buzzy.
+
+    **Where the words name the way, that way is the guess**, by the reading
+    that applies the word in a plain list: the rules would apply the
+    sentence the thing stands in, were it all that was typed and were what is
+    said of the words alone not in it. Where the thing stands more than once,
+    every place gives the same way. A way is never read from the clause of a
+    thing alone: what stands beyond a mark turns a wish as often as what
+    stands beside it, "nightlife, I'll pass", "dealbreakers: pubs", and no
+    list of such words is ever whole.
+
+    **Where the words turn the thing round, no way is offered that counts it
+    for more.** A thing that runs one way is taken that way by whoever takes
+    what is offered, so "I never use the station" counted the station for
+    more. Where the rules read the turn, the way they give is the guess.
+    Where they cannot, nothing is the guess, and what is left to choose is
+    what does not count the thing: to stop counting it, or nothing. Of a
+    thing that runs two ways both are still offered there, and neither is
+    the guess (`WHERE_A_TURN_IS_NOT_READ`).
+
+    **Where the words do not say that the wish is the person's own, the
+    thing waits for them** (`_is_for_the_person`). Where they name no way,
+    "pubs are so noisy", nothing is the guess, and every way is offered as
+    it was.
+    """
+    thing = thing_named(offer.target)
+    if thing is None:
+        return offer
+    spans = [(span.start, span.end) for span in offer.spans]
+    stands = typed.named_at(spans, thing)
+    if not stands:
+        return offer
+    others = [other for other, _ in stands]
+    given = read.get(offer.target, ())
+    said = [
+        _said_where_it_stands(
+            thing,
+            where,
+            target,
+            typed,
+            # What the rules make of a thing is made of every sentence they read.
+            given if typed.read_by_the_rules(where) else (),
+            others,
+        )
+        for where, target in stands
+    ]
+    ways = [way for way in offer.choices if way.direction is not SuggestionDirection.IGNORE]
+    # A way that the words turn away at every place that names it is not offered.
+    turned = {one.names for one in said if one.against and one.names}
+    wanted = {one.names for one in said if not one.against and one.names}
+    dropped: set[str] = turned - wanted
+    two_ways = {MORE, LESS} <= {way.id for way in ways}
+    unread = any(one.against and not one.gives for one in said)
+    if two_ways and unread and WHERE_A_TURN_IS_NOT_READ == BOTH:
+        dropped = set()
+    kept = [way for way in ways if way.id not in dropped]
+    gives = {one.gives for one in said}
+    (given_way,) = gives if len(gives) == 1 else ("",)
+    little = bool(given_way) and all(one.little for one in said)
+    # What is left to take of it: a way that counts the thing, and not one that stops.
+    counts = [way for way in kept if way.id != OFF]
+    waits = offer.only_by_choice or (
+        bool(counts)
+        and not given_way
+        and any(_is_for_the_person(typed, where, thing, others) for where in others)
+    )
+    note = offer.note
+    if len(kept) < len(ways) and not counts:
+        counted = NOT_WANTED_AND_COUNTED if kept else NOT_WANTED
+        note = _noted(offer, DOES_NOT_MATTER if is_nuisance(thing) else counted)
+    elif waits and not offer.only_by_choice:
+        note = _noted(offer, NOT_SAID_TO_BE_WANTED)
+    marked = tuple(_as_given(way, given_way, thing, little) for way in kept)
+    skip = tuple(way for way in offer.choices if way.direction is SuggestionDirection.IGNORE)
+    return offer.replace(choices=(*marked, *skip), only_by_choice=waits, note=note)
+
+
+def _as_given(way: Way, given: str, thing: FeatureId | TagId, little: bool) -> Way:
+    """A way of a thing, marked as the guess where it is the way the words give.
+
+    It holds what the rules would apply, at a small step where they would
+    apply one: "fairly leafy". A thing is taken at a mention or a small step,
+    and never at the most it can count, whatever the words.
+    """
+    if not given:
+        return way
+    if way.id != given:
+        return way.replace(guess=False)
+    if not little or way.id == OFF:
+        return way.replace(guess=True)
+    (small,) = [one for one in ways_of(thing, Degree.SMALL) if one.id == way.id]
+    return way.replace(guess=True, operations=small.operations)
+
+
+def _journey_as_said(offer: Offer, typed: Typed, spec: PreferenceSpec, clauses: _Clauses) -> Offer:
     """A journey the rules read with no doubt, offered both ways, with the guess on one.
 
     Decided on 2026-09-25. The rules offer a journey one way, as it was
@@ -1022,64 +1320,101 @@ def _journey_as_said(offer: Offer, typed: Typed, spec: PreferenceSpec) -> Offer:
     is the person's to say. A journey with no time has no limit to be firm,
     and is offered as it was. A journey is nobody's wish, so whose it is is
     not asked.
+
+    **A journey that the words make a limit is offered as a guide too,
+    however it was said** (2026-09-26). The rules read a time wherever it
+    stands beside its place, "Pellam Exchange within 40 minutes", and a
+    journey that is not plainly said was offered one way, as it was worded. A
+    client that takes what is offered then had a firm limit and no other way
+    to take, and left areas out on an estimate. So it is offered both ways,
+    the firm limit first. It carries no guess, since it was not plainly said,
+    and no press takes it with others, as none did.
     """
     ways = [way for way in offer.choices if way.direction is not SuggestionDirection.IGNORE]
+    # It may be somebody else's place: it is offered, and no press takes it with others.
+    # Whoever takes what is offered and asks nothing leaves it to the person.
+    alone = offer.note == MAY_BE_ANOTHERS
+    if alone:
+        offer = offer.replace(alone=True, only_by_choice=True)
     if len(ways) != 1 or not ways[0].ruled or offer.asks_place or offer.alone:
         return offer
-    if offer.note == MAY_BE_ANOTHERS:
-        # It may be somebody else's place: it is offered, and no press takes it with others.
-        return offer.replace(alone=True)
     noticed = ways[0].operations.commute_ops
     if len(noticed) != 1 or not noticed[0].place_id or not noticed[0].max_minutes:
-        return offer
-    if not settled(offer, typed):
-        return offer
-    stands = typed.sentences(
-        (min(span.start for span in offer.spans), max(span.end for span in offer.spans))
-    )
-    if typed.minutes(stands) - typed.range_of(stands, noticed[0].max_minutes):
-        return offer
-    said = [_journey_alone(typed, (span.start, span.end), spec) for span in offer.spans]
-    journey = said[0] if said else None
-    if journey is None or any(one != journey for one in said):
-        return offer
-    if (journey.place_id, journey.max_minutes) != (noticed[0].place_id, noticed[0].max_minutes):
-        return offer
-    firm = journey.strictness is StrictnessChoice.HARD
-    both = journey_ways(
-        journey.place_id, journey.mode, journey.max_minutes, firm, CommuteAction.ADD
-    )
+        return offer.replace(alone=alone)
+    journey = None if alone else _plainly_said_of(offer, noticed[0], typed, spec, clauses)
+    plainly = journey is not None
+    worded = noticed[0] if journey is None else journey
+    firm = worded.strictness is StrictnessChoice.HARD
+    if not plainly and not firm:
+        return offer.replace(alone=alone)
+    both = journey_ways(worded.place_id, worded.mode, worded.max_minutes, firm, CommuteAction.ADD)
     # Check 11 holds here too: a way that would change nothing is not offered.
     of_use = [way for way in both if changes(way, spec, typed.release)]
     if not of_use or of_use[0] is not both[0]:
-        return offer
+        return offer.replace(alone=alone)
     skip = tuple(way for way in offer.choices if way.direction is SuggestionDirection.IGNORE)
-    marked = tuple(way.replace(guess=way is both[0], ruled=True) for way in of_use)
-    return offer.replace(choices=(*marked, *skip))
+    marked = tuple(way.replace(guess=plainly and way is both[0], ruled=True) for way in of_use)
+    return offer.replace(choices=(*marked, *skip), alone=alone)
 
 
-def _read_alone(typed: Typed, span: Span, spec: PreferenceSpec) -> InterpretResult | None:
+def _plainly_said_of(
+    offer: Offer, noticed: CommuteEdit, typed: Typed, spec: PreferenceSpec, clauses: _Clauses
+) -> CommuteEdit | None:
+    """The journey the rules would apply of the clause of an offer, where it is plainly said.
+
+    Nothing where it is not: something beside it puts it in doubt, its
+    sentence holds another time, or the rules would not apply its clause
+    were it all that was typed.
+    """
+    if not settled(offer, typed):
+        return None
+    stands = typed.sentences(
+        (min(span.start for span in offer.spans), max(span.end for span in offer.spans))
+    )
+    if typed.minutes(stands) - typed.range_of(stands, noticed.max_minutes):
+        return None
+    said = [_journey_alone(typed, (span.start, span.end), spec, clauses) for span in offer.spans]
+    journey = said[0] if said else None
+    if journey is None or any(one != journey for one in said):
+        return None
+    if (journey.place_id, journey.max_minutes) != (noticed.place_id, noticed.max_minutes):
+        return None
+    return journey
+
+
+def _read_alone(
+    typed: Typed, span: Span, spec: PreferenceSpec, clauses: _Clauses
+) -> InterpretResult | None:
     """What the rules make of the clause a stretch stands in, were it all that was typed.
 
     Nothing where they would not apply it. They apply a prompt only where
     the grammar makes the whole of it, so a clause they apply holds no word
     that they do not place: "earn", "deposit", "done".
+
+    A clause is read once, however many stretches of it are asked of. An
+    offer points at every place its thing stands, so a name that was said
+    sixty times in one clause had the clause read sixty times, and anybody
+    may send such a sentence. `clauses` holds what was made of each.
     """
     words = typed.alone(span)
     if not words:
         return None
-    read = _RULES.interpret(InterpretRequest(text=words, spec=spec, release=typed.release))
-    return read if read.status is InterpretStatus.OK else None
+    if words not in clauses:
+        read = _RULES.interpret(InterpretRequest(text=words, spec=spec, release=typed.release))
+        clauses[words] = read if read.status is InterpretStatus.OK else None
+    return clauses[words]
 
 
-def _applied_alone(typed: Typed, span: Span, spec: PreferenceSpec) -> bool:
+def _applied_alone(typed: Typed, span: Span, spec: PreferenceSpec, clauses: _Clauses) -> bool:
     """Whether the rules would apply what a clause says of a home, were it all that was typed."""
-    read = _read_alone(typed, span, spec)
+    read = _read_alone(typed, span, spec, clauses)
     return read is not None and bool(read.operations.budget_ops)
 
 
-def _journey_alone(typed: Typed, span: Span, spec: PreferenceSpec) -> CommuteEdit | None:
+def _journey_alone(
+    typed: Typed, span: Span, spec: PreferenceSpec, clauses: _Clauses
+) -> CommuteEdit | None:
     """The one journey the rules would apply of a clause, were it all that was typed."""
-    read = _read_alone(typed, span, spec)
+    read = _read_alone(typed, span, spec, clauses)
     journeys = () if read is None else read.operations.commute_ops
     return journeys[0] if len(journeys) == 1 else None

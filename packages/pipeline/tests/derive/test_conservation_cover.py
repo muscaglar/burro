@@ -473,7 +473,7 @@ def test_each_method_says_every_number_it_turns_on():
 def test_the_row_of_the_catalogue_is_what_core_says_the_measure_is(town: Cover):
     core = FEATURES[FeatureId.CONSERVATION_COVER]
     assert says_what_core_says(town.metric)
-    assert town.metric.label == core.label == "Share of the area in a conservation area"
+    assert town.metric.label == core.label == "Land in a conservation area, as a share of the area"
     assert (town.metric.unit, town.metric.polarity) == ("%", Polarity.MORE)
     assert town.metric.native_resolution is NativeResolution.POLYGON
     assert town.geography is Geography.POLYGON

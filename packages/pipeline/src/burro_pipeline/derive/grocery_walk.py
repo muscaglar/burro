@@ -93,7 +93,7 @@ PASSED_BY = (LeftOut.NOT_A_FOOD_SHOP, LeftOut.NO_CATEGORY)
 # The sides of a box, in the order a receipt writes them.
 WEST, SOUTH, EAST, NORTH = range(4)
 # What a person reads beside the figure: it is a straight line, and no walk.
-LABEL = "Straight-line distance to the nearest food shop"
+LABEL = "Distance to the nearest food shop, in a straight line"
 # What the measure is, from whom, for what period, and what it is not.
 DEFINITION = (
     "The distance in a straight line, in metres, from the point the statistics office gives as "

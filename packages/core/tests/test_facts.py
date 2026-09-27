@@ -1,9 +1,20 @@
 import dataclasses
+import re
 
 import pytest
 from burro_core.catalogue import FEATURES, JUDGEMENT, MADE_FROM, TAGS, default_direction
 from burro_core.explain import render
-from burro_core.facts import Fact, fact_id, facts_for, money, month, plain, said, standing
+from burro_core.facts import (
+    Fact,
+    Standing,
+    fact_id,
+    facts_for,
+    money,
+    month,
+    plain,
+    said,
+    standing,
+)
 from burro_core.ids import (
     Direction,
     FactKind,
@@ -30,6 +41,7 @@ from .support import (
     build_worked_release,
     build_worked_spec,
     draws,
+    fixture_release,
     place_id,
     preview_release,
     random_spec,
@@ -309,14 +321,24 @@ def test_what_is_missing_for_a_spec_is_stated_as_missing_and_not_as_a_figure():
     assert gap.slots == {"name": "Cindermoor", "place": "Foxholt Works"}
     assert gap.names == ("Cindermoor", "Foxholt Works")
     assert render(gap).text == (
-        "There is no journey time from Cindermoor to Foxholt Works in this release, "
-        "so that journey was left out of the score."
+        "Burro has no journey time from Cindermoor to Foxholt Works, so that journey does "
+        "not count towards the fit of this area."
     )
     assert f"{area_id(3)}/travel/syn-p0002.pt" not in three
     assert f"{area_id(3)}/travel/syn-p0001.pt" in three
     seven = by_id(facts_for(release, area_id(7), spec))
     assert f"{area_id(7)}/missing/budget" in seven
     assert not [f for f in seven.values() if f.kind in (FactKind.COST, FactKind.BUDGET_FIT)]
+    # The cost that is missing is of the kind of home the budget is for, and the area may
+    # hold a cost of another kind. The fact holds no kind of home, so it names none.
+    lacking = seven[f"{area_id(7)}/missing/budget"]
+    assert lacking.label == "What this kind of home costs"
+    assert (lacking.numbers, set(lacking.slots)) == ((), {"label", "name"})
+    assert render(lacking).text == (
+        f"What this kind of home costs: Burro has no figure for this in "
+        f"{lacking.slots['name']}, so it does not count towards the fit of this area."
+    )
+    assert verify(render(lacking), {lacking.fact_id: lacking}).ok
     # What the spec does not ask for is not reported as missing.
     unasked = spec.replace(commute_weight=0.0, budget=spec.budget.replace(weight=0.0))
     kinds = {f.kind for f in facts_for(release, area_id(3), unasked)}
@@ -364,11 +386,11 @@ def test_a_feature_fact_holds_the_value_and_the_share_of_areas_strictly_beyond_i
         # From the side that counts as better: less noise.
         "comparative": "quieter than",
         "pct": "71",
-        "standing": "quieter than 71% of the 7 areas compared in this release",
+        "standing": "quieter than 71% of the 7 areas Burro compared",
         # And from the side that counts as worse.
         "comparative_worse": "noisier than",
         "pct_worse": "14",
-        "standing_worse": "noisier than 14% of the 7 areas compared in this release",
+        "standing_worse": "noisier than 14% of the 7 areas Burro compared",
         "compared": "7",
     }
     assert fact.names == ()
@@ -376,10 +398,10 @@ def test_a_feature_fact_holds_the_value_and_the_share_of_areas_strictly_beyond_i
     # A reason is said from the better side and a trade-off from the worse.
     assert render(fact).text == render(fact, SentenceRole.REASON).text
     assert render(fact, SentenceRole.REASON).text.endswith(
-        "15%, quieter than 71% of the 7 areas compared in this release."
+        "15%, which is quieter than 71% of the 7 areas Burro compared."
     )
     assert render(fact, SentenceRole.TRADE_OFF).text.endswith(
-        "15%, noisier than 14% of the 7 areas compared in this release."
+        "15%, which is noisier than 14% of the 7 areas Burro compared."
     )
     for role in SentenceRole:
         assert verify(render(fact, role), {fact.fact_id: fact}).ok
@@ -408,7 +430,7 @@ def water(release: InMemoryRelease, number: int) -> Fact:
     ]
 
 
-SEVEN = "of the 7 areas compared in this release"
+SEVEN = "of the 7 areas Burro compared"
 STANDING = [
     # The figure of each of the eight areas, the eighth of which is not rankable.
     # Then the area, and what is said of it from the better side and from the
@@ -417,7 +439,7 @@ STANDING = [
         (0, 0, 0, 0, 5, 9, 12),
         1,
         # No area has less, so what is said is how many have the same.
-        "the same as 3 of the 6 other areas compared in this release",
+        "the same as 3 of the 6 other areas Burro compared",
         f"less than 42% {SEVEN}, and the same as 3 others",
     ),
     ((0, 0, 0, 0, 5, 9, 12), 5, f"more than 57% {SEVEN}", f"less than 28% {SEVEN}"),
@@ -425,8 +447,9 @@ STANDING = [
         (0, 0, 0, 0, 5, 9, 12),
         7,
         f"more than 85% {SEVEN}",
-        # No area has more, and none has the same.
-        "less than none of the 6 other areas compared in this release",
+        # No area has more, and none has the same: it has more than every other area,
+        # which is what is said of it, and not that it has less than none.
+        "more than all 6 other areas Burro compared",
     ),
     (
         (1, 1, 2, 2, 3, 3, 4),
@@ -437,39 +460,82 @@ STANDING = [
     (
         (3, 3, 3, 3, 3, 3, 3),
         4,
-        "the same as all 6 other areas compared in this release",
-        "the same as all 6 other areas compared in this release",
+        "the same as all 6 other areas Burro compared",
+        "the same as all 6 other areas Burro compared",
     ),
     (
         (3, 3, None, None, None, None, None),
         1,
-        "the same as the only other area compared in this release",
-        "the same as the only other area compared in this release",
+        "the same as the only other area Burro compared",
+        "the same as the only other area Burro compared",
     ),
     (
         (3, None, None, None, None, None, None),
         1,
-        "with no other area in this release to compare it with",
-        "with no other area in this release to compare it with",
+        "not compared, because Burro has no other area to compare it with",
+        "not compared, because Burro has no other area to compare it with",
+    ),
+    # Two areas with a figure, and this one has the more: it has more than half of the
+    # two, and no area has more than it, which is said of the one other area there is.
+    (
+        (3, 5, None, None, None, None, None),
+        2,
+        "more than 50% of the 2 areas Burro compared",
+        "more than the only other area Burro compared",
+    ),
+    (
+        (3, 5, None, None, None, None, None),
+        1,
+        "less than the only other area Burro compared",
+        "less than 50% of the 2 areas Burro compared",
     ),
     # An area that is not rankable is placed against the seven and is not one of them.
     (
         (0, 0, 0, 0, 5, 9, 12, 0),
         8,
-        "the same as 4 of the 7 other areas compared in this release",
+        "the same as 4 of the 7 other areas Burro compared",
         f"less than 42% {SEVEN}, and the same as 4 others",
     ),
+    # It has more than every one of the seven. "More than 100% of the 7 areas" was what
+    # was said of it, 52 times on the pages of the two areas of the made-up city that are
+    # not ranked. It is said from either side in the same words.
     (
         (0, 0, 0, 0, 5, 9, 12, 20),
         8,
-        f"more than 100% {SEVEN}",
-        "less than none of the 7 other areas compared in this release",
+        "more than all 7 areas Burro compared",
+        "more than all 7 areas Burro compared",
+    ),
+    (
+        (4, 4, 4, 4, 5, 9, 12, 1),
+        8,
+        "less than all 7 areas Burro compared",
+        "less than all 7 areas Burro compared",
     ),
     (
         (3, 3, 3, 3, 3, 3, 3, 3),
         8,
-        "the same as all 7 other areas compared in this release",
-        "the same as all 7 other areas compared in this release",
+        "the same as all 7 other areas Burro compared",
+        "the same as all 7 other areas Burro compared",
+    ),
+    # One area is compared, and the area that is not rankable is held against it. It was
+    # said to have "more than 100% of the 1 areas": it has more than the only other area.
+    (
+        (3, None, None, None, None, None, None, 20),
+        8,
+        "more than the only other area Burro compared",
+        "more than the only other area Burro compared",
+    ),
+    (
+        (20, None, None, None, None, None, None, 3),
+        8,
+        "less than the only other area Burro compared",
+        "less than the only other area Burro compared",
+    ),
+    (
+        (3, None, None, None, None, None, None, 3),
+        8,
+        "the same as the only other area Burro compared",
+        "the same as the only other area Burro compared",
     ),
 ]
 
@@ -481,11 +547,33 @@ def test_a_comparison_counts_only_the_areas_strictly_beyond_and_says_how_many_ar
     fact = water(with_values(FeatureId.WATER_ACCESS, *values), number)
     assert fact.slots["standing"] == better
     assert fact.slots["standing_worse"] == worse
-    start = f"{FEATURES[FeatureId.WATER_ACCESS].label}: {fact.slots['value']}, "
+    start = f"{FEATURES[FeatureId.WATER_ACCESS].label}: {fact.slots['value']}, which is "
     assert render(fact).text == f"{start}{better}."
     assert render(fact, SentenceRole.TRADE_OFF).text == f"{start}{worse}."
     for role in SentenceRole:
         assert verify(render(fact, role), {fact.fact_id: fact}).ok
+
+
+def test_no_figure_is_said_to_be_beyond_a_hundred_in_a_hundred_of_the_areas_compared():
+    """Every area of the made-up city, ranked or not, and every figure that is said of it."""
+    release = fixture_release()
+    unranked = [area.area_id for area in release.neighbourhoods if not area.rankable]
+    assert len(unranked) == 2
+    said_of_all = 0
+    for area in release.neighbourhoods:
+        for fact in facts_for(release, area.area_id, None):
+            clauses = [fact.slots.get(name, "") for name in ("standing", "standing_worse")]
+            assert not [clause for clause in clauses if "100%" in clause], fact.fact_id
+            assert fact.slots.get("pct") != "100" and fact.slots.get("pct_worse") != "100"
+            if fact.template is TemplateId.FEATURE and fact.slots.get("standing"):
+                for role in SentenceRole:
+                    sentence = render(fact, role)
+                    assert "100%" not in sentence.text, fact.fact_id
+                    assert verify(sentence, {fact.fact_id: fact}).ok
+            said_of_all += sum(" all 21 areas Burro compared" in clause for clause in clauses)
+    # The two areas that are not ranked are held against the 21 that are, and are not
+    # among them: what stands beyond every one of those says so, and names no share.
+    assert said_of_all >= 52
 
 
 def test_a_share_is_rounded_down_and_never_to_the_nearest():
@@ -499,10 +587,65 @@ def test_a_share_is_rounded_down_and_never_to_the_nearest():
     most = standing(5.0, [1.0, *[5.0] * 199], among=True)
     assert (most.share(most.below), most.below, most.level, most.others) == (0, 1, 198, 199)
     slots, numbers = said(most, "more than", "less than", Direction.MORE)
-    assert slots["standing"] == "the same as 198 of the 199 other areas compared in this release"
-    # One is below it, so "less than none" would be untrue of it from the other side.
+    assert slots["standing"] == "the same as 198 of the 199 other areas Burro compared"
+    # One is below it, so "more than all" would be untrue of it from the other side.
     assert slots["standing_worse"] == slots["standing"]
     assert numbers == ("198", "199")
+
+
+def test_a_few_areas_beyond_one_among_many_are_counted_and_it_is_never_the_same_as_none():
+    """Found by filling the clauses from a city of a thousand areas.
+
+    Five of 983 areas are closer than this one and none is level with it. Five is under
+    one in a hundred, so the share is 0% and says nothing, and what was said in its place
+    was how many are level: "the same as 0 of the 982 other areas". The five are counted.
+    """
+    near = standing(60.0, [float(10 * n) for n in range(1, 984)], among=True)
+    assert (near.compared, near.below, near.level, near.share(near.below)) == (983, 5, 0, 0)
+    slots, numbers = said(near, "further than", "closer than", Direction.LESS)
+    assert slots["standing"] == "closer than 99% of the 983 areas Burro compared"
+    assert slots["standing_worse"] == "further than 5 of the 982 other areas Burro compared"
+    # The part is the word of the side it is said from, and no share is given as nought.
+    assert slots["comparative_worse"] == "further than" and "pct_worse" not in slots
+    assert numbers == ("99%", "983", "5", "982")
+    # One area is one area, and an area that is not ranked is held against all of them.
+    second = standing(20.0, [float(10 * n) for n in range(1, 984)], among=True)
+    slots, _ = said(second, "further than", "closer than", Direction.LESS)
+    assert slots["standing_worse"] == "further than 1 of the 982 other areas Burro compared"
+    outside = standing(25.0, [float(10 * n) for n in range(1, 984)], among=False)
+    slots, _ = said(outside, "further than", "closer than", Direction.LESS)
+    assert slots["standing_worse"] == "further than 2 of the 983 other areas Burro compared"
+    # Whatever the counts, no clause says nought of anything: not a share, not areas
+    # that are level, and not areas that are beyond.
+    for compared in (2, 3, 7, 100, 101, 250, 983):
+        for among in (True, False):
+            others = compared - 1 if among else compared
+            for below in {0, 1, 2, others // 2, others - 1, others} & set(range(others + 1)):
+                for level in {0, 1, others - below} & set(range(others - below + 1)):
+                    found = Standing(compared, below, others - below - level, level)
+                    for better in Direction:
+                        slots, _ = said(found, "more than", "less than", better)
+                        for clause in (slots["standing"], slots["standing_worse"]):
+                            assert not re.search(r"\b0\b", clause), (found, clause)
+    # The sentence of a fact says it, of a release of more than a hundred areas, and the
+    # checker of sentences finds each of its numbers in the fact.
+    small = small_release()
+    one = small.neighbourhoods[0]
+    more = tuple(
+        one.replace(area_id=f"syn-n{1000 + n:04d}", name=f"Madeup {n}", slug=f"madeup-{n}")
+        for n in range(1, 131)
+    )
+    many = dataclasses.replace(small, neighbourhoods=(*small.neighbourhoods, *more))
+    metres = [100.0 + 10 * n for n in range(len(many.neighbourhoods))]
+    many = with_figures(many, {FeatureId.PARK_PROXIMITY: metres})
+    fact = by_id(facts_for(many, area_id(2), None))[f"{area_id(2)}/feature/park_proximity"]
+    # 135 of the 137 are further than it, which is 98.5%, and one is closer.
+    assert fact.numbers == ("110", "98%", "137", "1", "136")
+    assert render(fact, SentenceRole.TRADE_OFF).text.endswith(
+        ": 110 m, which is further than 1 of the 136 other areas Burro compared."
+    )
+    for role in SentenceRole:
+        assert verify(render(fact, role), {fact.fact_id: fact}).ok
 
 
 def test_a_figure_is_said_from_the_side_that_counts_as_better_for_the_thing():
@@ -622,6 +765,43 @@ def test_a_budget_fact_says_which_side_of_the_budget_the_upper_quartile_falls():
     )
 
 
+def test_a_budget_held_against_a_range_says_what_the_range_is_of_and_its_upper_end():
+    # "The upper end is £50 under your budget of £1,800." named neither what the range was
+    # of nor its upper end, and a person had to work the figure out. The fact held the
+    # upper end, and the sentence says it. It holds what it held and no more: the kind of
+    # home and whether it is rented or bought are no slot of it, so the sentence names
+    # neither, and says this kind of home.
+    release = build_worked_release()
+    rent = by_id(facts_for(release, area_id(1), build_worked_spec()))
+    rented = rent[f"{area_id(1)}/budget_fit/rent.bed_1"]
+    assert rented.slots == {"margin": "50", "amount": "1,800", "upper": "1,750"}
+    assert render(rented).text == (
+        "For this kind of home, the upper end of the range of costs here is £1,750, which "
+        "is £50 under your budget of £1,800."
+    )
+    assert verify(render(rented), {rented.fact_id: rented}).ok
+    # To buy, it is said in the same words, and nothing is by the month.
+    known = small_release()
+    buying = default_spec(Tenure.BUY)
+    buying = buying.replace(budget=buying.budget.replace(amount=300_000, weight=0.5))
+    said = 0
+    for area in known.neighbourhoods:
+        for fact in facts_for(known, area.area_id, buying):
+            if fact.kind is not FactKind.BUDGET_FIT:
+                continue
+            assert fact.key.startswith("buy.")
+            assert set(fact.slots) <= {"margin", "amount", "upper", "verdict"}
+            text = render(fact).text
+            upper = fact.slots["upper"]
+            assert text.startswith(
+                f"For this kind of home, the upper end of the range of costs here is £{upper}"
+            )
+            assert "month" not in text
+            assert verify(render(fact), {fact.fact_id: fact}).ok, text
+            said += 1
+    assert said > 3
+
+
 def test_a_journey_fact_holds_each_time_that_is_known_and_the_name_of_the_place():
     release = small_release()
     spec = full_spec()
@@ -644,7 +824,8 @@ def test_a_journey_fact_holds_each_time_that_is_known_and_the_name_of_the_place(
         "margin_unit": "minutes",
     }
     assert render(by_bike).text == (
-        "By bike to Wexmoor University: about 51 minutes, 11 minutes over the 40 you set."
+        "By bike to Wexmoor University: about 51 minutes. That is 11 minutes over the limit "
+        "of 40 minutes you set."
     )
 
     # Area 4 has no journey to place 3 within the cutoff. All that is known is the cutoff.
@@ -663,14 +844,17 @@ def test_a_journey_over_the_limit_a_person_set_says_by_how_much():
     assert (over.slots["limit"], over.slots["margin"]) == ("40", "4")
     assert render(over).text == (
         "By public transport to Pellam Cross: about 44 minutes on a typical weekday morning, "
-        "49 if you just miss a service, 4 minutes over the 40 you set."
+        "or 49 minutes if you just miss a service. This journey is 4 minutes over the limit "
+        "of 40 minutes you set."
     )
     # At the limit itself it is not over, and one minute over is one minute.
     at = spec.replace(commutes=(commute(1, minutes=44), commute(2, minutes=21)))
     facts = by_id(facts_for(release, area_id(3), at))
     assert facts[f"{area_id(3)}/travel/syn-p0001.pt"].template is TemplateId.TRAVEL_PT
     by_one = facts[f"{area_id(3)}/travel/syn-p0002.pt"]
-    assert render(by_one).text.endswith("1 minute over the 21 you set.")
+    assert render(by_one).text.endswith(
+        " This journey is 1 minute over the limit of 21 minutes you set."
+    )
     # Scored on the time of someone who just missed a service, it is that time that is over.
     missed = spec.replace(
         pt_basis=PtBasis.JUST_MISSED, commutes=(commute(1, minutes=45), commute(2))
@@ -679,6 +863,43 @@ def test_a_journey_over_the_limit_a_person_set_says_by_how_much():
     assert (late.template, late.slots["margin"]) == (TemplateId.TRAVEL_PT_OVER, "4")
     for fact in (over, by_one, late):
         assert verify(render(fact), {fact.fact_id: fact}).ok
+
+
+def test_a_journey_by_public_transport_over_its_limit_points_at_neither_of_its_two_times():
+    """Read in a result: "or 68 minutes if you just miss a service. That is 28 minutes over
+    the limit of 35 minutes you set." The 28 were counted from the typical time, which was
+    63, and "That" stood straight after the time of a missed service.
+
+    A journey is over its limit by the time it is scored on, and the fact holds no word
+    for which of the two that is. So its sentence says that the journey is over, whichever
+    it is scored on, and points at neither. A journey with one time says it of that time.
+    """
+    release = build_worked_release()
+    spec = build_worked_spec()
+    key = f"{area_id(3)}/travel/syn-p0001.pt"
+    on_a_typical_day = by_id(facts_for(release, area_id(3), spec))[key]
+    just_missed = spec.replace(pt_basis=PtBasis.JUST_MISSED)
+    having_missed_one = by_id(facts_for(release, area_id(3), just_missed))[key]
+    for fact, scored_on in ((on_a_typical_day, "typical"), (having_missed_one, "missed")):
+        assert fact.template is TemplateId.TRAVEL_PT_OVER
+        assert (fact.slots["typical"], fact.slots["missed"]) == ("44", "49")
+        # What it is over by is counted from the time it is scored on.
+        over_by = int(fact.slots["margin"])
+        assert int(fact.slots["limit"]) + over_by == int(fact.slots[scored_on])
+        text = render(fact).text
+        assert text == (
+            "By public transport to Pellam Cross: about 44 minutes on a typical weekday "
+            "morning, or 49 minutes if you just miss a service. This journey is "
+            f"{over_by} minutes over the limit of 40 minutes you set."
+        )
+        assert "That" not in text
+    by_bike = by_id(facts_for(small_release(), area_id(1), full_spec()))[
+        f"{area_id(1)}/travel/syn-p0003.cycle"
+    ]
+    assert by_bike.template is TemplateId.TRAVEL_OTHER_OVER
+    assert render(by_bike).text.endswith(
+        ": about 51 minutes. That is 11 minutes over the limit of 40 minutes you set."
+    )
 
 
 def test_a_journey_with_only_one_public_transport_time_states_that_one():
@@ -761,7 +982,7 @@ def test_a_vibe_is_said_as_a_band_among_the_areas_compared_and_never_as_a_percen
             assert fact.slots["band"] == str(row.band)
             assert fact.slots["judgement"] == JUDGEMENT
             assert fact.slots["made_from"] == MADE_FROM
-            assert text.endswith(f"Parts dated 2025. {JUDGEMENT}")
+            assert text.endswith(f"Its measurements are dated 2025. {JUDGEMENT}")
     assert seen == {TemplateId.VIBE, TemplateId.VIBE_UNKNOWN}
 
 
@@ -774,24 +995,29 @@ def test_a_band_that_rests_on_part_of_a_recipe_says_how_much_of_it():
     row = release.tag(area_id(1), TagId.HOMES)
     assert row is not None and (row.coverage, row.band is not None) == (0.75, True)
     assert (homes.slots["known"], homes.slots["parts"], homes.slots["share"]) == ("2", "3", "75")
-    assert homes.slots["partly"] == "Worked out from 2 of its 3 parts, 75 of 100 by weight."
+    assert homes.slots["partly"] == (
+        "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they "
+        "count for 75 of 100 in it."
+    )
     assert render(homes).text == (
-        f"Houses or flats: band {row.band} of 5, counted from Houses to Flats, among the 7 "
-        "areas compared in this release. Worked out from 2 of its 3 parts, 75 of 100 by weight. "
-        "Parts dated 2025. The recipe is Burro's own. The weights are a judgement."
+        f"Houses or flats: band {row.band} of 5 among the 7 areas Burro compared, where the "
+        "bands run from Houses to Flats. Burro has a figure for 2 of the 3 measurements that "
+        "go into this vibe, and they count for 75 of 100 in it. Its measurements are dated "
+        "2025. Burro chose which measurements go into this vibe and how much each of them "
+        "counts. That choice is a judgement, and not a fact about the place."
     )
     assert verify(render(homes), {homes.fact_id: homes}).ok
     assert {"2", "3", "75", "100"} <= set(homes.numbers)
     # A band that rests on the whole of its recipe says no more than it did.
     assert (pace.slots["share"], pace.slots["partly"]) == ("100", "")
-    assert "Worked out" not in render(pace).text and "  " not in render(pace).text
+    assert "has a figure for" not in render(pace).text and "  " not in render(pace).text
     # And every vibe of every area says it exactly where its recipe ran short.
     for area in release.neighbourhoods:
         for fact in facts_for(release, area.area_id, None):
             found = release.tag(area.area_id, TagId(fact.key)) if fact.kind == "tag" else None
             if found is None or found.band is None:
                 continue
-            assert ("Worked out from" in render(fact).text) is (found.coverage < 1), fact.fact_id
+            assert ("has a figure for" in render(fact).text) is (found.coverage < 1), fact.fact_id
             assert int(fact.slots["share"]) == round(100 * found.coverage)
             assert verify(render(fact), {fact.fact_id: fact}).ok
 
@@ -802,10 +1028,10 @@ def test_a_range_that_rests_on_part_of_a_recipe_says_so_too():
     fact = by_id(facts_for(release, row.area_id, None))[f"{row.area_id}/tag/homes"]
     assert fact.template is TemplateId.VIBE_RANGE
     assert render(fact).text == (
-        f"Houses or flats: varies within this area, from band {row.spread_low} to band "
-        f"{row.spread_high} of 5, counted from Houses to Flats. Worked out from 2 of its 3 "
-        "parts, 75 of 100 by weight. Parts dated 2025. "
-        "The recipe is Burro's own. The weights are a judgement."
+        f"Houses or flats: this varies within the area, from band {row.spread_low} to band "
+        f"{row.spread_high} of 5, where the bands run from Houses to Flats. Burro has a "
+        "figure for 2 of the 3 measurements that go into this vibe, and they count for 75 "
+        f"of 100 in it. Its measurements are dated 2025. {JUDGEMENT}"
     )
     assert verify(render(fact), {fact.fact_id: fact}).ok
 
@@ -815,11 +1041,14 @@ def test_a_scale_is_counted_from_one_named_end_to_the_other_and_a_one_way_vibe_f
     pace, leafy = facts[f"{area_id(1)}/tag/pace"], facts[f"{area_id(1)}/tag/leafy"]
     assert (pace.slots["low_end"], pace.slots["high_end"]) == ("Calm", "Buzzy")
     assert render(pace).text == (
-        "Going out: band 3 of 5, counted from Calm to Buzzy, among the 7 areas compared in this "
-        "release. Parts dated 2025. The recipe is Burro's own. The weights are a judgement."
+        "Going out: band 3 of 5 among the 7 areas Burro compared, where the bands run from "
+        f"Calm to Buzzy. Its measurements are dated 2025. {JUDGEMENT}"
     )
     assert (leafy.slots["low_end"], leafy.slots["high_end"]) == ("least", "most")
-    assert render(leafy).text.startswith("Leafy: band 1 of 5, counted from least to most, among")
+    assert render(leafy).text.startswith(
+        "Leafy: band 1 of 5 among the 7 areas Burro compared, where the bands run from least "
+        "to most."
+    )
     # The sentence is the same in every role: a band has no better side.
     for role in SentenceRole:
         assert render(pace, role).text == render(pace).text
@@ -830,7 +1059,7 @@ def test_gritty_as_a_scale_names_its_ends_only_from_the_slots_of_its_own_fact():
     fact = facts[f"{area_id(1)}/tag/street_character"]
     assert (fact.slots["low_end"], fact.slots["high_end"]) == ("Polished", "Gritty")
     sentence = render(fact)
-    assert "counted from Polished to Gritty" in sentence.text
+    assert "where the bands run from Polished to Gritty" in sentence.text
     assert verify(sentence, {fact.fact_id: fact}).ok
     # Cited of any other fact, the same words are a verdict and are refused.
     other = facts[f"{area_id(1)}/tag/pace"]
@@ -849,9 +1078,9 @@ def test_a_mixed_area_is_said_as_a_range_and_never_as_a_point_in_the_middle():
     fact = by_id(facts_for(release, row.area_id, None))[f"{row.area_id}/tag/pace"]
     assert fact.template is TemplateId.VIBE_RANGE
     assert render(fact).text == (
-        f"Going out: varies within this area, from band {row.spread_low} to band "
-        f"{row.spread_high} of 5, counted from Calm to Buzzy. Parts dated 2025. "
-        "The recipe is Burro's own. The weights are a judgement."
+        f"Going out: this varies within the area, from band {row.spread_low} to band "
+        f"{row.spread_high} of 5, where the bands run from Calm to Buzzy. Its measurements "
+        f"are dated 2025. {JUDGEMENT}"
     )
     assert verify(render(fact), {fact.fact_id: fact}).ok
     # Two bands are not a range: the mark is drawn where the band is.
@@ -874,7 +1103,9 @@ def test_an_area_that_cannot_be_placed_on_a_vibe_is_said_to_be_that_with_no_figu
     fact = by_id(facts_for(release, area_id(1), None))[f"{area_id(1)}/tag/leafy"]
     assert fact.template is TemplateId.VIBE_UNKNOWN
     assert render(fact).text == (
-        "Burro cannot place Alderwick on Leafy. Parts with a figure in this release: 0 of 3."
+        "Burro could not work out Leafy for Alderwick. It has a figure for 0 of the 3 "
+        "measurements that go into this vibe, and it leaves a vibe blank rather than guess "
+        "at it."
     )
     assert fact.numbers == ("0", "3")
     assert "band" not in fact.slots
@@ -1000,6 +1231,6 @@ def test_a_flow_of_traffic_is_printed_whole_and_with_its_separator():
         assert verify(render(fact, SentenceRole.TRADE_OFF), {fact.fact_id: fact}).ok
     # It is said from the side of less, which is the side that counts as better.
     assert render(printed[1]).text.startswith(
-        "Traffic past the busiest count point within 500 m of home, in a straight line: "
-        "478 motor vehicles a day, less than "
+        "Traffic past the busiest counting point within 500 m of home, in a straight line: "
+        "478 motor vehicles a day, which is less than "
     )

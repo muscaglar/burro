@@ -13,6 +13,7 @@ sentences every time, and the whole, which is marked `full` and is skipped
 unless it is asked for: `make test ARGS="-m full"`.
 """
 
+import os
 from collections.abc import Iterator
 
 import pytest
@@ -22,6 +23,8 @@ from burro_api.providers.terms import TERMS
 from .support import LOOP, logging_put_back
 
 FULL = "full"
+# How the name of a setting of accounts begins.
+OF_ACCOUNTS = ("BURRO_ACCOUNTS", "BURRO_WEBSITE_")
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -62,6 +65,9 @@ def nothing_chosen(monkeypatch: pytest.MonkeyPatch) -> None:
     chosen_by = ("BURRO_MODEL_PROVIDER", "BURRO_MODEL_TERMS_ACCEPTED", "BURRO_MODEL_ID")
     for name in (*chosen_by, *(terms.key_variable for terms in TERMS.values())):
         monkeypatch.delenv(name, raising=False)
+    # Nor accounts turned on, or a secret of theirs.
+    for name in [name for name in os.environ if name.startswith(OF_ACCOUNTS)]:
+        monkeypatch.delenv(name)
 
 
 @pytest.fixture(autouse=True)

@@ -13,12 +13,22 @@ function of the spec alone.
 What a person takes off stays off. A weight that some tenure has a default
 for leaves an entry of nothing behind when it is taken off, so that a change
 of tenure does not bring the default back.
+
+A visit holds no budget and no kind of home. An edit that would give it one is
+turned away, and says why: a kind of home is not for a visit, and the release
+holds nothing that a stay costs to hold an amount against.
 """
 
 from collections.abc import Callable, Mapping
 
 from burro_core._record import Record
-from burro_core.catalogue import FEATURES, HOLDS_CRIME, default_direction, direction_allowed
+from burro_core.catalogue import (
+    FEATURES,
+    HOLDS_CRIME,
+    SOLD_FOR,
+    default_direction,
+    direction_allowed,
+)
 from burro_core.ids import (
     AreaAction,
     AreaRuleKind,
@@ -73,6 +83,7 @@ from burro_core.spec import (
     DEFAULT_WEIGHTS,
     LIMITS,
     MENTION_WEIGHT,
+    NO_BUDGET,
     WEIGHT_STEPS,
     AreaRule,
     Commute,
@@ -217,17 +228,27 @@ def _new_tenure(spec: PreferenceSpec, tenure: Tenure, release: Release) -> Prefe
 
     Everything the person set is kept. The budget's amount and segment are
     left to the edit that moved the tenure, because a rent is not a price and
-    no segment suits both.
+    no segment suits both. A visit keeps nothing of the budget, and a search
+    that was a visit has none to keep: it takes the usual one of its new kind.
+    Nor does a visit keep what was weighed of what homes sold for, which says
+    what it costs to buy a home and nothing of what it costs to stay.
     """
     fresh = default_spec(tenure)
     ranked = {m.feature_id for m in release.metrics if m.rankable}
+    dropped = SOLD_FOR if tenure is Tenure.VISIT else frozenset[FeatureId]()
     # What the person took off is among what they chose: it is an entry of nothing.
-    kept = tuple(w for w in spec.weights if w.provenance is not Provenance.DEFAULT)
+    kept = tuple(
+        w
+        for w in spec.weights
+        if w.provenance is not Provenance.DEFAULT and w.feature_id not in dropped
+    )
     chosen = {w.feature_id for w in kept}
     nobody = spec.budget.provenance is Provenance.DEFAULT
     return spec.replace(
         tenure=tenure,
-        budget=spec.budget.replace(
+        budget=NO_BUDGET
+        if tenure is Tenure.VISIT
+        else spec.budget.replace(
             strictness=DEFAULT_STRICTNESS if nobody else spec.budget.strictness,
             weight=DEFAULT_BUDGET_WEIGHT if nobody else spec.budget.weight,
         ),
@@ -266,6 +287,9 @@ def nudged_amount(amount: int, step: Step, tenure: Tenure) -> int:
     50,000 a step of 5% is 2,500, which rounds back to 50,000.
     """
     limits = LIMITS.money(tenure)
+    if limits is None:
+        # A visit holds no amount, so there is none to move.
+        return amount
     large = step in _LARGE
     percent = LIMITS.budget_step_large_percent if large else LIMITS.budget_step_small_percent
     sign = _sign(step)
@@ -289,6 +313,18 @@ def _nudged_minutes(minutes: int, step: Step, limit: int) -> int:
     return min(max(minutes + _sign(step) * size, LIMITS.minutes_min), limit)
 
 
+def _of_a_visit(given: tuple[bool, bool, bool, bool]) -> RejectReason | None:
+    """Why an edit that leaves a visit is turned away, where it would give it a budget or a home.
+
+    A kind of home is not for a visit. An amount, and how firm it is, would be
+    held against what a stay costs, and no release holds that for any area.
+    """
+    _, amount, segment, strictness = given
+    if segment:
+        return RejectReason.SEGMENT_NOT_FOR_TENURE
+    return RejectReason.NOT_IN_RELEASE if amount or strictness else None
+
+
 def _budget(spec: PreferenceSpec, edit: BudgetEdit, release: Release) -> Outcome:
     budget = spec.budget
     provenance = _provenance(edit.provenance)
@@ -310,6 +346,16 @@ def _budget(spec: PreferenceSpec, edit: BudgetEdit, release: Release) -> Outcome
         return RejectReason.NOTHING_TO_CHANGE
     tenure = Tenure(edit.tenure.value) if given[0] else spec.tenure
     moved = tenure is not spec.tenure
+    limits = LIMITS.money(tenure)
+    if limits is None:
+        refused = _of_a_visit(given)
+        if refused is not None:
+            return refused
+        # All that was said is that the search is a visit. What was asked for of the place
+        # and of the journeys is kept, and the budget and the home are dropped.
+        return (_new_tenure(spec, tenure, release) if moved else spec).replace(
+            tenure_from=provenance
+        )
     # A rent and a price are not the same kind of number, and no segment suits
     # both tenures, so a change of tenure keeps neither unless the edit gives them.
     amount = edit.amount if given[1] else (None if moved else budget.amount)
@@ -321,7 +367,6 @@ def _budget(spec: PreferenceSpec, edit: BudgetEdit, release: Release) -> Outcome
 
     if segment not in segments_for(tenure):
         return RejectReason.SEGMENT_NOT_FOR_TENURE
-    limits = LIMITS.money(tenure)
     if given[1] and not limits.minimum <= edit.amount <= limits.maximum:
         return RejectReason.OUT_OF_RANGE
     # An amount is tested against what a home of that kind costs. Where the
@@ -412,6 +457,9 @@ def _weight(spec: PreferenceSpec, edit: WeightEdit, release: Release) -> Outcome
     if edit.action is WeightAction.REMOVE:
         return _taken_off(spec, current, others, provenance)
 
+    if spec.visiting and edit.feature_id in SOLD_FOR:
+        # It would be weighed as what a stay costs, which no release holds for any area.
+        return RejectReason.NOT_IN_RELEASE
     if not any(m.feature_id is edit.feature_id and m.rankable for m in release.metrics):
         return RejectReason.NOT_IN_RELEASE
     if edit.action is WeightAction.NUDGE and edit.step is Step.NONE:
@@ -515,6 +563,9 @@ def _setting(spec: PreferenceSpec, edit: SettingEdit, release: Release) -> Outco
     provenance = _provenance(edit.provenance)
     if edit.setting in _WEIGHT_SETTINGS:
         on_budget = edit.setting is SettingName.BUDGET_WEIGHT
+        if on_budget and spec.visiting:
+            # How much a budget counts, where there is none: no release holds what a stay costs.
+            return RejectReason.NOT_IN_RELEASE
         before = spec.budget.weight if on_budget else spec.commute_weight
         if edit.action is SettingAction.NUDGE:
             if edit.step is Step.NONE:
@@ -547,6 +598,20 @@ def _setting(spec: PreferenceSpec, edit: SettingEdit, release: Release) -> Outco
     if basis is spec.pt_basis:
         return spec
     return spec.replace(pt_basis=basis, pt_basis_from=provenance)
+
+
+def says_a_visit_again(before: PreferenceSpec, after: PreferenceSpec) -> bool:
+    """Whether all that moved is who chose a visit, of a search that was a visit already.
+
+    To name the kind of search a default had chosen is to choose it, and
+    "renting", typed by somebody who is taken to rent, is worth offering: it
+    ends an assumption. Nobody is taken to be visiting. A search is a visit
+    because a person made it one, so a visit that is said of it again gives
+    them nothing to choose. It is for whoever offers edits to ask: an edit
+    that is applied says who chose the search, as it did.
+    """
+    moved = after.tenure_from is not before.tenure_from
+    return before.visiting and moved and after == before.replace(tenure_from=after.tenure_from)
 
 
 def apply(spec: PreferenceSpec, ops: Operations, release: Release) -> ReducerResult:

@@ -210,7 +210,8 @@ def test_each_distance_is_named_as_core_names_it_so_a_release_carries_it(
 ):
     for made in (near, large):
         assert says_what_core_says(made.metric)
-        assert made.metric.label.startswith("Straight-line distance")
+        assert made.metric.label.startswith("Distance to the nearest marked entrance to a park")
+        assert made.metric.label.endswith("in a straight line")
 
 
 # The evidence

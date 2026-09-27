@@ -349,6 +349,18 @@
         "title": "BandMark",
         "type": "object"
       },
+      "Browser": {
+        "description": "The family of a browser, coarsely. It is all that is kept of what a browser says it is.",
+        "enum": [
+          "chrome",
+          "edge",
+          "firefox",
+          "safari",
+          "other"
+        ],
+        "title": "Browser",
+        "type": "string"
+      },
       "Budget": {
         "additionalProperties": false,
         "properties": {
@@ -1656,17 +1668,22 @@
       },
       "Defaults": {
         "additionalProperties": false,
+        "description": "What a search of each kind starts from, before a person has chosen anything.",
         "properties": {
           "buy": {
             "$ref": "#/components/schemas/PreferenceSpec"
           },
           "rent": {
             "$ref": "#/components/schemas/PreferenceSpec"
+          },
+          "visit": {
+            "$ref": "#/components/schemas/PreferenceSpec"
           }
         },
         "required": [
           "rent",
-          "buy"
+          "buy",
+          "visit"
         ],
         "title": "Defaults",
         "type": "object"
@@ -1809,6 +1826,23 @@
         "title": "Envelope[ExplanationsData]",
         "type": "object"
       },
+      "Envelope_Export_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Export"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[Export]",
+        "type": "object"
+      },
       "Envelope_GeometryData_": {
         "additionalProperties": false,
         "properties": {
@@ -1860,6 +1894,74 @@
         "title": "Envelope[InterpretData]",
         "type": "object"
       },
+      "Envelope_KeptSearch_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/KeptSearch"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[KeptSearch]",
+        "type": "object"
+      },
+      "Envelope_KeptSearches_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/KeptSearches"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[KeptSearches]",
+        "type": "object"
+      },
+      "Envelope_LinkAsked_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LinkAsked"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[LinkAsked]",
+        "type": "object"
+      },
+      "Envelope_Me_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Me"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[Me]",
+        "type": "object"
+      },
       "Envelope_MetaData_": {
         "additionalProperties": false,
         "properties": {
@@ -1894,6 +1996,23 @@
         "title": "Envelope[PlacesData]",
         "type": "object"
       },
+      "Envelope_Preferences_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Preferences"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[Preferences]",
+        "type": "object"
+      },
       "Envelope_RankData_": {
         "additionalProperties": false,
         "properties": {
@@ -1909,6 +2028,57 @@
           "data"
         ],
         "title": "Envelope[RankData]",
+        "type": "object"
+      },
+      "Envelope_RecentSearches_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RecentSearches"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[RecentSearches]",
+        "type": "object"
+      },
+      "Envelope_Session_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Session"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[Session]",
+        "type": "object"
+      },
+      "Envelope_Sessions_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Sessions"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[Sessions]",
         "type": "object"
       },
       "Envelope_ShareCreated_": {
@@ -1943,6 +2113,40 @@
           "data"
         ],
         "title": "Envelope[ShareData]",
+        "type": "object"
+      },
+      "Envelope_SignedIn_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SignedIn"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[SignedIn]",
+        "type": "object"
+      },
+      "Envelope_WhoseLink_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/WhoseLink"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[WhoseLink]",
         "type": "object"
       },
       "ErrorBody": {
@@ -1991,7 +2195,22 @@
           "share_not_found",
           "release_changed",
           "census_not_available",
-          "income_not_available"
+          "income_not_available",
+          "not_the_website",
+          "not_signed_in",
+          "sign_in_again",
+          "rate_limited",
+          "sign_in_busy",
+          "sign_in_unavailable",
+          "invalid_email",
+          "link_not_valid",
+          "link_expired",
+          "link_used",
+          "other_browser",
+          "age_not_confirmed",
+          "too_many_searches",
+          "search_not_found",
+          "session_not_found"
         ],
         "title": "ErrorCode",
         "type": "string"
@@ -2012,6 +2231,22 @@
         ],
         "title": "ErrorEnvelope",
         "type": "object"
+      },
+      "Event": {
+        "description": "What happened.",
+        "enum": [
+          "link_requested",
+          "link_sent",
+          "link_send_failed",
+          "link_used",
+          "link_rejected",
+          "session_created",
+          "session_revoked",
+          "rate_limited",
+          "account_deleted"
+        ],
+        "title": "Event",
+        "type": "string"
       },
       "ExplainedSentence": {
         "additionalProperties": false,
@@ -2137,6 +2372,83 @@
           "facts"
         ],
         "title": "ExplanationsData",
+        "type": "object"
+      },
+      "Export": {
+        "additionalProperties": false,
+        "description": "Everything Burro holds of an account.",
+        "properties": {
+          "adult_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "title": "Adult At",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/Happened"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "exported_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "title": "Exported At",
+            "type": "string"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/LinkHeld"
+            },
+            "title": "Links",
+            "type": "array"
+          },
+          "made_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "title": "Made At",
+            "type": "string"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/Preferences"
+          },
+          "recent": {
+            "items": {
+              "$ref": "#/components/schemas/KeptSearch"
+            },
+            "title": "Recent",
+            "type": "array"
+          },
+          "searches": {
+            "items": {
+              "$ref": "#/components/schemas/KeptSearch"
+            },
+            "title": "Searches",
+            "type": "array"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/SignedInAt"
+            },
+            "title": "Sessions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "exported_at",
+          "email",
+          "made_at",
+          "adult_at",
+          "preferences",
+          "searches",
+          "recent",
+          "sessions",
+          "events",
+          "links"
+        ],
+        "title": "Export",
         "type": "object"
       },
       "Fact": {
@@ -2572,6 +2884,21 @@
         "title": "Filtered",
         "type": "object"
       },
+      "ForgetBody": {
+        "additionalProperties": false,
+        "properties": {
+          "search_id": {
+            "pattern": "^[A-Za-z0-9_-]{22}$",
+            "title": "Search Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "search_id"
+        ],
+        "title": "ForgetBody",
+        "type": "object"
+      },
       "FoundPlace": {
         "additionalProperties": false,
         "properties": {
@@ -2759,6 +3086,29 @@
         ],
         "title": "GrittyVariant",
         "type": "string"
+      },
+      "Happened": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "title": "At",
+            "type": "string"
+          },
+          "event": {
+            "$ref": "#/components/schemas/Event"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/Outcome"
+          }
+        },
+        "required": [
+          "event",
+          "outcome",
+          "at"
+        ],
+        "title": "Happened",
+        "type": "object"
       },
       "Health": {
         "additionalProperties": false,
@@ -3200,6 +3550,175 @@
         ],
         "title": "JourneyBand",
         "type": "string"
+      },
+      "KeepBody": {
+        "additionalProperties": false,
+        "properties": {
+          "spec": {
+            "$ref": "#/components/schemas/PreferenceSpec"
+          }
+        },
+        "required": [
+          "spec"
+        ],
+        "title": "KeepBody",
+        "type": "object"
+      },
+      "KeptSearch": {
+        "additionalProperties": false,
+        "properties": {
+          "kept_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "title": "Kept At",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "release_id": {
+            "pattern": "^(syn|lon)-\\d{4}-\\d{2}-\\d{2}-\\d{2}$",
+            "title": "Release Id",
+            "type": "string"
+          },
+          "search_id": {
+            "pattern": "^[A-Za-z0-9_-]{22}$",
+            "title": "Search Id",
+            "type": "string"
+          },
+          "spec": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PreferenceSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "state": {
+            "$ref": "#/components/schemas/SearchState"
+          }
+        },
+        "required": [
+          "search_id",
+          "name",
+          "spec",
+          "release_id",
+          "kept_at",
+          "state"
+        ],
+        "title": "KeptSearch",
+        "type": "object"
+      },
+      "KeptSearches": {
+        "additionalProperties": false,
+        "properties": {
+          "most": {
+            "title": "Most",
+            "type": "integer"
+          },
+          "searches": {
+            "items": {
+              "$ref": "#/components/schemas/KeptSearch"
+            },
+            "title": "Searches",
+            "type": "array"
+          }
+        },
+        "required": [
+          "searches",
+          "most"
+        ],
+        "title": "KeptSearches",
+        "type": "object"
+      },
+      "LinkAsked": {
+        "additionalProperties": false,
+        "description": "What asking for a link is answered: the same, whoever asked and whatever the address.",
+        "properties": {
+          "lasts_minutes": {
+            "title": "Lasts Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lasts_minutes"
+        ],
+        "title": "LinkAsked",
+        "type": "object"
+      },
+      "LinkBody": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "minLength": 1,
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "LinkBody",
+        "type": "object"
+      },
+      "LinkHeld": {
+        "additionalProperties": false,
+        "description": "A link that was asked for the address of the account, for as long as Burro holds it.",
+        "properties": {
+          "asked_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "title": "Asked At",
+            "type": "string"
+          },
+          "ends_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "used": {
+            "title": "Used",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "asked_at",
+          "ends_at",
+          "used"
+        ],
+        "title": "LinkHeld",
+        "type": "object"
+      },
+      "Me": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "fresh": {
+            "title": "Fresh",
+            "type": "boolean"
+          },
+          "made_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "title": "Made At",
+            "type": "string"
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/Preferences"
+          }
+        },
+        "required": [
+          "email",
+          "made_at",
+          "preferences",
+          "fresh"
+        ],
+        "title": "Me",
+        "type": "object"
       },
       "Meta": {
         "additionalProperties": false,
@@ -3828,6 +4347,19 @@
         "title": "OptionKind",
         "type": "string"
       },
+      "Outcome": {
+        "description": "How it ended.",
+        "enum": [
+          "ok",
+          "refused",
+          "expired",
+          "used",
+          "limited",
+          "unavailable"
+        ],
+        "title": "Outcome",
+        "type": "string"
+      },
       "PlaceKind": {
         "description": "In the order that breaks a tie between two matches of the same score.",
         "enum": [
@@ -4107,6 +4639,38 @@
           "commute_weight_from"
         ],
         "title": "PreferenceSpec",
+        "type": "object"
+      },
+      "Preferences": {
+        "additionalProperties": false,
+        "description": "Every preference as it now stands, whether the person set it or nobody did.",
+        "properties": {
+          "keep_recent": {
+            "$ref": "#/components/schemas/Switch"
+          }
+        },
+        "required": [
+          "keep_recent"
+        ],
+        "title": "Preferences",
+        "type": "object"
+      },
+      "PreferencesBody": {
+        "additionalProperties": false,
+        "description": "What to set. A preference that is left out, or is `null`, stays as it was.",
+        "properties": {
+          "keep_recent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Switch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "PreferencesBody",
         "type": "object"
       },
       "Problem": {
@@ -4413,6 +4977,33 @@
         "title": "Reader",
         "type": "object"
       },
+      "RecentSearches": {
+        "additionalProperties": false,
+        "properties": {
+          "kept": {
+            "title": "Kept",
+            "type": "boolean"
+          },
+          "most": {
+            "title": "Most",
+            "type": "integer"
+          },
+          "searches": {
+            "items": {
+              "$ref": "#/components/schemas/KeptSearch"
+            },
+            "title": "Searches",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kept",
+          "searches",
+          "most"
+        ],
+        "title": "RecentSearches",
+        "type": "object"
+      },
       "RecipeHeld": {
         "additionalProperties": false,
         "description": "How much of one vibe's recipe a release carries, and what the vibe waits on.\n\nIt is of the release and of no area. An area may have a figure for fewer\nparts than the release carries, and its own fact says so.",
@@ -4544,7 +5135,7 @@
       },
       "RoughGuide": {
         "additionalProperties": false,
-        "description": "What stands beside a vibe that is a rough guide, wherever the vibe is shown.",
+        "description": "What is said of a vibe that is a rough guide: its label, and why it is less sure.\n\nThe review desk shows it to whoever decides a recipe. The service hands it\nto no client: route 11 holds a list of these, which is always empty.",
         "properties": {
           "label": {
             "title": "Label",
@@ -4595,6 +5186,16 @@
         ],
         "title": "Score",
         "type": "object"
+      },
+      "SearchState": {
+        "description": "Whether a search that was kept can be searched again on the data as it is now.",
+        "enum": [
+          "ok",
+          "release_changed",
+          "unreadable"
+        ],
+        "title": "SearchState",
+        "type": "string"
       },
       "Segment": {
         "enum": [
@@ -4735,6 +5336,55 @@
           "trade_off_max_utility"
         ],
         "title": "ServedLimits",
+        "type": "object"
+      },
+      "Session": {
+        "additionalProperties": false,
+        "description": "Whether the browser that asked is signed in, and as whom.",
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "signed_in": {
+            "title": "Signed In",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "signed_in",
+          "email"
+        ],
+        "title": "Session",
+        "type": "object"
+      },
+      "Sessions": {
+        "additionalProperties": false,
+        "properties": {
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/SignedInAt"
+            },
+            "title": "Sessions",
+            "type": "array"
+          },
+          "signed_in": {
+            "title": "Signed In",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sessions",
+          "signed_in"
+        ],
+        "title": "Sessions",
         "type": "object"
       },
       "Setting": {
@@ -4927,6 +5577,123 @@
           "places"
         ],
         "title": "ShareData",
+        "type": "object"
+      },
+      "SignInBody": {
+        "additionalProperties": false,
+        "properties": {
+          "adult": {
+            "default": false,
+            "title": "Adult",
+            "type": "boolean"
+          },
+          "other_browser": {
+            "default": false,
+            "title": "Other Browser",
+            "type": "boolean"
+          },
+          "token": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "title": "SignInBody",
+        "type": "object"
+      },
+      "SignOutBody": {
+        "additionalProperties": false,
+        "properties": {
+          "everywhere": {
+            "default": false,
+            "title": "Everywhere",
+            "type": "boolean"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9_-]{22}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          }
+        },
+        "title": "SignOutBody",
+        "type": "object"
+      },
+      "SignedIn": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "new_account": {
+            "title": "New Account",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "email",
+          "new_account"
+        ],
+        "title": "SignedIn",
+        "type": "object"
+      },
+      "SignedInAt": {
+        "additionalProperties": false,
+        "description": "One browser a person is signed in with.",
+        "properties": {
+          "browser": {
+            "$ref": "#/components/schemas/Browser"
+          },
+          "current": {
+            "title": "Current",
+            "type": "boolean"
+          },
+          "ends_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "made_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "title": "Made At",
+            "type": "string"
+          },
+          "revoked": {
+            "title": "Revoked",
+            "type": "boolean"
+          },
+          "seen_at": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+            "title": "Seen At",
+            "type": "string"
+          },
+          "session_id": {
+            "pattern": "^[A-Za-z0-9_-]{22}$",
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "browser",
+          "made_at",
+          "seen_at",
+          "ends_at",
+          "current",
+          "revoked"
+        ],
+        "title": "SignedInAt",
         "type": "object"
       },
       "Similar": {
@@ -5186,6 +5953,11 @@
             "title": "Asks Place",
             "type": "boolean"
           },
+          "by_name": {
+            "default": false,
+            "title": "By Name",
+            "type": "boolean"
+          },
           "choices": {
             "items": {
               "$ref": "#/components/schemas/SuggestionChoice"
@@ -5222,6 +5994,11 @@
           "note": {
             "title": "Note",
             "type": "string"
+          },
+          "only_by_choice": {
+            "default": false,
+            "title": "Only By Choice",
+            "type": "boolean"
           },
           "options": {
             "items": {
@@ -5325,6 +6102,14 @@
           "rough_guide"
         ],
         "title": "Sureness",
+        "type": "string"
+      },
+      "Switch": {
+        "enum": [
+          "on",
+          "off"
+        ],
+        "title": "Switch",
         "type": "string"
       },
       "Tag": {
@@ -5711,9 +6496,11 @@
         "type": "string"
       },
       "Tenure": {
+        "description": "What a search is for: a home to rent, a home to buy, or somewhere to stay on a visit.\n\nA visit is a kind of search of its own. It holds no budget, no number of bedrooms and\nno kind of home, and what homes cost is no part of how its areas are ranked.",
         "enum": [
           "rent",
-          "buy"
+          "buy",
+          "visit"
         ],
         "title": "Tenure",
         "type": "string"
@@ -5722,6 +6509,7 @@
         "enum": [
           "rent",
           "buy",
+          "visit",
           "unchanged"
         ],
         "title": "TenureChoice",
@@ -5734,6 +6522,22 @@
         ],
         "title": "TermReading",
         "type": "string"
+      },
+      "TokenBody": {
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "title": "TokenBody",
+        "type": "object"
       },
       "Toward": {
         "description": "Which end of a vibe is asked for. A one-way vibe has the high end alone.",
@@ -5927,13 +6731,38 @@
         ],
         "title": "WeightEdit",
         "type": "object"
+      },
+      "WhoseLink": {
+        "additionalProperties": false,
+        "description": "Whose link this is. Asking uses nothing up.",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "new_account": {
+            "title": "New Account",
+            "type": "boolean"
+          },
+          "same_browser": {
+            "title": "Same Browser",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "email",
+          "same_browser",
+          "new_account"
+        ],
+        "title": "WhoseLink",
+        "type": "object"
       }
     }
   },
   "info": {
     "description": "Ranks named neighbourhoods for a preference spec and shows its working. Every response says whether the data behind it is synthetic, and whether the release is a preview that is not finished.",
     "title": "Burro API",
-    "version": "2"
+    "version": "3"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -6213,6 +7042,472 @@
         "summary": "Get Income"
       }
     },
+    "/v1/auth/link": {
+      "post": {
+        "description": "Send a link to sign in with. The answer is the same whether or not the address is known.",
+        "operationId": "ask_for_link",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_LinkAsked_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Ask For Link",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/v1/auth/link/whose": {
+      "post": {
+        "description": "Whose link this is, for a page to show before it signs anybody in. It uses nothing up.",
+        "operationId": "whose_link",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_WhoseLink_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Whose Link",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/v1/auth/session": {
+      "delete": {
+        "description": "Sign the browser out. Its session is revoked, and not only forgotten.",
+        "operationId": "sign_out",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Session_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Sign Out",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "get": {
+        "description": "Whether the browser is signed in, and as whom. It is answered 200 either way.",
+        "operationId": "get_session",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Session_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Session",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "post": {
+        "description": "Use a link up and sign the browser in. The first time, it makes the account.",
+        "operationId": "sign_in",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SignedIn_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Sign In",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
     "/v1/compare": {
       "post": {
         "description": "Two to four areas side by side, the rows in the order of the person's own weights.",
@@ -6458,6 +7753,1008 @@
           }
         },
         "summary": "Interpret"
+      }
+    },
+    "/v1/me": {
+      "delete": {
+        "description": "Delete the account and everything of it. It asks for a sign-in in the last ten minutes.",
+        "operationId": "delete_me",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Session_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Delete Me",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "get": {
+        "description": "The address of the account and its preferences.",
+        "operationId": "get_me",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Me_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Me",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/v1/me/export": {
+      "get": {
+        "description": "Everything Burro holds of the account.",
+        "operationId": "export_me",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Export_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Export Me",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/v1/me/preferences": {
+      "put": {
+        "description": "Set a preference, and give back every preference as it now stands.",
+        "operationId": "set_preferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Preferences_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Set Preferences",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/v1/me/recent": {
+      "delete": {
+        "description": "Take every one of the last searches away.",
+        "operationId": "forget_recent",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RecentSearches_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Forget Recent",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "get": {
+        "description": "The last ten searches, where the person lets Burro keep them.",
+        "operationId": "list_recent",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RecentSearches_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Recent",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "post": {
+        "description": "Put a search among the last ten, where the person lets Burro keep them.",
+        "operationId": "keep_recent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeepBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RecentSearches_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Keep Recent",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/v1/me/searches": {
+      "delete": {
+        "description": "Take one search away, and give back those that are left.",
+        "operationId": "forget_search",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgetBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_KeptSearches_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Forget Search",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "get": {
+        "description": "The searches a person has kept, the newest first.",
+        "operationId": "list_searches",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_KeptSearches_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Searches",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "post": {
+        "description": "Keep a search. What is kept is the spec, and a name worked out from it.",
+        "operationId": "keep_search",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeepBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_KeptSearch_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Keep Search",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/v1/me/sessions": {
+      "delete": {
+        "description": "Sign out of one browser, or of every one.",
+        "operationId": "end_sessions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignOutBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Sessions_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "End Sessions",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "get": {
+        "description": "Where a person is signed in.",
+        "operationId": "list_sessions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Sessions_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Sessions",
+        "tags": [
+          "accounts"
+        ]
       }
     },
     "/v1/meta": {

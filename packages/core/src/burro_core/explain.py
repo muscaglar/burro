@@ -10,7 +10,7 @@ sentence a model wrote, so a second explainer is refused here until the
 verifier is extended (contract, sections 7.4 and 11).
 """
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Protocol
 
 from burro_core._record import Record
@@ -26,7 +26,7 @@ from burro_core.ids import (
     TravelStatus,
     component_for_feature,
 )
-from burro_core.rank import Contribution, RankedArea, RankResult
+from burro_core.rank import Contribution, RankedArea, RankResult, asked_for
 from burro_core.release import Release
 from burro_core.spec import PreferenceSpec, spec_hash
 from burro_core.verify import Sentence, verify
@@ -54,30 +54,39 @@ ONLY_THE_TEMPLATE = (
 )
 
 # `{standing}` is one of the clauses of `STANDINGS` in `facts.py`, already
-# filled: "closer than 80% of the 22 areas compared in this release".
-_FEATURE = "{label}: {value}, {standing}."
+# filled: "closer than 80% of the 22 areas Burro compared".
+_FEATURE = "{label}: {value}, which is {standing}."
 _STATION = "{name}, about {walk} minutes on foot. Lines: {lines}."
-_COUNTED = "counted from {low_end} to {high_end}"
-_DATED = "Parts dated {span}. {judgement}"
-# Where a band rests on part of its recipe, `{partly}` says so. It is empty
-# where it rests on the whole, and the sentence is then as it always was.
+# Which end of a vibe the first band is, and which the last: "from least to most", and
+# of a scale the names of its two ends, "from Calm to Buzzy".
+_RUN = "where the bands run from {low_end} to {high_end}"
+_DATED = "Its measurements are dated {span}. {judgement}"
+# Where a band rests on some of the measurements of its vibe, `{partly}` says so. It is
+# empty where it rests on them all, and the sentence is then as it always was.
 _IN_PART = "{partly}"
 # A vibe is a band among the areas compared, and never a percentage.
 _VIBE = (
-    f"{{label}}: band {{band}} of 5, {_COUNTED}, among the {{compared}} areas "
-    f"compared in this release. {_IN_PART}"
+    f"{{label}}: band {{band}} of 5 among the {{compared}} areas Burro compared, {_RUN}. {_IN_PART}"
 )
 # A mixed area is a range, never a point in the middle.
 _VIBE_RANGE = (
-    "{label}: varies within this area, from band {spread_low} to band {spread_high} "
-    f"of 5, {_COUNTED}. {_IN_PART}"
+    "{label}: this varies within the area, from band {spread_low} to band {spread_high} "
+    f"of 5, {_RUN}. {_IN_PART}"
 )
 _BY_PT = (
     "By public transport to {place}: about {typical} minutes on a typical weekday "
-    "morning, {missed} if you just miss a service"
+    "morning, or {missed} minutes if you just miss a service"
 )
 _BY_OTHER = "{mode} to {place}: about {minutes} minutes"
-_OVER = ", {margin} {margin_unit} over the {limit} you set."
+# A journey over its limit says by how much in a sentence of its own, and says what each
+# of its numbers is a number of: "28 minutes over the 35 you set" ended a list of four.
+_OVER = " That is {margin} {margin_unit} over the limit of {limit} minutes you set."
+# A journey by public transport says two times, and is over its limit by the one it is
+# scored on, which is the typical time unless a person chose the other. The fact holds no
+# word for which. So what is over is said to be the journey: "That is 28 minutes over"
+# stood straight after the time of a missed service, and pointed at it, and the 28 were
+# counted from the typical time.
+_OVER_BY_PT = " This journey is {margin} {margin_unit} over the limit of {limit} minutes you set."
 
 TEMPLATES: Mapping[TemplateId, str] = {
     TemplateId.AREA: "{name} is in {borough}.",
@@ -85,44 +94,63 @@ TEMPLATES: Mapping[TemplateId, str] = {
     TemplateId.FEATURE_CRIME: f"{_FEATURE} {CRIME_CAVEAT}",
     TemplateId.VIBE: f"{_VIBE} {_DATED}",
     TemplateId.VIBE_RANGE: f"{_VIBE_RANGE} {_DATED}",
+    # It says how many of the measurements have a figure, and what Burro does where they
+    # are too few. It gives no reason of its own: the two counts are what the fact holds.
     TemplateId.VIBE_UNKNOWN: (
-        "Burro cannot place {name} on {label}. "
-        "Parts with a figure in this release: {known} of {parts}."
+        "Burro could not work out {label} for {name}. It has a figure for {known} of the "
+        "{parts} measurements that go into this vibe, and it leaves a vibe blank rather "
+        "than guess at it."
     ),
+    # A range of a cost, which Burro worked out, and how sure it is of it. The range is
+    # said as it is held: from its lower end to its upper, with the middle beside it.
     TemplateId.COST_RENT: (
-        "Rent for a {segment}: £{lower} to £{upper} a month, middle £{median}, "
-        "as of {as_of}. Confidence: {confidence}."
+        "A {segment} rents for £{lower} to £{upper} a month, and the middle rent is "
+        "£{median}, as of {as_of}. Burro has {confidence} confidence in this range."
     ),
     TemplateId.COST_BUY: (
-        "Price for a {segment}: £{lower} to £{upper}, middle £{median}, "
-        "as of {as_of}. Confidence: {confidence}."
+        "A {segment} sells for £{lower} to £{upper}, and the middle price is £{median}, "
+        "as of {as_of}. Burro has {confidence} confidence in this range."
     ),
     # A publisher's median, with no range. It says what the figure is of, and what is not
     # known of it. No word stands for a confidence that no source states.
     TemplateId.COST_BUY_MEDIAN: (
-        "Price for a {segment}: £{median}. This is the middle price of {homes} of all sizes "
-        "sold in {period}. The publisher gives no range, and does not say "
-        "how many sales it rests on."
+        "The middle price of {homes} of all sizes sold in {period} was £{median}. The "
+        "publisher gives no range of prices, and does not say how many sales this figure "
+        "rests on."
     ),
     # A median that Burro worked out from the sales themselves. It says how many it rests
     # on, and from which month to which.
     TemplateId.COST_BUY_SOLD: (
-        "Price for a {segment}: £{median}. This is the middle price of the {sales} {homes} "
-        "of all sizes sold from {period}."
+        "The middle price of the {sales} {homes} of all sizes sold from {period} was £{median}."
     ),
     # A rent that is of a wider place than the area: a postcode district, or a borough. It
     # says the place it is of, that it is not of the area alone, the months and how many
     # rents it rests on. No word stands for how sure it is: the count does.
     TemplateId.COST_RENT_RECORDED: (
-        "Rent for a {segment}: £{lower} to £{upper} a month, middle £{median}. {is_of} "
-        "It rests on about {rents} rents recorded there from {period}."
+        "A {segment} rents for £{lower} to £{upper} a month, and the middle rent is "
+        "£{median}. {is_of} The range rests on about {rents} rents recorded there from "
+        "{period}."
     ),
-    TemplateId.BUDGET_UNDER: "The upper end is £{margin} under your budget of £{amount}.",
-    TemplateId.BUDGET_OVER: "The upper end is £{margin} over your budget of £{amount}.",
+    # A budget held against the upper end of a range. It says what the range is of and
+    # what its upper end is: "The upper end is £400 under your budget" named neither, and
+    # left a person to work the figure out. The fact holds the upper end, and holds neither
+    # the kind of home nor whether it is rented or bought, so the sentence names neither.
+    TemplateId.BUDGET_UNDER: (
+        "For this kind of home, the upper end of the range of costs here is £{upper}, which "
+        "is £{margin} under your budget of £{amount}."
+    ),
+    TemplateId.BUDGET_OVER: (
+        "For this kind of home, the upper end of the range of costs here is £{upper}, which "
+        "is £{margin} over your budget of £{amount}."
+    ),
     # A difference of nothing is no difference to give: "£0 under your budget" was read as
     # a fault. Where what the budget is held against is the budget to the pound, it is said
-    # to be at it, in each of the three ways a budget is held.
-    TemplateId.BUDGET_AT: "The upper end is at your budget of £{amount}.",
+    # to be at it, in each of the three ways a budget is held. The two are one amount,
+    # which is said once.
+    TemplateId.BUDGET_AT: (
+        "For this kind of home, the upper end of the range of costs here is at your budget of "
+        "£{amount}."
+    ),
     TemplateId.BUDGET_AT_MEDIAN: (
         "The middle price of {homes} of all sizes is at your budget of £{amount}."
     ),
@@ -147,9 +175,9 @@ TEMPLATES: Mapping[TemplateId, str] = {
         "£{amount} a month. {half_let}"
     ),
     TemplateId.TRAVEL_PT: f"{_BY_PT}.",
-    TemplateId.TRAVEL_PT_OVER: f"{_BY_PT}{_OVER}",
+    TemplateId.TRAVEL_PT_OVER: f"{_BY_PT}.{_OVER_BY_PT}",
     TemplateId.TRAVEL_OTHER: f"{_BY_OTHER}.",
-    TemplateId.TRAVEL_OTHER_OVER: f"{_BY_OTHER}{_OVER}",
+    TemplateId.TRAVEL_OTHER_OVER: f"{_BY_OTHER}.{_OVER}",
     TemplateId.TRAVEL_BEYOND: "{mode} to {place}: more than {cutoff} minutes.",
     # A journey that was estimated from distance. It says a band against the limit the
     # person set, never a number of minutes of its own, and says that it is an estimate.
@@ -159,12 +187,16 @@ TEMPLATES: Mapping[TemplateId, str] = {
     # The contract gives one station sentence. A station that is not the
     # nearest needs its own, or the template would say something untrue.
     TemplateId.STATION_NEARBY: f"Station within a short walk: {_STATION}",
+    # What has no figure is named first, as a figure is, because the name of a measure
+    # is long: set inside the sentence it had to be read twice. What an area is worth
+    # to a search is its fit, which is what a page calls it.
     TemplateId.MISSING: (
-        "There is no {label} figure for {name} in this release, so it was left out of the score."
+        "{label}: Burro has no figure for this in {name}, so it does not count towards "
+        "the fit of this area."
     ),
     TemplateId.MISSING_JOURNEY: (
-        "There is no journey time from {name} to {place} in this release, "
-        "so that journey was left out of the score."
+        "Burro has no journey time from {name} to {place}, so that journey does not count "
+        "towards the fit of this area."
     ),
     TemplateId.LIKENESS: (
         "{name} is in the same band as {other} on {same} of the {measures} measures "
@@ -175,11 +207,12 @@ TEMPLATES: Mapping[TemplateId, str] = {
     ),
 }
 # How a vibe is said in an explanation: where the area sits, and what that
-# rests on where it is part of a recipe. A result is to say in a few lines why
-# this place, and the full statement of a vibe ran to thirty words, half of
-# them the same on every result that led with it. What is left out is not
-# lost: the dates are the fact's `as_of`, and the line that the recipe is a
-# judgement is its slot `judgement`, which a client shows with the source.
+# rests on where it is some of the measurements of the vibe. A result is to say
+# in a few lines why this place, and the full statement of a vibe is long, and
+# half of it the same on every result that led with it. What is left out is not
+# lost: the dates are the fact's `as_of`, and the line that the choice of the
+# measurements is a judgement is its slot `judgement`, which a client shows
+# with the source.
 # Each is the start of the full statement, word for word, so a short sentence
 # says nothing the full one does not.
 IN_SHORT: Mapping[TemplateId, str] = {
@@ -359,6 +392,26 @@ def _done_well(contribution: Contribution, area: RankedArea, spec: PreferenceSpe
     return True
 
 
+def _reasons(well: Sequence[Contribution], spec: PreferenceSpec) -> list[Contribution]:
+    """The reasons to give, of what an area does well: what the person asked for comes first.
+
+    A usual setting is a measure that a kind of search weighs where nobody
+    chose it. Once something is asked for it gives way to a quarter of
+    itself, and may still add more to the fit of an area than a thing that
+    was asked for: the walk to a station, at a tenth, was the third reason of
+    a search for a leafy and quiet area. So the reasons are what was asked
+    for, the three that add most, and a usual setting is a reason only where
+    what was asked for gives fewer than three. A search that asks for
+    nothing is given its usual settings, as it was.
+
+    `well` arrives in the order of what each adds, and both kinds keep it.
+    """
+    asked = asked_for(spec)
+    chosen = [found for found in well if found.component in asked]
+    usual = [found for found in well if found.component not in asked]
+    return [*chosen, *usual][:MAX_REASONS]
+
+
 def _asks(
     area: RankedArea, facts: Mapping[str, Fact], spec: PreferenceSpec, release: Release
 ) -> tuple[Ask, ...]:
@@ -371,7 +424,7 @@ def _asks(
     # Contributions arrive largest first, then by name.
     present = [c for c in area.contributions if c.present]
     well = [c for c in present if _done_well(c, area, spec)]
-    reasons = well[:MAX_REASONS]
+    reasons = _reasons(well, spec)
     # What is done well is a reason or is left unsaid. It is never the trade-off.
     trade_off = _trade_off([c for c in present if _done_badly(c, area, spec, release)])
     asks = [Ask(role=SentenceRole.ORIENTATION, component="", fact_id=orientation)]

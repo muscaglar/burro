@@ -1,7 +1,7 @@
 [project]
 name = "burro-api"
 version = "0.0.0"
-description = "Burro's HTTP API: FastAPI over one data release held in memory. No database."
+description = "Burro's HTTP API: FastAPI over one data release held in memory. Its one database is the file of accounts, which are off until they are turned on."
 requires-python = ">=3.13"
 dependencies = [
     "burro-core",

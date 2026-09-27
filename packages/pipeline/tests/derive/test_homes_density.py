@@ -522,7 +522,7 @@ def test_a_spine_made_from_the_files_of_another_build_is_not_taken(tmp_path: Pat
 def test_the_name_the_unit_and_which_way_is_more_are_the_ones_core_gives(tmp_path: Path):
     metric = built(tmp_path).metric
     feature = FEATURES[FeatureId.HOMES_DENSITY]
-    assert (metric.label, metric.unit) == ("Homes per hectare", "per ha")
+    assert (metric.label, metric.unit) == ("Homes per hectare", "per hectare")
     assert (feature.higher, feature.lower) == ("denser", "less dense")
     assert (metric.polarity, metric.native_resolution) == (
         feature.polarity,

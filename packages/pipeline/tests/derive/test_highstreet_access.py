@@ -194,7 +194,7 @@ def test_the_measure_gives_what_the_list_of_measures_asks_of_one(town: Access):
 def test_the_row_of_the_catalogue_is_a_distance_in_metres_and_core_says_the_same(town: Access):
     """Core's row is held here, so that this fails on the day core names a walk again."""
     core = FEATURES[FeatureId.HIGHSTREET_ACCESS]
-    assert core.label == "Straight-line distance to the nearest town centre boundary"
+    assert core.label == "Distance to the edge of the nearest town centre, in a straight line"
     assert (core.unit, core.polarity) == ("m", Polarity.LESS)
     assert town.metric.label == core.label
     assert (town.metric.unit, town.metric.polarity) == ("m", Polarity.LESS)

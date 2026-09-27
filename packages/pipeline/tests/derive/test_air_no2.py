@@ -452,7 +452,10 @@ def test_the_row_of_the_catalogue_says_what_core_says_of_the_measure(tmp_path: P
     metric = built(tmp_path).metric
     feature = FEATURES[FeatureId.AIR_NO2]
     assert (metric.label, metric.unit) == (feature.label, feature.unit)
-    assert (metric.label, metric.unit) == ("Modelled annual mean nitrogen dioxide", "µg/m³")
+    assert (metric.label, metric.unit) == (
+        "Nitrogen dioxide in the air, as a modelled average over a year",
+        "µg/m³",
+    )
     # Less of it is better, and it is held on a grid.
     assert metric.polarity is Polarity.LESS
     assert metric.native_resolution is NativeResolution.GRID_1KM

@@ -172,15 +172,15 @@ ONS = Words(
     limits="Lower and upper confidence limits",
     between="{lower} to {upper}",
     notes=(
-        "It is an average for the area: a mean, and not a median. It is not what any one "
-        "household or person here has.",
+        "This is an average for the whole area: a mean, and not a median. It is not what any "
+        "one household or person here has.",
         'The statistics office says: "A confidence interval gives an indication of the degree '
         "of uncertainty of an estimate and helps to decide how precise a sample estimate is. "
         'It specifies a range of values likely to contain the unknown population value."',
-        "It is of one year. The statistics office asks for caution in reading any change over "
-        "time, and Burro shows none.",
-        "Nothing stands beside the figure: no other area, and no figure for the whole city. "
-        "Burro says nothing about what it means.",
+        "This figure is for one year. The statistics office asks for caution in reading any "
+        "change over time, and Burro shows none.",
+        "Burro shows this figure by itself, with no other area and no figure for the whole "
+        "city beside it, and does not say what it means.",
     ),
     none_given="The statistics office gives no estimate for this area.",
     source_line="Source: Office for National Statistics. Retrieved {retrieved}.",
@@ -211,12 +211,12 @@ MADE_UP = Words(
     limits="Lower and upper limits, made up",
     between="{lower} to {upper}",
     notes=(
-        "It is an average for the area: a mean, and not a median. It is not what any one "
-        "household or person here has.",
-        "A real estimate quotes here what its publisher says of the limits round it.",
-        "It is of one year. Burro shows no change over time.",
-        "Nothing stands beside the figure: no other area, and no figure for the whole city. "
-        "Burro says nothing about what it means.",
+        "This is an average for the whole area: a mean, and not a median. It is not what any "
+        "one household or person here has.",
+        "In a real estimate, this note quotes what its publisher says about the limits round it.",
+        "This figure is for one year, and Burro shows no change over time.",
+        "Burro shows this figure by itself, with no other area and no figure for the whole "
+        "city beside it, and does not say what it means.",
     ),
     none_given="The made-up estimates hold none for this area.",
     source_line="Source: made up by Burro for testing. Made on {retrieved}.",

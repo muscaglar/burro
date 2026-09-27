@@ -208,7 +208,8 @@ SENT_WITH: Mapping[str, str | None] = MappingProxyType(
     {
         "schema_version": None,
         "budget": "your budget",
-        "tenure": "whether you rent or buy",
+        # A search is one of three kinds, and a visit is sent as renting and buying are.
+        "tenure": "whether you rent, buy or visit",
         "commutes": "how long you will travel",
         "commute_combine": "how long you will travel",
         "commute_weight": "how long you will travel",
@@ -219,12 +220,13 @@ SENT_WITH: Mapping[str, str | None] = MappingProxyType(
     }
 )
 # Burro's own statement of what it sends, the same whoever receives it: where
-# the search is sent with the words, and where the words go alone.
+# the search is sent with the words, and where the words go alone. What a search
+# holds is called what the founder named it, "Space requirements".
 SETTINGS = (
-    "With it go your search settings: your budget, whether you rent or buy, how long you "
-    "will travel, what matters to you, and the areas you have ruled in or out."
+    "With it go your space requirements: your budget, whether you rent, buy or visit, how "
+    "long you will travel, what matters to you, and the areas you have ruled in or out."
 )
-WORDS_ALONE = "Your words go alone: none of your search settings is sent with them."
+WORDS_ALONE = "Your words go alone: none of your space requirements is sent with them."
 # The rest of the notice, the same whoever receives the words. It names the
 # company and says nothing of what the company does.
 SENT = "What you type is sent to a language model run by {company}, to be read."

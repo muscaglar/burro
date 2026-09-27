@@ -230,9 +230,10 @@ def test_a_counted_median_says_how_many_sales_it_rests_on_and_when_they_were_mad
     }
     assert set(fact.numbers) == {"£385000", "1204", "2026", "08", "8", "2023", "09", "9"}
     assert render(fact).text == (
-        "Price for a flat: £385,000. This is the middle price of the 1,204 flats of all sizes "
-        "sold from September 2023 to August 2026."
+        "The middle price of the 1,204 flats of all sizes sold from September 2023 to "
+        "August 2026 was £385,000."
     )
+    assert verify(render(fact), {fact.fact_id: fact}).ok
 
 
 def test_the_sentence_of_a_counted_median_states_no_range_and_no_price_by_bedrooms():

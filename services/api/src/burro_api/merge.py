@@ -17,7 +17,7 @@ the model read the words.
 from collections import Counter
 from collections.abc import Iterable, Sequence
 
-from burro_core.catalogue import FEATURES, ROUGH_GUIDES, TAGS, says_rough
+from burro_core.catalogue import FEATURES, ROUGH_GUIDES, TAGS
 from burro_core.ids import (
     DirectionChoice,
     InterpreterName,
@@ -28,8 +28,16 @@ from burro_core.ids import (
     TenureChoice,
     Toward,
 )
-from burro_core.interpret import MAY_BE_ANOTHERS, InterpretRequest, InterpretResult
+from burro_core.interpret import (
+    DOES_NOT_MATTER,
+    MAY_BE_ANOTHERS,
+    NOT_WANTED,
+    NOT_WANTED_AND_COUNTED,
+    InterpretRequest,
+    InterpretResult,
+)
 from burro_core.interpret import Span as Stretch
+from burro_core.lexicon import names_it
 from burro_core.ops import BudgetEdit
 
 from burro_api.guard import BEYOND, DOUBTS, Check, Guarded, Reading, plainly_said, thing_named
@@ -158,6 +166,29 @@ def _way_with(sense: str, offer: Offer, typed: Typed) -> str:
     return LESS if is_nuisance(thing) else MORE
 
 
+def _less_what_is_turned(
+    target: str, ways: Sequence[Way], fired: set[Check]
+) -> tuple[Sequence[Way], str]:
+    """The ways of a thing only a model read, less what counts it where the words turn it.
+
+    A thing that runs one way is taken that way by whoever takes what is
+    offered and asks nothing. Where a check found that the words about it
+    turn the wish round, no way is offered that counts it, and what is said
+    of it says why. A thing that runs two ways is offered both ways there,
+    with no guess, as the rules offer one.
+    """
+    if not fired & {Check.TURNED, Check.ABOUT}:
+        return ways, ""
+    if {MORE, LESS} <= {way.id for way in ways}:
+        return ways, ""
+    left = [way for way in ways if way.id == OFF]
+    if len(left) == len(ways):
+        return ways, ""
+    if is_nuisance(thing_named(target)):
+        return left, DOES_NOT_MATTER
+    return left, NOT_WANTED_AND_COUNTED if left else NOT_WANTED
+
+
 def _covered_by(offer: Offer, budget: BudgetEdit) -> bool:
     """Whether a budget holds all that an offer of the rules would set."""
     held = [edit for way in offer.choices for edit in way.operations.budget_ops]
@@ -241,22 +272,24 @@ class _Merge:
             # Nothing the model read of it would change the search.
             self.fired[Check.NOTHING] += 1
             return
-        # A vibe that is a rough guide has an offer of its own, which says what it is: its
-        # label, and the sentence that says why. It is never a choice of another thing's
-        # offer, and never added with others at one press.
+        # A vibe that is a rough guide has an offer of its own. It is never a choice of
+        # another thing's offer, and never added with others at one press. Nothing of the
+        # offer says that the vibe is less sure than the rest (2026-09-26).
         rough = thing_named(read.target) in ROUGH_GUIDES
         beside = None if rough else self._beside(spans[0])
         if beside is None:
+            left, note = _less_what_is_turned(read.target, ways, fired)
             self.offers.append(
                 Offer(
                     target=read.target,
                     label="",
                     spans=_spans(spans),
-                    choices=(*_marked(ways, meant, guess), SKIP),
-                    note=says_rough(TagId(read.target.partition(":")[2])) if rough else "",
+                    choices=(*_marked(left, meant, guess), SKIP),
+                    note=note,
                     read_by=InterpreterName.MODEL,
                     whole_sentence=bool(fired & BEYOND),
                     alone=rough,
+                    by_name=self._names(read.target, spans),
                 )
             )
             return
@@ -278,6 +311,21 @@ class _Merge:
             choices=(*(way if sure else way.replace(guess=False) for way in theirs), *others, SKIP),
             spans=_spans([*spans, *_held(held)]),
             whole_sentence=held.whole_sentence or bool(fired & BEYOND),
+        )
+
+    def _names(self, target: str, spans: Sequence[Span]) -> bool:
+        """Whether the person's own words name a thing that a model read, as core names it.
+
+        A model chooses the words it quotes, so they are read with what
+        leads up to them, as they are where it is asked whether recorded
+        crime was named. Words in which core finds no phrase that names the
+        thing name nothing: the thing was read into them.
+        """
+        thing = thing_named(target)
+        return thing is not None and any(
+            names_it(named)
+            for span in spans
+            for named in self._typed.names(self._typed.led_up_to(span), thing)
         )
 
     def _journey(
@@ -303,6 +351,7 @@ class _Merge:
                 read_by=InterpreterName.MODEL,
                 unsaid=(least,),
                 alone=True,
+                by_name=True,
             )
             self.offers.append(notice)
             return
@@ -331,6 +380,8 @@ class _Merge:
                 else Stretch(start=read.named_at[0], end=read.named_at[1])
             ),
             options=read.options,
+            # A place that is yet to be chosen is none that the words name.
+            by_name=not asks_place,
         )
         if at is None:
             self.offers.append(offer)
@@ -373,6 +424,7 @@ class _Merge:
                 choices=(*ways, SKIP),
                 read_by=InterpreterName.MODEL,
                 unsaid=tuple(unsaid for reading in together for unsaid in reading.unsaid),
+                by_name=True,
             )
         )
 

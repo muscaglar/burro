@@ -162,9 +162,33 @@ def test_the_list_of_plain_words_is_short_and_is_reviewed_as_a_whole():
     # at", each made of words that were known. No plain word was added for them.
     # 133: "around" and "around it" joined the words for nearby, which stand after a
     # thing and nowhere else.
+    # A time in hours is read as a number, of minutes, and no longer as a phrase of the
+    # grammar: "an hour", "half an hour" and three more went, and "hour", "half" and "1"
+    # with them, which no other phrase holds. The two counts came down by as much, from
+    # 580 and 310, so that there is no more room for a new word than there was.
+    # The words for a visit joined the words for renting and buying on 2026-09-26: 36
+    # phrases, of 17 words that no other phrase held. The grammar places each where it
+    # places a word for renting, among what is said of a home, and a word for staying only
+    # with how long the stay is or where a visitor stays. None can turn a wish round: a
+    # wrong reading is the wrong kind of search, and never a wish read backwards. How long
+    # a stay is is said in words for a period, and none of those is a word of the grammar.
+    # No plain word was added, and the two counts went up by as much as the words came to,
+    # so that there is no more room for a new word than there was.
+    # Five more phrases for a visit joined them later that day, of one word that no other
+    # phrase held: "city break", "a short stay", "short stay", "tourist" and "a tourist".
+    # The service was driven with the sentences of somebody who looks for a short stay, and
+    # each left the search one for a home to rent. They stand where the others stand, and
+    # can turn no wish round. "Where to stay" is read as a visit too, and is no phrase of
+    # the vocabulary: "where" asks, and is never a word the reader knows. Again the two
+    # counts went up by as much as the words came to, and no plain word was added.
+    # "At the very most" joined what caps a number firmly on 2026-09-27: one phrase, of
+    # words that were known. The grammar places it where it places "at the most", before
+    # a number and after it, and it can turn no wish round there: it says the most a
+    # number may be. It was no word of the reader's, so its number was offered as a
+    # guide. The two counts stand as they stood, within the room that was left.
     assert len(PLAIN_WORDS) == 133
-    assert len(VOCABULARY) < 580
-    assert len(KNOWN_WORDS) < 310
+    assert len(VOCABULARY) < 616
+    assert len(KNOWN_WORDS) < 325
 
 
 # Words that turn a wish round, weaken it, compare it, question it or give it to

@@ -134,7 +134,7 @@ def manifest(
         release_id=RELEASE_ID,
         schema_version=2,
         built_at=BUILT_AT,
-        catalogue_version=15,
+        catalogue_version=17,
         gritty_variant=variant,
         synthetic=True,
         preview=False,
@@ -496,7 +496,7 @@ def build_documents(variant: GrittyVariant = VARIANT) -> dict[str, Any]:
             ],
         },
         "catalogue.json": {
-            "catalogue_version": 15,
+            "catalogue_version": 17,
             "metrics": [metric(feature_id).model_dump(mode="json") for feature_id in CARRIED],
             "vibes": [vibe.model_dump(mode="json") for vibe in tags_of(variant)],
         },
@@ -739,11 +739,16 @@ def random_spec(draw: random.Random, release: Release) -> PreferenceSpec:
     vibes = list(release.vibes)
     tags = draw.sample(vibes, min(draw.randrange(0, 4), len(vibes)))
     places = draw.sample([p.place_id for p in release.places], draw.randrange(0, 4))
+    amounts = {
+        Tenure.RENT: [None, *range(1000, 3000, 250)],
+        Tenure.BUY: [None, 300_000, 450_000, 600_000],
+    }
     return spec.replace(
-        budget=spec.budget.replace(
-            amount=draw.choice([None, *range(1000, 3000, 250)])
-            if spec.tenure is Tenure.RENT
-            else draw.choice([None, 300_000, 450_000, 600_000]),
+        # A visit holds no budget, so nothing is drawn for one.
+        budget=spec.budget
+        if spec.visiting
+        else spec.budget.replace(
+            amount=draw.choice(amounts[spec.tenure]),
             strictness=draw.choice(list(Strictness)),
             weight=draw.randrange(0, 21) / 20,
         ),

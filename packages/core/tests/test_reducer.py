@@ -4,7 +4,7 @@ import random
 from typing import Any
 
 import pytest
-from burro_core.catalogue import HOLDS_CRIME
+from burro_core.catalogue import HOLDS_CRIME, SOLD_FOR
 from burro_core.ids import (
     AreaRuleKind,
     Direction,
@@ -302,9 +302,16 @@ def test_a_budget_step_is_a_share_rounded_to_its_unit(
     assert nudged_amount(amount, step, tenure) == moved
 
 
-@pytest.mark.parametrize("tenure", list(Tenure))
+def test_there_is_a_limit_of_money_for_each_kind_of_home_and_none_for_a_visit():
+    assert [tenure for tenure in Tenure if LIMITS.money(tenure) is None] == [Tenure.VISIT]
+    # A visit holds no amount, so a step finds none to move.
+    assert nudged_amount(1500, Step.UP_LARGE, Tenure.VISIT) == 1500
+
+
+@pytest.mark.parametrize("tenure", [Tenure.RENT, Tenure.BUY])
 def test_a_budget_step_always_moves_the_right_way_and_stays_within_its_limits(tenure: Tenure):
     limits = LIMITS.money(tenure)
+    assert limits is not None
     draw = draws(31)
     for _ in range(400):
         amount = draw.randrange(limits.minimum, min(limits.maximum, limits.minimum * 40) + 1)
@@ -349,8 +356,9 @@ def test_ten_small_steps_up_from_nothing_reach_exactly_one():
     assert spec.tags == ()
 
 
-# A quarter of each default, rounded down to a whole step and never under one:
-# 0.35 in all for a renter and 0.45 for a buyer, against the 0.50 of one mention.
+# A quarter of each default, rounded down to a whole step and never under one: 0.35 in
+# all for a renter and for a visitor, and 0.45 for a buyer, against the 0.50 of one mention.
+WHOLE = {Tenure.RENT: 1.8, Tenure.BUY: 2.1, Tenure.VISIT: 2.0}
 GIVEN_WAY = {
     Tenure.RENT: {
         "station_walk": 0.10,
@@ -368,6 +376,14 @@ GIVEN_WAY = {
         "noise_exposure": 0.05,
         "station_lines": 0.05,
         "air_no2": 0.05,
+    },
+    Tenure.VISIT: {
+        "station_walk": 0.10,
+        "station_lines": 0.05,
+        "venue_food_drink_per_homes": 0.05,
+        "venue_evening_per_homes": 0.05,
+        "culture_venues_per_homes": 0.05,
+        "park_proximity": 0.05,
     },
 }
 
@@ -416,7 +432,7 @@ def test_a_step_from_a_weight_the_person_chose_is_a_step_and_no_more():
 @pytest.mark.parametrize("tenure", list(Tenure))
 def test_the_defaults_give_way_the_first_time_a_wish_is_applied(tenure: Tenure):
     start = default_spec(tenure)
-    assert sum(weights(start).values()) == pytest.approx(1.8 if tenure is Tenure.RENT else 2.1)
+    assert sum(weights(start).values()) == pytest.approx(WHOLE[tenure])
     wished = run(start, tag("nudge", "leafy", step="up_large"))
     assert [a.changed for a in wished.applied] == [True]
     # Each is a quarter of what it was, rounded down to a step. What was said now counts for more.
@@ -457,24 +473,33 @@ def every_single_wish() -> list[Edit]:
 def test_what_is_said_of_the_place_leads_over_a_journey_and_a_budget(tenure: Tenure):
     """Decided on 2026-09-24. A journey weighed 1.00 and a budget 0.80, against 0.50 for
     each thing said of the place, so one journey and one budget outweighed three things said.
+
+    A visit holds no budget, so there it is the journey alone that what is said of the
+    place leads over, and the journey alone that outweighs all that was left unsaid.
     """
     assert (DEFAULT_COMMUTE_WEIGHT, DEFAULT_BUDGET_WEIGHT) == (0.40, 0.30)
     # Each thing said of the place weighs more than a journey, and more than a budget.
     assert MENTION_WEIGHT > DEFAULT_COMMUTE_WEIGHT > DEFAULT_BUDGET_WEIGHT > 0
     # Two things said of the place outweigh a journey and a budget together.
     assert 2 * MENTION_WEIGHT > DEFAULT_COMMUTE_WEIGHT + DEFAULT_BUDGET_WEIGHT
-    # A journey and a budget together still outweigh all that was left unsaid.
-    assert sum(GIVEN_WAY[tenure].values()) < DEFAULT_COMMUTE_WEIGHT + DEFAULT_BUDGET_WEIGHT
     # It is what a search holds that nobody has moved, whatever is said of the place.
     start = default_spec(tenure)
+    amounts = {Tenure.RENT: 1700, Tenure.BUY: 400_000}
     said = run(
         start,
         tag("nudge", "leafy", step="up_large"),
         tag("nudge", "quiet_residential", step="up_large"),
         commute("add", place_id(1), max_minutes=35),
-        budget(amount=1700 if tenure is Tenure.RENT else 400_000),
-    ).spec
-    assert (said.commute_weight, said.budget.weight) == (0.40, 0.30)
+        *((budget(amount=amounts[tenure]),) if tenure in amounts else ()),
+    )
+    assert said.rejected == ()
+    said = said.spec
+    # A journey and a budget together still outweigh all that was left unsaid, and so
+    # does the journey alone where there is no budget to stand beside it.
+    assert said.budget_requested is (tenure in amounts)
+    counts = DEFAULT_BUDGET_WEIGHT if said.budget_requested else 0.0
+    assert (said.commute_weight, said.budget.weight) == (0.40, counts)
+    assert sum(GIVEN_WAY[tenure].values()) < said.commute_weight + counts
     of_the_place = sum(t.weight for t in said.tags)
     assert of_the_place == 1.0 > said.commute_weight + said.budget.weight
     # A person may still weigh a journey above all else, and it stays where they put it.
@@ -512,6 +537,10 @@ def test_one_stated_wish_outweighs_everything_that_was_left_unsaid(tenure: Tenur
     # one mention, so the area the defaults liked best still came first.
     assert sum(GIVEN_WAY[tenure].values()) < MENTION_WEIGHT
     for edit in every_single_wish():
+        if tenure is Tenure.VISIT and isinstance(edit, WeightEdit) and edit.feature_id in SOLD_FOR:
+            # A visit weighs nothing of what homes sold for: the wish is turned away.
+            assert reasons(run(default_spec(tenure), edit)) == [RejectReason.NOT_IN_RELEASE]
+            continue
         wished = run(default_spec(tenure), edit).spec
         unsaid = sum(defaults_of(wished).values())
         said = sum(w.weight for w in wished.weights if w.provenance is not Provenance.DEFAULT)
@@ -1081,49 +1110,67 @@ def test_a_weight_that_reaches_nothing_counts_for_nothing_by_any_action():
         assert canonical(spec) == canonical(run(RENTER, weight("remove", "station_walk")).spec)
         assert '"station_walk"' not in canonical(spec)
     # A feature no tenure has a default for leaves nothing behind, and nor does a tag.
+    assert not any(FeatureId.WATER_ACCESS in held for held in DEFAULT_WEIGHTS.values())
     for edit in (
-        weight("set", "culture_venues_per_homes", value=0.0),
-        weight("nudge", "culture_venues_per_homes", step="down_large"),
-        weight("remove", "culture_venues_per_homes"),
+        weight("set", "water_access", value=0.0),
+        weight("nudge", "water_access", step="down_large"),
+        weight("remove", "water_access"),
     ):
-        wanted = run(RENTER, weight("set", "culture_venues_per_homes", value=0.2)).spec
-        assert "culture_venues_per_homes" in weights(wanted)
-        assert "culture_venues_per_homes" not in weights(run(wanted, edit).spec)
+        wanted = run(RENTER, weight("set", "water_access", value=0.2)).spec
+        assert "water_access" in weights(wanted)
+        assert "water_access" not in weights(run(wanted, edit).spec)
     leafy = run(RENTER, tag("set", "leafy", value=0.2)).spec
     assert run(leafy, tag("remove", "leafy")).spec.tags == ()
+    # A measure that a visit alone weighs by default has one, so a renter who takes it off
+    # leaves an entry of nothing behind, and it stays off where the search becomes a visit.
+    assert FeatureId.CULTURE_VENUES_PER_HOMES in DEFAULT_WEIGHTS[Tenure.VISIT]
+    wanted = run(RENTER, weight("set", "culture_venues_per_homes", value=0.2)).spec
+    off = run(wanted, weight("remove", "culture_venues_per_homes", provenance="ui_edit")).spec
+    assert weights(off)["culture_venues_per_homes"] == 0.0
+    # Zero still has one canonical form, which is no entry.
+    assert '"culture_venues_per_homes"' not in canonical(off)
+    assert canonical(off) == canonical(off.replace(weights=off.active_weights))
+    visiting = run(off, budget(tenure="visit")).spec
+    assert "culture_venues_per_homes" not in asked_for(visiting)
+    assert "venue_evening_per_homes" in asked_for(visiting)
 
 
+# A park nearby is weighed by default in a search of every kind, and gives way to one small
+# step, so each of these takes it off. The air, which these were first written of, is
+# weighed by no visit.
 TAKEN_OFF: list[Edit] = [
-    weight("remove", "air_no2", provenance="ui_edit"),
-    weight("set", "air_no2", value=0.0, provenance="ui_edit"),
-    weight("nudge", "air_no2", step="down_large"),
-    weight("nudge", "air_no2", step="down_small", provenance="inferred"),
+    weight("remove", "park_proximity", provenance="ui_edit"),
+    weight("set", "park_proximity", value=0.0, provenance="ui_edit"),
+    weight("nudge", "park_proximity", step="down_large"),
+    weight("nudge", "park_proximity", step="down_small", provenance="inferred"),
 ]
+CHANGES = [(one, other) for one in Tenure for other in Tenure if one is not other]
 
 
 @pytest.mark.parametrize("edit", TAKEN_OFF, ids=lambda e: f"{e.action}-{e.provenance}")
-@pytest.mark.parametrize("tenure", list(Tenure))
+@pytest.mark.parametrize(("tenure", "other"), CHANGES, ids=lambda t: t.value)
 def test_a_default_the_person_took_off_stays_off_when_the_tenure_changes(
-    edit: WeightEdit, tenure: Tenure
+    edit: WeightEdit, tenure: Tenure, other: Tenure
 ):
-    other = Tenure.BUY if tenure is Tenure.RENT else Tenure.RENT
+    assert len(CHANGES) == 6
+    assert all(FeatureId.PARK_PROXIMITY in held for held in DEFAULT_WEIGHTS.values())
     off = run(default_spec(tenure), edit)
     assert [a.changed for a in off.applied] == [True]
-    assert "air_no2" not in asked_for(off.spec)
+    assert "park_proximity" not in asked_for(off.spec)
 
     # It came back at 0.05, because nothing recorded that it had been taken off.
     moved = run(off.spec, budget(tenure=other.value, provenance="ui_edit")).spec
     assert moved.tenure is other
-    assert "air_no2" not in asked_for(moved)
+    assert "park_proximity" not in asked_for(moved)
     expected = dict(GIVEN_WAY[other])
-    del expected["air_no2"]
+    del expected["park_proximity"]
     assert defaults_of(moved) == asked_for(moved) == expected
     back = run(moved, budget(tenure=tenure.value, provenance="ui_edit")).spec
-    assert "air_no2" not in asked_for(back)
+    assert "park_proximity" not in asked_for(back)
 
     # What records it is an entry of nothing, in the person's name, which is
     # not hashed, not checked and not ranked: zero still has one canonical form.
-    (entry,) = (w for w in off.spec.weights if w.feature_id is FeatureId.AIR_NO2)
+    (entry,) = (w for w in off.spec.weights if w.feature_id is FeatureId.PARK_PROXIMITY)
     assert (entry.weight, entry.provenance) == (0.0, Provenance(edit.provenance.value))
     without = off.spec.replace(weights=off.spec.active_weights)
     assert canonical(off.spec) == canonical(without)

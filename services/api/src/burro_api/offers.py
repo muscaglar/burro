@@ -30,6 +30,7 @@ from burro_core.catalogue import (
     HOLDS_RESIDENTS,
     ROUGH_GUIDES,
     TAGS,
+    only_by_choice,
 )
 from burro_core.ids import (
     AreaAction,
@@ -63,7 +64,7 @@ from burro_core.ops import (
     TagEdit,
     WeightEdit,
 )
-from burro_core.reducer import apply, given_way_spec
+from burro_core.reducer import apply, given_way_spec, says_a_visit_again
 from burro_core.release import Release
 from burro_core.spec import DEFAULT_HOUSE, PreferenceSpec
 
@@ -86,6 +87,7 @@ __all__ = [
     "journey_ways",
     "kind_of_house",
     "of_the_rules",
+    "waits_for_a_person",
     "ways_of",
 ]
 
@@ -140,6 +142,9 @@ class UnsaidCode(StrEnum):
     TENURE = "tenure"  # neither renting nor buying was said
     SIZE = "size"  # the size of home does not suit the tenure, and was left out
     LEAST = "least"  # a number of minutes that may be a least was not taken
+    # A number of minutes was typed, and the rules could not tell which journey it is for.
+    NOT_PLACED = "not_placed"
+    VISIT = "visit"  # a visit holds no budget and no home, so what was read of either was left out
 
 
 class Unsaid(Record):
@@ -311,8 +316,12 @@ def changes(way: Choice, spec: PreferenceSpec, release: Release) -> bool:
     reducer applies an edit to. A way that holds a journey to no place yet is
     tried with none, and is kept: the place is the person's to choose.
     """
-    result = apply(given_way_spec(spec), way.operations, release)
-    return not result.rejected and any(applied.changed for applied in result.applied)
+    ready = given_way_spec(spec)
+    result = apply(ready, way.operations, release)
+    if result.rejected or says_a_visit_again(ready, result.spec):
+        # A visit that is said of a search that is one already gives nothing to choose.
+        return False
+    return any(applied.changed for applied in result.applied)
 
 
 # --- What the rules noticed, as an offer ---------------------------------------------------
@@ -340,6 +349,8 @@ def of_the_rules(suggestion: Suggestion) -> Offer:
         spans=suggestion.spans,
         choices=ways,
         note=suggestion.note,
+        by_name=suggestion.by_name,
+        only_by_choice=suggestion.only_by_choice,
     )
 
 
@@ -406,6 +417,22 @@ def counts_residents(operations: Operations) -> bool:
     )
 
 
+def waits_for_a_person(offer: Offer) -> bool:
+    """Whether what is offered waits for a person to choose it, whoever read the words.
+
+    It is what the rules say of their own offer, and what core says of every
+    measure and every vibe that a way of the offer would set counting: a
+    model's reading may stand in an offer beside the rules' own. To take a
+    thing off counts nothing.
+    """
+    things: set[FeatureId | TagId] = set()
+    for way in offer.choices:
+        edits = way.operations
+        things |= {e.feature_id for e in edits.weight_ops if e.action is not WeightAction.REMOVE}
+        things |= {e.tag_id for e in edits.tag_ops if e.action is not WeightAction.REMOVE}
+    return offer.only_by_choice or any(only_by_choice(thing, offer.by_name) for thing in things)
+
+
 def is_a_rough_guide(operations: Operations) -> bool:
     """Whether some edit adds a vibe that is a rough guide. To take one off is not to add it."""
     return any(
@@ -447,6 +474,9 @@ def in_add_all(offer: Offer) -> Way | None:
     not leave areas out on an estimate. Where the guess is a firm journey,
     what is added is the guide, and a person makes it firm with a press of
     its own. It is so whoever read the journey, a model or the rules alone.
+    A journey the rules noticed that the words make a limit, and that was
+    not plainly said, is offered both ways with no guess: no press takes it
+    with others, as none took it while it was offered as a firm limit alone.
 
     Nor does it take a rule for an area, what runs two ways with no guess, a
     journey to a place the person has yet to choose, recorded crime, what
@@ -461,8 +491,14 @@ def in_add_all(offer: Offer) -> Way | None:
     of_a_home = offer.target in OF_A_HOME
     ways = [way for way in offer.choices if way.direction is not SuggestionDirection.IGNORE]
     guessed = [way for way in ways if way.guess]
-    said_plainly = of_a_home or (offer.target == COMMUTE_TARGET and bool(guessed))
+    # A wish that carries the rules' own guess is as plainly said as a home is: they
+    # would apply the sentence it stands in. What is said with it says what was read.
+    of_a_wish = any(way.ruled and not way.meant for way in guessed) and not of_a_home
+    said_plainly = of_a_home or (bool(guessed) and (offer.target == COMMUTE_TARGET or of_a_wish))
     if offer.alone or offer.asks_place or (offer.note and not said_plainly):
+        return None
+    if waits_for_a_person(offer):
+        # What waits for a person is taken by no press that takes it with others.
         return None
     if guessed:
         taken = guessed[0]

@@ -6,7 +6,7 @@ says who reads what is typed, and what people are told of it, so that no
 client writes a provider's terms of its own.
 """
 
-from burro_core.catalogue import CATALOGUE_VERSION, FAMILIES, rough_guides
+from burro_core.catalogue import CATALOGUE_VERSION, FAMILIES
 from burro_core.census import offer
 from burro_core.estimate import HOW, estimates_journeys
 from burro_core.explain import REASON_MIN_UTILITY, TRADE_OFF_MAX_UTILITY
@@ -114,7 +114,9 @@ def get_meta(context: Ctx, request: Request, response: Response) -> Envelope[Met
             ),
             gritty_variant=manifest.gritty_variant,
             defaults=Defaults(
-                rent=default_for(release, Tenure.RENT), buy=default_for(release, Tenure.BUY)
+                rent=default_for(release, Tenure.RENT),
+                buy=default_for(release, Tenure.BUY),
+                visit=default_for(release, Tenure.VISIT),
             ),
             limits=_limits(release),
             reader=_reader(told),
@@ -122,8 +124,10 @@ def get_meta(context: Ctx, request: Request, response: Response) -> Envelope[Met
             census=offer(context.deps.census),
             # And of the block that offers household income. No figure, and no area.
             income=offer_of_income(context.deps.income),
-            # The label and the sentence of each vibe of the release that is a rough guide.
-            rough_guides=rough_guides(release.vibes),
+            # Nothing stands beside a vibe that is less sure than the rest: the founder
+            # asked that no person is told (2026-09-26). The list is served, and is empty,
+            # so that the shape of the answer is as it was. `sureness` of a vibe says which.
+            rough_guides=(),
         ),
     )
 

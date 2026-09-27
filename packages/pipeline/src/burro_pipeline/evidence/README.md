@@ -125,7 +125,7 @@ This is one figure of the synthetic release, traced with the evidence `made_up.p
 
 | Step | What is there |
 |---|---|
-| 1. The screen | On the page of Alderwick: "Straight-line distance to the nearest marked way into a park of 2 ha or more: 970 m, closer than 33% of the 21 areas compared in this release." |
+| 1. The screen | On the page of Alderwick: "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 970 m, which is closer than 33% of the 21 areas Burro compared." |
 | 2. The fact | `facts_for` in core gives the sentence its fact, `syn-n0001/feature/park_proximity`, which cites the source `synthetic` as of 2025 |
 | 3. The evidence row | `evidence.row("syn-n0001/feature/park_proximity")`: state `present`, 10 of 10 units, all of the area covered, retrieved on 2026-09-23 |
 | 4. The method | The row's `derivation_id` is `made_up@1`: "Made up for testing from the invented character of each area, and it measures nothing." |

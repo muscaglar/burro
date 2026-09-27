@@ -14,15 +14,18 @@ An offer has four parts, in this order.
 3. What follows for areas: which rank higher, which lower, which are left out.
 4. The choices. Doing nothing is "Skip".
 
-What nobody said is said: the way of travelling Burro took, which of two
+What nobody said is said: the way of travelling Burro assumed, which of two
 numbers, the tenure. A way that leaves areas out says so on its face, and
 recorded crime is chosen under its own name, alone or inside a vibe.
 
 A wish against a thing is never said to be "counted less". What is said is
 what happens to areas.
+
+Every part is written for a person who has never seen Burro: in whole
+sentences that are joined, which say what follows from what.
 """
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import NamedTuple
 
 from burro_core.catalogue import CRIME_CAVEAT, FEATURES, HOLDS_CRIME, NEAR_A_STATION, TAGS
@@ -54,7 +57,7 @@ from burro_core.ids import (
     TowardChoice,
     WeightAction,
 )
-from burro_core.interpret import Choice
+from burro_core.interpret import TIME_NOT_PLACED, VISITING, Choice
 from burro_core.ops import AreaEdit, BudgetEdit, CommuteEdit, TagEdit, WeightEdit
 from burro_core.rank import FIRM_BUDGET_MARGIN_PERCENT, held_on_the_median
 from burro_core.reducer import minutes_limit
@@ -69,12 +72,14 @@ from burro_core.spec import (
 from burro_api.offers import IGNORE, Offer, Unsaid, UnsaidCode, Way, holds_crime, in_add_all
 
 __all__ = [
+    "AN_AREA_AS_A_WHOLE",
     "GUESS",
     "NOTHING_TAKEN",
     "NO_JOURNEY",
     "NO_LEAST",
     "NO_PLACE",
     "SKIP_LABEL",
+    "WHEN",
     "Worded",
     "worded",
 ]
@@ -84,31 +89,49 @@ SKIP_LABEL = "Skip"
 GUESS = "Burro's guess"
 COUNTING_CRIME = ", counting recorded crime"
 NO_PLACE = "Burro does not know this place: choose one."
-NO_JOURNEY = "Burro took no journey from these words."
+NO_JOURNEY = "Burro could not make a journey from these words."
 # What is said of any other thing that is noticed and has no way to take: the note of the
 # offer says why, as of a home by its bedrooms where prices are held by the kind of home.
-NOTHING_TAKEN = "Burro took nothing from these words."
+NOTHING_TAKEN = "Burro could not use these words in your search."
 NO_LEAST = (
-    "Burro reads a number of minutes only as the most a journey may take. "
-    "It cannot keep a search away from a place."
+    "Burro can only treat a number of minutes as the longest a journey may take. "
+    "This means it cannot keep your search away from a place."
 )
 ANOTHER_WAY = (
-    "Burro took public transport. If you travel another way, change it once the journey is added."
+    "Burro has assumed public transport. If you travel another way, you can change this "
+    "once the journey has been added."
 )
+# What every vibe cannot see, as an offer of one says it after what the vibe counts. It
+# is what the first line of what a vibe cannot see says, in a sentence that follows on.
+AN_AREA_AS_A_WHOLE = (
+    "It describes an area as a whole, so it cannot tell you about one street or one home."
+)
+# What is left for a person once one press has added what it may: what they alone may
+# choose, and what they may make firmer.
+CRIME_BY_NAME = "recorded crime, which Burro adds only when you choose it by name"
+MAY_BE_FIRM = "the {thing}, which you can make a firm limit"
 # What a firm budget leaves out. Where a price is a range, an area is left out where the
 # upper end is over the budget. Where it is a median of what sold, an area is left out only
 # where the median is over the budget by more than the margin core holds, and the offer
 # says why.
 DEARER = "Dearer areas are left out."
-FAR_DEARER = (
-    f"Areas where the middle price is more than {FIRM_BUDGET_MARGIN_PERCENT}% over it are left out."
+# Which areas a firm budget leaves out, as a way of an offer says it on its face.
+THAT_COST_MORE = "that cost more"
+WHERE_FAR_DEARER = f"where the middle price is more than {FIRM_BUDGET_MARGIN_PERCENT}% over it"
+WHERE_FAR_DEARER_TO_RENT = (
+    f"where the middle rent is more than {FIRM_BUDGET_MARGIN_PERCENT}% over it"
 )
+FAR_DEARER = f"Areas {WHERE_FAR_DEARER} are left out."
+# The two ways of a budget and of a journey. Each says on its face what it does to areas,
+# so that a way that leaves areas out is never pressed for one that does not.
+SET_FIRM = "Set it as a firm limit, which leaves out areas {left_out}"
+SET_AS_A_GUIDE = "Set it as a guide, which ranks areas lower when they cost more"
+ADD_FIRM = "Add it as a firm limit, which leaves out areas that are further away"
+ADD_AS_A_GUIDE = "Add it as a guide, which ranks areas lower when they are further away"
 HALF_SOLD_FOR_LESS = "About half of the homes sold in an area went for under its middle price."
 # The same of a budget to rent, where a rent is of a postcode district or a borough: it is
 # held against the middle rent of the place, with the same margin.
-FAR_DEARER_TO_RENT = (
-    f"Areas where the middle rent is more than {FIRM_BUDGET_MARGIN_PERCENT}% over it are left out."
-)
+FAR_DEARER_TO_RENT = f"Areas {WHERE_FAR_DEARER_TO_RENT} are left out."
 HALF_LET_FOR_LESS = "About half of the rents recorded in a place were under its middle rent."
 # What a person should know before they set a budget to rent, where a rent is of a wider
 # place than an area: that it is, and the caution of its publisher, in plain words.
@@ -200,6 +223,43 @@ def _wish_of(edit: WeightEdit) -> str:
     return f"{word}{thing}"
 
 
+# What a wish is for, of a measure whose two ways each have a word of their own: "dearer",
+# "denser". The word says which way and nothing of what, so the offer says both, in a
+# clause that stands after "when". Each is of the place: of its homes, or of its shops.
+WHEN: Mapping[FeatureId, tuple[str, str]] = {
+    FeatureId.HOMES_DENSITY: (
+        "its homes stand closer together",
+        "its homes stand further apart",
+    ),
+    FeatureId.PRICE_MEDIAN: ("homes there sell for more", "homes there sell for less"),
+    FeatureId.BRAND_MIX: (
+        "the chain grocers, gyms and coffee places near it are more premium",
+        "the chain grocers, gyms and coffee places near it are less premium",
+    ),
+    FeatureId.PRICE_RISE_5Y: (
+        "what homes there sell for has risen more over five years",
+        "what homes there sell for has risen less over five years",
+    ),
+    FeatureId.PRICE_RISE_10Y: (
+        "what homes there sell for has risen more over ten years",
+        "what homes there sell for has risen less over ten years",
+    ),
+}
+# A wish that says where an area is, and not what it has: "nearer a park", "away from
+# main roads". An area is nearer a park, and has cleaner air.
+_IS = ("nearer ", "away ")
+
+
+def _when(edit: WeightEdit) -> str:
+    """What an area is or has where it ranks higher for a wish: "it is nearer a park"."""
+    feature = FEATURES[edit.feature_id]
+    own = WHEN.get(edit.feature_id)
+    if own is not None and feature.polarity is Polarity.EITHER:
+        return own[1] if edit.direction is DirectionChoice.LESS else own[0]
+    wish = _wish_of(edit)
+    return f"it is {wish}" if wish.startswith(_IS) else f"it has {wish}"
+
+
 def _counts(feature_id: FeatureId) -> str:
     """What a feature counts, as the catalogue names it, and what is to be known of it.
 
@@ -209,7 +269,7 @@ def _counts(feature_id: FeatureId) -> str:
     feature = FEATURES[feature_id]
     crime = f" {CRIME_CAVEAT}" if feature.dimension is Dimension.CRIME else ""
     near = f" {NEAR_A_STATION}" if feature_id is FeatureId.STATION_WALK else ""
-    return f"What Burro counts: {_lower_first(feature.label)}.{near}{crime}"
+    return f"This is what Burro measures for it: {_lower_first(feature.label)}.{near}{crime}"
 
 
 def _why_it_counts(spec: PreferenceSpec, feature_id: FeatureId) -> str:
@@ -233,12 +293,12 @@ def _feature(edit: WeightEdit, spec: PreferenceSpec) -> _Part:
             "Stop counting it",
         )
     wish = _wish_of(edit)
-    much = " above all" if edit.action is WeightAction.SET else ""
+    much = ", and count this above all" if edit.action is WeightAction.SET else ""
     little = " a little" if edit.step is Step.UP_SMALL else ""
     # Recorded crime is chosen under its own name, and under no other word.
     named = feature.polarity is Polarity.EITHER or feature.dimension is Dimension.CRIME
     return _Part(
-        f"Rank areas{little} higher for this{much}: {wish}.",
+        f"Rank an area{little} higher when {_when(edit)}{much}.",
         _counts(edit.feature_id),
         _upper_first(wish) if named else "Add",
     )
@@ -253,9 +313,8 @@ def _runs(tag_id: TagId) -> str:
 
 
 def _vibe_counts(tag_id: TagId) -> str:
-    tag = TAGS[tag_id]
-    cannot = f" It cannot see: {_lower_first(tag.cannot_see[0])}" if tag.cannot_see else ""
-    return f"What it counts: {_lower_first(tag.meaning)}.{cannot}"
+    """What a vibe counts, as the catalogue says what it means, and what none can see."""
+    return f"This vibe counts {_lower_first(TAGS[tag_id].meaning)}. {AN_AREA_AS_A_WHOLE}"
 
 
 def _tag(edit: TagEdit) -> _Part:
@@ -298,13 +357,9 @@ def _journey(edit: CommuteEdit, release: Release, asks_place: bool) -> _Part:
     else:
         does = f"Add a journey{to}, {_by(edit.mode)}."
     if edit.strictness is StrictnessChoice.HARD:
-        left_out = "Areas further off are left out."
-        return _Part(does, left_out, f"Add as a firm limit: {_lower_first(left_out)[:-1]}")
+        return _Part(does, "Areas further off are left out.", ADD_FIRM)
     if edit.strictness is StrictnessChoice.SOFT:
-        lower = "Areas further off rank lower."
-        return _Part(
-            does, f"{lower} None is left out.", f"Add as a guide: {_lower_first(lower)[:-1]}"
-        )
+        return _Part(does, "Areas further off rank lower. None is left out.", ADD_AS_A_GUIDE)
     return _Part(does, "Areas further off rank lower.", "Add")
 
 
@@ -315,8 +370,24 @@ def _tenure_of(edit: BudgetEdit, spec: PreferenceSpec) -> Tenure:
     return spec.tenure if edit.tenure is TenureChoice.UNCHANGED else Tenure(edit.tenure.value)
 
 
+# What a way that makes a search a visit would do, and what follows from it for areas.
+A_VISIT = "Look for somewhere to stay on a visit"
+RANKED_BY_THE_REST = (
+    "A search for somewhere to stay has no budget and no kind of home, so Burro ranks areas "
+    "by everything else you ask for."
+)
+# What is said where a model read a budget or a home beside a visit, and neither was kept.
+LEFT_OUT_OF_A_VISIT = (
+    "A search for somewhere to stay has no budget and no kind of home, so Burro has left those out."
+)
+# What each kind of search is called where a sentence says which one a search was kept on.
+_KEPT_ON = {Tenure.RENT: "renting", Tenure.BUY: "buying", Tenure.VISIT: "visiting"}
+
+
 def _home(edit: BudgetEdit, spec: PreferenceSpec) -> str:
     """What a budget edit would set, in words: each part of it that the edit holds."""
+    if _tenure_of(edit, spec) is Tenure.VISIT:
+        return A_VISIT
     rent = _tenure_of(edit, spec) is Tenure.RENT
     to = "to rent" if rent else "to buy"
     sized = edit.segment is not SegmentChoice.UNCHANGED
@@ -355,30 +426,25 @@ def _of_a_wider_place(edit: BudgetEdit, spec: PreferenceSpec, release: Release) 
 
 def _budget(edit: BudgetEdit, spec: PreferenceSpec, release: Release) -> _Part:
     home = _home(edit, spec)
+    if _tenure_of(edit, spec) is Tenure.VISIT:
+        return _Part(f"{home}.", RANKED_BY_THE_REST, "Set")
     if edit.strictness is StrictnessChoice.HARD:
         if _of_a_wider_place(edit, spec, release):
             return _Part(
                 f"{home}, as a firm limit.",
                 f"{FAR_DEARER_TO_RENT} {HALF_LET_FOR_LESS}",
-                f"Set as a firm limit: {_lower_first(FAR_DEARER_TO_RENT)[:-1]}",
+                SET_FIRM.format(left_out=WHERE_FAR_DEARER_TO_RENT),
             )
         if _on_a_median(edit, spec, release):
             return _Part(
                 f"{home}, as a firm limit.",
                 f"{FAR_DEARER} {HALF_SOLD_FOR_LESS}",
-                f"Set as a firm limit: {_lower_first(FAR_DEARER)[:-1]}",
+                SET_FIRM.format(left_out=WHERE_FAR_DEARER),
             )
-        return _Part(
-            f"{home}, as a firm limit.",
-            DEARER,
-            f"Set as a firm limit: {_lower_first(DEARER)[:-1]}",
-        )
+        return _Part(f"{home}, as a firm limit.", DEARER, SET_FIRM.format(left_out=THAT_COST_MORE))
     if edit.strictness is StrictnessChoice.SOFT:
-        lower = "Dearer areas rank lower."
         return _Part(
-            f"{home}, as a guide.",
-            f"{lower} None is left out.",
-            f"Set as a guide: {_lower_first(lower)[:-1]}",
+            f"{home}, as a guide.", "Dearer areas rank lower. None is left out.", SET_AS_A_GUIDE
         )
     return _Part(f"{home}.", "", "Set")
 
@@ -438,6 +504,8 @@ def _thing(way: Choice, release: Release) -> str:
             return f"A budget of \N{POUND SIGN}{money(edit.amount)}"
         if edit.segment is not SegmentChoice.UNCHANGED:
             return f"A {SEGMENT_LABELS[Segment(edit.segment.value)]}"
+        if edit.tenure is TenureChoice.VISIT:
+            return VISITING
         return "Renting" if edit.tenure is TenureChoice.RENT else "Buying"
     return ""
 
@@ -467,23 +535,23 @@ def _asks(ways: Sequence[Way], parts: Sequence[_Part], release: Release) -> tupl
     one = len(ways) == 1
     if isinstance(edit, TagEdit):
         if TAGS[edit.tag_id].shape is TagShape.SCALE:
-            return f"{_runs(edit.tag_id)} Which way?", _vibe_counts(edit.tag_id)
-        asks = "add it?" if one else "add it, or stop counting it?"
-        return f"{things[0]}: {asks}", _vibe_counts(edit.tag_id)
+            return f"{_runs(edit.tag_id)} Which end do you want?", _vibe_counts(edit.tag_id)
+        asks = "add this" if one else "add this, or to stop counting it"
+        return f"{things[0]}: do you want Burro to {asks}?", _vibe_counts(edit.tag_id)
     if isinstance(edit, WeightEdit):
         feature = FEATURES[edit.feature_id]
         if feature.polarity is Polarity.EITHER:
             ends = f"{feature.higher}, or {feature.lower}"
-            return f"{feature.short_label}: {ends}?", _counts(edit.feature_id)
-        asks = "count it?" if one else "count it, or stop counting it?"
-        return f"{things[0]}: {asks}", _counts(edit.feature_id)
+            return f"{feature.short_label}: do you want {ends}?", _counts(edit.feature_id)
+        asks = "count this" if one else "count this, or to stop counting it"
+        return f"{things[0]}: do you want Burro to {asks}?", _counts(edit.feature_id)
     if isinstance(edit, AreaEdit):
-        return f"{things[0]}: look only there, or leave it out?", ""
+        return f"{things[0]}: do you want Burro to look only there, or to leave it out?", ""
     kinds = list(dict.fromkeys(_kind_of_house(way) for way in ways))
     if isinstance(edit, BudgetEdit) and len(kinds) > 1 and all(kinds):
         # A budget for a house, which is held by the kind of house: the person says which.
         which = f"{', '.join(kinds[:-1])} or {kinds[-1]}"
-        return f"{things[0]} for a house: {which}?", parts[0].follows
+        return f"{things[0]} for a house: do you mean {which}?", parts[0].follows
     # A journey and a budget say the same of themselves whichever way they are taken.
     firmness = (", as a guide.", ", as a firm limit.")
     does = parts[0].does
@@ -504,27 +572,42 @@ def _kind_of_house(way: Choice) -> str:
 def _unsaid(unsaid: Unsaid, way: Choice | None, spec: PreferenceSpec, release: Release) -> str:
     edit = None if way is None else _edit_of(way)
     if unsaid.code is UnsaidCode.RANGE:
-        return f"You gave {unsaid.low} to {unsaid.high}: Burro took {unsaid.took}."
+        return f"You gave {unsaid.low} to {unsaid.high} minutes, so Burro has used {unsaid.took}."
     if unsaid.code is UnsaidCode.MODE:
         by = _by(ModeChoice.UNCHANGED).removeprefix("by ")
-        return f"You named no way of travelling: Burro took {by}."
+        return f"You did not say how you would travel, so Burro has assumed {by}."
     if unsaid.code is UnsaidCode.ANOTHER_WAY:
         return ANOTHER_WAY
     limit = min(DEFAULT_COMMUTE_MINUTES, minutes_limit(DEFAULT_COMMUTE_MODE, release))
     if unsaid.code is UnsaidCode.MINUTES:
-        return f"You gave no number of minutes: Burro took {limit}."
+        return f"You gave no number of minutes, so Burro has used {limit}."
+    if unsaid.code is UnsaidCode.NOT_PLACED:
+        return (
+            "Burro could not tell whether the minutes you gave are for this journey, so it "
+            f"has used {limit}."
+        )
     if unsaid.code is UnsaidCode.TENURE:
-        took = "renting" if spec.tenure is Tenure.RENT else "buying"
-        return f"You did not say renting or buying: Burro took {took}, as the search stands."
+        return (
+            "You did not say whether you are renting or buying, so Burro has kept your "
+            f"search on {_KEPT_ON[spec.tenure]}."
+        )
+    if unsaid.code is UnsaidCode.VISIT:
+        return LEFT_OUT_OF_A_VISIT
     if unsaid.code is UnsaidCode.SIZE:
         if isinstance(edit, BudgetEdit) and _tenure_of(edit, spec) is Tenure.BUY:
-            return "Burro has prices by the kind of home, not by bedrooms: it left the size out."
-        return "Burro has rents by bedrooms, not by the kind of home: it left the kind out."
+            return (
+                "Burro knows prices by the kind of home, and not by the number of bedrooms, "
+                "so it has left the size out."
+            )
+        return (
+            "Burro knows rents by the number of bedrooms, and not by the kind of home, so it "
+            "has left the kind out."
+        )
     # The journey is added with a number nobody gave, so the offer says which.
     took = (
-        "" if not isinstance(edit, CommuteEdit) or edit.max_minutes else f", and will take {limit}"
+        "" if not isinstance(edit, CommuteEdit) or edit.max_minutes else f", so it will use {limit}"
     )
-    return f"Burro took no number of minutes from these words{took}. {NO_LEAST}"
+    return f"Burro could not use a number of minutes from these words{took}. {NO_LEAST}"
 
 
 def _assumed(
@@ -539,7 +622,11 @@ def _assumed(
         if edit.mode is ModeChoice.UNCHANGED and not said & of_the_way:
             code = UnsaidCode.ANOTHER_WAY if names_a_way else UnsaidCode.MODE
             found.append(Unsaid(code=code))
-        if not edit.max_minutes and UnsaidCode.LEAST not in said:
+        if not edit.max_minutes and offer.note == TIME_NOT_PLACED:
+            # A time was typed, and the rules could not tell that it is this journey's. It
+            # is never said that the person gave none.
+            found.append(Unsaid(code=UnsaidCode.NOT_PLACED))
+        elif not edit.max_minutes and UnsaidCode.LEAST not in said:
             found.append(Unsaid(code=UnsaidCode.MINUTES))
     nobody_chose = spec.tenure_from is Provenance.DEFAULT
     unchanged = isinstance(edit, BudgetEdit) and edit.tenure is TenureChoice.UNCHANGED
@@ -557,7 +644,7 @@ def _needs(offer: Offer, taken: Way | None, ways: Sequence[Way], release: Releas
         return "a place for the journey"
     if taken is None:
         if any(holds_crime(way.operations) for way in ways):
-            return "recorded crime, which is added under its own name"
+            return CRIME_BY_NAME
         if isinstance(edit, CommuteEdit):
             return f"the journey to {_named(ways[0], release)}"
         return _named(ways[0], release)
@@ -565,10 +652,15 @@ def _needs(offer: Offer, taken: Way | None, ways: Sequence[Way], release: Releas
     # a house are other kinds of house.
     firmer = not _is_firm(taken) and any(other.id != taken.id and _is_firm(other) for other in ways)
     if firmer and isinstance(edit, CommuteEdit):
-        return "the journey can be made a firm limit"
+        return MAY_BE_FIRM.format(thing="journey")
     if firmer and isinstance(edit, BudgetEdit):
-        return "the budget can be made a firm limit"
+        return MAY_BE_FIRM.format(thing="budget")
     return ""
+
+
+def _stops_counting(way: Choice) -> bool:
+    edit = _edit_of(way)
+    return isinstance(edit, WeightEdit | TagEdit) and edit.action is WeightAction.REMOVE
 
 
 def _is_firm(way: Choice) -> bool:
@@ -635,7 +727,9 @@ def worded(
     # The one way of a wish that something beside it puts in doubt is asked,
     # and not said: "not leafy" is not answered with "Add Leafy."
     wish = bool(ways) and isinstance(_edit_of(ways[0]), WeightEdit | TagEdit)
-    said = len(ways) == 1 and (settled or not wish)
+    # The one way that is left of a wish the words turn round is to stop counting the
+    # thing. It is said, and not asked: nothing of it is a wish for the thing.
+    said = len(ways) == 1 and (settled or not wish or _stops_counting(ways[0]))
     led = guessed if guessed is not None else (0 if said else None)
     if not ways:
         journey = offer.target == "commute"

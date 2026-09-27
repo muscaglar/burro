@@ -54,6 +54,8 @@ _QUOTES = (
 _LISTS = ",;:"
 _ENDS = ".!?\N{HORIZONTAL ELLIPSIS}"
 _DASHES = "-\N{EN DASH}\N{EM DASH}\N{HORIZONTAL BAR}"
+# The same, for whoever asks whether the marks before an item are a dash and no more.
+DASHES = frozenset(_DASHES)
 _BEFORE = _BRACKETS_OPEN + _QUOTES + APOSTROPHE
 _AFTER = _BRACKETS_CLOSE + _QUOTES + APOSTROPHE + _LISTS + _ENDS
 # The marks that join two items of a list, and no other mark does.
@@ -63,6 +65,15 @@ JOINING_MARKS = frozenset(",;")
 # "M&S", and is read as the "and" it stands for.
 _A_WORD = re.compile(r"[a-z0-9]+(?:['&-][a-z0-9]+)*")
 _AMOUNT = re.compile(r"(£)?([0-9][0-9,]*(?:\.[0-9]+)?)(k|m)?(pcm|pm)?")
+# An amount typed with the week it is paid by: "£350pw", "350pw", "£350p/w", "£350/week".
+_AMOUNT_BY_THE_WEEK = re.compile(r"(£)?([0-9][0-9,]*(?:\.[0-9]+)?)(k)?(?:pw|p/w|/pw|/week|/wk)")
+# How the week and the year are written after an amount, with a mark inside or before.
+# Each is read as the letters it stands for: "p/w", "p.w." and "/week" as "pw", and "p.a."
+# as "pa". "£350 p.w." was offered as an amount of £350 by the month.
+_WRITTEN_AS: Mapping[str, str] = {
+    **dict.fromkeys(("p/w", "p.w", "/week", "/wk", "/pw"), "pw"),
+    **dict.fromkeys(("p/a", "p.a", "/year", "/yr", "/annum"), "pa"),
+}
 _GLUED = re.compile(
     r"([0-9]+|[a-z]+)-?(min|mins|minute|minutes|bed|beds|bedroom|bedrooms|bedroomed)"
 )
@@ -72,6 +83,56 @@ _RANGE = re.compile(r"([0-9]{1,3})-([0-9]{1,3})(min|mins|minute|minutes)?")
 # A dash that stands between two digits is the hyphen of a range, however it was typed.
 _DASH_IN_A_RANGE = re.compile(r"(?<=[0-9])[\N{EN DASH}\N{EM DASH}](?=[0-9])")
 MINUTES = frozenset({"min", "mins", "minute", "minutes"})
+# What a number of bedrooms is said with, after the number.
+BEDS = frozenset({"bed", "beds", "bedroom", "bedrooms", "bedroomed"})
+# A length of time in hours is a number, of minutes, and is read where a number is read.
+# None of its words is a word of the grammar: each is read as part of the number it is said
+# in, side by side with it and across no mark. Anywhere else it is a word the reader does
+# not know, so that a prompt which holds "hours" with no number of them is not plain.
+HOUR = frozenset({"hour", "hours", "hr", "hrs"})
+# The one letter that hours are typed as. After a number in figures and a space it is a
+# word for hours, "1 h 30", as it is typed against one: "1h30". After anything else it is a
+# letter the reader does not know. A number after either is still part of a longer time.
+_H = "h"
+HOUR_OR_ITS_LETTER = HOUR | {_H}
+_IN_AN_HOUR = 60
+# Part of an hour, as it is said after "and": "an hour and a half", "one and a quarter hours".
+_PART_OF_AN_HOUR: Mapping[tuple[str, str], int] = {
+    ("a", "half"): 30,
+    ("a", "quarter"): 15,
+    ("three", "quarters"): 45,
+}
+# Part of an hour that is said before it, and is one number as it stands: "half an hour",
+# "a quarter of an hour". Any other part of an hour is no number the reader reads, and the
+# hour of it is never read by itself: `part_of_a_longer_time` in `grammar.py`.
+_PARTS_OF_AN_HOUR: Mapping[tuple[str, ...], int] = {
+    ("half", "an", "hour"): 30,
+    ("a", "quarter", "of", "an", "hour"): 15,
+    ("quarter", "of", "an", "hour"): 15,
+    ("three", "quarters", "of", "an", "hour"): 45,
+}
+# How many hours, in figures: "1", "1.5".
+_HOW_MANY = re.compile(r"[0-9]{1,3}(?:\.[0-9]{1,2})?")
+# The part of an hour that is typed after a point, where it can be read one way: none, a
+# half and a quarter. "1.30 hours" is an hour and a half as a clock shows it and 78 minutes
+# by its arithmetic, and "1.2 hours" an hour and 20 or 72 minutes: nobody can say which was
+# meant. No clock shows 5 or 75 minutes, and a quarter is how part of an hour is typed.
+_AFTER_THE_POINT = frozenset({"", "0", "00", "5", "25", "75"})
+# Hours typed with their number, "1h", "2hrs", "1.5h", "1-hour", and with the minutes that
+# follow them: "1h15", "1h15m".
+_TYPED_IN_HOURS = re.compile(
+    r"([0-9]{1,3}(?:\.[0-9]{1,2})?)-?(?:h|hr|hrs|hour|hours)"
+    r"(?:([0-9]{1,2})(?:m|min|mins|minute|minutes)?)?"
+)
+# The same with the number in words, which is typed with a hyphen: "one-hour", "half-hour".
+_WORDED_IN_HOURS = re.compile(r"([a-z]+)-(?:hr|hour|hours)")
+# The minutes of an hour, typed with what they are: "15m", "15min".
+_TYPED_IN_MINUTES = re.compile(r"([0-9]{1,2})(?:m|min|mins|minute|minutes)")
+_A_FEW = re.compile(r"[0-9]{1,2}")
+# The fewest minutes that are read after an hour with no word for minutes: "1 hour 15". A
+# smaller number beside an hour is as likely a number of something else: "an hour 3 days a
+# week", "an hour one way".
+_FEWEST_UNSAID = 5
 COUNTED: Mapping[str, int] = {
     **{
         word: n
@@ -164,8 +225,13 @@ def lines_of(text: str) -> list[Line]:
             trailing, core = trailing + core, ""
         if core:
             spelt = _DASH_IN_A_RANGE.sub("-", APOSTROPHES.sub("'", plain(core)))
-            word = "and" if spelt in ("&", "+") else spelt
-            shaped = _A_WORD.fullmatch(word) or _AMOUNT.fullmatch(word)
+            word = "and" if spelt in ("&", "+") else _WRITTEN_AS.get(spelt, spelt)
+            shaped = (
+                _A_WORD.fullmatch(word)
+                or _AMOUNT.fullmatch(word)
+                or _TYPED_IN_HOURS.fullmatch(word)
+                or _AMOUNT_BY_THE_WEEK.fullmatch(word)
+            )
             quoted = any(c in _QUOTES or c in APOSTROPHE for c in before) or any(
                 c in _QUOTES for c in after
             )
@@ -231,6 +297,12 @@ class Item:
     # It was typed with an "m" and no pound sign, so that it is as likely a
     # distance as an amount: "1.5m from a park", "near a station, 0.5m max".
     distance: bool = False
+    # It is a length of time that was said in hours, "1 hour 15", of which `value` is
+    # the minutes.
+    hours: bool = False
+    # It is a word, or a token with a mark inside it, that holds a figure the reader did
+    # not read as a number: "1.15h", "1h75", "1:15".
+    figures: bool = False
 
     @property
     def span(self) -> tuple[int, int]:
@@ -290,6 +362,22 @@ def whole(number: str, suffix: str = "") -> int:
 
 def _number(token: Token, at: int) -> Item | None:
     """A number, an amount of money, or a number typed with its unit: "30mins", "2-bed"."""
+    by_the_week = _AMOUNT_BY_THE_WEEK.fullmatch(token.word)
+    if by_the_week is not None:
+        _, digits, scale = by_the_week.groups()
+        # An amount of money, which is not one by the month: "350pw" is no rent of 350.
+        return Item(
+            Is.NUMBER,
+            "",
+            at,
+            at + 1,
+            token.start,
+            token.end,
+            token.marks,
+            value=whole(digits, scale or ""),
+            money=True,
+            unit="week",
+        )
     found = _AMOUNT.fullmatch(token.word)
     if found is not None:
         pound, digits, scale, monthly = found.groups()
@@ -338,6 +426,144 @@ def _number(token: Token, at: int) -> Item | None:
     kind = "min" if unit in MINUTES else "bed"
     return Item(
         Is.NUMBER, "", at, at + 1, token.start, token.end, token.marks, value=value, unit=kind
+    )
+
+
+def _minutes_of(hours: str) -> int | None:
+    """Some hours, as they were typed in figures, in whole minutes: "1.5" is 90.
+
+    Nothing where they were typed with a point and a part of an hour that may
+    be read two ways: "1.15 hours" was read as 69 minutes, and applied.
+    """
+    if hours.partition(".")[2] not in _AFTER_THE_POINT:
+        return None
+    return round(float(hours) * _IN_AN_HOUR)
+
+
+def _in_an_hour(tokens: Sequence[Token], at: int, beside: int) -> tuple[int, int] | None:
+    """The minutes that are said after a whole number of hours, and how many tokens they take.
+
+    "15", "15 minutes", "15mins" and "fifteen", which are minutes of the hour
+    before them, as on a clock. With no word for minutes they are five or
+    more, and no number of bedrooms: "an hour 2 bed" is an hour, and a home.
+    """
+
+    def word(index: int) -> str:
+        ahead = index < len(tokens) and together(tokens, beside, index - beside + 1)
+        return tokens[index].word if ahead else ""
+
+    typed = _TYPED_IN_MINUTES.fullmatch(word(at))
+    if typed is not None:
+        return (int(typed.group(1)), 1) if int(typed.group(1)) < _IN_AN_HOUR else None
+    said = word(at)
+    minutes = int(said) if _A_FEW.fullmatch(said) else COUNTED.get(said)
+    if minutes is None or not 0 < minutes < _IN_AN_HOUR:
+        return None
+    if word(at + 1) in MINUTES:
+        return minutes, 2
+    of_a_home = word(at + 1) in BEDS
+    return None if of_a_home or minutes < _FEWEST_UNSAID else (minutes, 1)
+
+
+def hours_at(tokens: Sequence[Token], at: int) -> tuple[int, int] | None:
+    """A length of time in hours that the tokens spell from `at`, and how many tokens it takes.
+
+    It is given in minutes. "1 hour", "2 hours", "1.5 hours", "1h", "an
+    hour", "half an hour", "a quarter of an hour", "one and a half hours",
+    and with the minutes that follow a whole number of hours: "1 hour 15",
+    "1 hour and 15 minutes", "an hour and a quarter", "1h15". Nothing where
+    the tokens spell no such time, and a time of nothing is none. It is
+    never put together across a mark.
+    """
+
+    def word(index: int) -> str:
+        ahead = index < len(tokens) and together(tokens, at, index - at + 1)
+        return tokens[index].word if ahead else ""
+
+    def part(index: int) -> int:
+        """Part of an hour that is said from here, after "and": "and a half"."""
+        if word(index) != "and":
+            return 0
+        return _PART_OF_AN_HOUR.get((word(index + 1), word(index + 2)), 0)
+
+    def part_before(index: int) -> tuple[int, int] | None:
+        """Part of an hour that is said from here, before the hour: "a quarter of an hour"."""
+        for words, minutes in _PARTS_OF_AN_HOUR.items():
+            if all(word(index + ahead) == said for ahead, said in enumerate(words)):
+                return minutes, len(words)
+        return None
+
+    first = tokens[at]
+    if first.odd:
+        return None
+    typed = _TYPED_IN_HOURS.fullmatch(first.word)
+    worded = _WORDED_IN_HOURS.fullmatch(first.word)
+    # Whether the hours are a whole number of them, so that minutes may follow.
+    whole_hours = True
+    size = 1
+    if typed is not None:
+        hours, minutes = typed.groups()
+        total = _minutes_of(hours)
+        if total is None:
+            return None
+        whole_hours = "." not in hours
+        if minutes is not None:
+            on_the_clock = whole_hours and int(minutes) < _IN_AN_HOUR
+            return (total + int(minutes), 1) if on_the_clock and total + int(minutes) else None
+    elif worded is not None:
+        counted = worded.group(1)
+        total = _IN_AN_HOUR // 2 if counted == "half" else COUNTED.get(counted, 0) * _IN_AN_HOUR
+        whole_hours = counted != "half"
+    elif (before_it := part_before(at)) is not None:
+        return before_it
+    else:
+        article = first.word in ("a", "an")
+        if article:
+            total = _IN_AN_HOUR
+        elif first.word in COUNTED:
+            total = COUNTED[first.word] * _IN_AN_HOUR
+        elif _HOW_MANY.fullmatch(first.word) and _minutes_of(first.word) is not None:
+            total = _minutes_of(first.word) or 0
+            whole_hours = "." not in first.word
+        else:
+            return None
+        if not article and whole_hours and part(at + 1) and word(at + 4) in HOUR:
+            # "One and a half hours": the part of an hour stands before the word for hours.
+            return total + part(at + 1), 5
+        in_figures = _HOW_MANY.fullmatch(first.word) is not None
+        if word(at + 1) not in HOUR and not (in_figures and word(at + 1) == _H):
+            return None
+        size = 2
+    if first.joined or not whole_hours:
+        return (total, size) if total else None
+    after = at + size
+    if part(after):
+        return total + part(after), size + 3
+    led = 1 if word(after) == "and" else 0
+    more = _in_an_hour(tokens, after + led, at)
+    if more is not None:
+        return total + more[0], size + led + more[1]
+    return (total, size) if total else None
+
+
+def _in_hours(tokens: Sequence[Token], at: int) -> Item | None:
+    """A length of time in hours, as the one number of minutes it is: "1 hour 15" is 75."""
+    found = hours_at(tokens, at)
+    if found is None:
+        return None
+    minutes, size = found
+    last = tokens[at + size - 1]
+    return Item(
+        Is.NUMBER,
+        "",
+        at,
+        at + size,
+        tokens[at].start,
+        last.end,
+        tokens[at].marks,
+        value=minutes,
+        unit="min",
+        hours=True,
     )
 
 
@@ -522,7 +748,9 @@ def items_of(line: Line, names: Names | None, known: Tables) -> list[Item]:
         if at in fixed:
             choices.append((0.0, item(tokens, fixed[at], token.bare, at, 1)))
         elif token.odd:
-            choices.append((_COST_WORD, item(tokens, Is.ODD, "", at, 1)))
+            odd = item(tokens, Is.ODD, "", at, 1)
+            odd.figures = any(typed.isdigit() for typed in token.word)
+            choices.append((_COST_WORD, odd))
         else:
             choices += [(_COST_NAME, name) for name in _names_at(tokens, at, names)]
             for text, size in (*phrases_at(tokens, at, known.things), *_labels_at(tokens, at)):
@@ -531,11 +759,12 @@ def items_of(line: Line, names: Names | None, known: Tables) -> list[Item]:
             for text, size in phrases_at(tokens, at, known.unmet):
                 unmet = known.no_measure[text]
                 choices.append((_COST_PHRASE, item(tokens, Is.UNMET, text, at, size, unmet=unmet)))
-            number = _number(token, at)
-            if number is not None:
-                choices.append((_COST_PHRASE, number))
+            for number in (_in_hours(tokens, at), _number(token, at)):
+                if number is not None:
+                    choices.append((_COST_PHRASE, number))
             word = item(tokens, Is.WORD, token.word, at, 1)
             word.bare = token.bare
+            word.figures = any(typed.isdigit() for typed in token.word)
             held = token.word in known.words or all(w in known.words for w in token.bare.split())
             choices.append((_COST_WORD if held else _COST_UNKNOWN, word))
         choices = [

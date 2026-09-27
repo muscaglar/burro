@@ -88,4 +88,6 @@ def test_an_answer_says_the_name_a_person_gave_and_never_cores_own(client: TestC
     said = names(body)
     assert any(GIVEN in one for one in said), route
     assert not [one for one in said if one == "Leafy" or one.startswith("Leafy:")], route
-    assert "Modelled annual mean nitrogen dioxide" not in json.dumps(body), route
+    assert "Nitrogen dioxide in the air, as a modelled average over a year" not in json.dumps(
+        body
+    ), route

@@ -11,7 +11,7 @@ import hashlib
 import pytest
 from burro_pipeline.fetch.s3 import authorization, canonical_path, canonical_query
 
-EXAMPLE_SECRET = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"  # noqa: S105
+EXAMPLE_SECRET = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"  # noqa: S105  # public-only: allow
 KEY_ID = "made-up-key-id"
 HOST = "examplebucket.s3.amazonaws.com"
 DATE = "20130524T000000Z"

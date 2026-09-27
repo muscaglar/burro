@@ -20,9 +20,16 @@ from burro_api.guard import Check, Guarded, guarded
 from burro_api.offers import FIRM, GUIDE, in_add_all
 from burro_api.reader import ModelInterpreter
 from burro_api.typed import Typed
+from burro_api.wording import NOTHING_TAKEN
 from burro_core.grammar import Grammar
 from burro_core.ids import InterpreterName, Notice, UnmetCategory, WeightAction
-from burro_core.interpret import InterpretRequest, RuleInterpreter
+from burro_core.interpret import (
+    DOES_NOT_MATTER,
+    NO_HOME_ON_A_VISIT,
+    NOT_WANTED,
+    InterpretRequest,
+    RuleInterpreter,
+)
 from burro_core.ops import NO_OPERATIONS
 from burro_core.places import Names
 
@@ -615,8 +622,8 @@ def test_a_way_that_was_named_and_not_taken_is_said_once():
 
     [offer] = [offer for offer in found["suggestions"] if offer["target"] == "commute"]
     assert offer["said"] == [
-        "Burro took public transport. "
-        "If you travel another way, change it once the journey is added."
+        "Burro has assumed public transport. If you travel another way, you can change "
+        "this once the journey has been added."
     ]
 
 
@@ -693,11 +700,61 @@ def test_a_number_that_is_no_number_of_minutes_is_no_limit_on_a_journey(text: st
 
 
 @pytest.mark.parametrize(
+    ("text", "typed", "offered"),
+    [
+        # A rent is held by the month. What a week comes to is the rules' to work out.
+        ("honestly \N{POUND SIGN}350 a week", 350, {1517}),
+        ("honestly \N{POUND SIGN}350pw", 350, {1517}),
+        ("honestly a weekly rent of \N{POUND SIGN}350", 350, {1517}),
+        # What it comes to is more than a search may hold, so the rules offer nothing.
+        ("honestly \N{POUND SIGN}5,000 a week", 5000, set[int]()),
+        # No rule says what a year or a fortnight comes to.
+        ("honestly \N{POUND SIGN}18,000 a year", 18000, set[int]()),
+        ("honestly \N{POUND SIGN}800 a fortnight", 800, set[int]()),
+        ("honestly a yearly rent of \N{POUND SIGN}18,000", 18000, set[int]()),
+    ],
+)
+def test_an_amount_by_the_week_or_the_year_is_no_budget_by_the_month_at_the_same_figure(
+    text: str, typed: int, offered: set[int]
+):
+    budget = model_budget(amount=typed, words=text)
+
+    result, _ = asked(model_output(budget_ops=[budget]), text=text)
+
+    amounts = {
+        edit.amount
+        for offer in offers(result).values()
+        for way in offer.choices
+        for edit in way.operations.budget_ops
+        if edit.amount
+    }
+    assert amounts == offered
+    assert _guesses(result, "budget") == []
+    assert all(in_add_all(offer) is None for offer in offers(result).values())
+    assert fired(model_output(budget_ops=[budget]), text) & {Check.NOT_TYPED, Check.NEAREST}
+
+
+def test_a_model_that_works_out_what_a_week_comes_to_adds_nothing_to_what_the_rules_offer():
+    text = "honestly \N{POUND SIGN}350 a week"
+    budget = model_budget(amount=1517, words=text)
+
+    result, _ = asked(model_output(budget_ops=[budget]), text=text)
+    by_rules = RuleInterpreter().interpret(
+        InterpretRequest(text=text, spec=renter(), release=release())
+    )
+
+    assert [offer.note for offer in offers(result).values()] == [
+        found.note for found in by_rules.suggestions
+    ]
+    assert _guesses(result, "budget") == []
+
+
+@pytest.mark.parametrize(
     ("text", "amount"),
     [
         ("honestly I spend 900 minutes a week on trains", 900),
         ("honestly 900mins a week on trains", 900),
-        ("honestly a hotel with 500 bedrooms nearby", 500),
+        ("honestly a block with 500 bedrooms nearby", 500),
     ],
 )
 def test_a_number_of_minutes_or_of_bedrooms_is_no_budget(text: str, amount: int):
@@ -713,6 +770,38 @@ def test_a_number_of_minutes_or_of_bedrooms_is_no_budget(text: str, amount: int)
     }
     assert amounts <= {0}
     assert Check.NOT_TYPED in fired(model_output(budget_ops=[budget]), text)
+
+
+def test_the_bedrooms_of_a_hotel_are_no_budget_and_no_home_of_a_visit():
+    """A hotel is where a visitor stays, so the rules hold its words, and say what they hold.
+
+    Until a search could be a visit this sentence stood in the list above, and
+    the number was kept from a budget as a number that was not typed as one.
+    The rules now offer the visit and say of the bedrooms that a visit holds no
+    home, so what a model reads into the same words is the rules' to say: it
+    is dropped before it is asked whether the number was typed.
+    """
+    text = "honestly a hotel with 500 bedrooms nearby"
+    budget = model_budget(amount=500, words=text)
+
+    result, _ = asked(model_output(budget_ops=[budget]), text=text)
+
+    found = offers(result)
+    amounts = {
+        edit.amount
+        for offer in found.values()
+        for way in offer.choices
+        for edit in way.operations.budget_ops
+    }
+    assert amounts <= {0}
+    assert [(offer.target, offer.label) for offer in found.values()] == [
+        ("tenure", "Visiting"),
+        ("budget", "A home with 4 or more bedrooms"),
+    ]
+    assert found["budget"].note == NO_HOME_ON_A_VISIT
+    assert _guesses(result, "budget") == [] and _guesses(result, "tenure") == []
+    assert all(in_add_all(offer) is None for offer in found.values())
+    assert Check.NEAREST in fired(model_output(budget_ops=[budget]), text)
 
 
 @pytest.mark.parametrize(
@@ -909,23 +998,22 @@ def test_words_core_does_not_know_may_still_name_a_thing(words: str):
         # One way is left to take, no guess is marked, and the clause holds a
         # sign of doubt. What is left is the way the doubt is about.
         (
-            "honestly not leafy",
-            model_output(tag_ops=[model_tag("leafy", words="leafy")]),
+            "honestly maybe leafy",
+            model_output(),
             "tag:leafy",
-            "Leafy: add it?",
+            "Leafy: do you want Burro to add this?",
         ),
         (
-            "honestly no theatres for me",
-            # A model that names the count is heard as a wish for what is ranked on.
-            model_output(weight_ops=[model_weight("culture_venues", words="theatres")]),
+            "honestly theatres perhaps",
+            model_output(),
             "feature:culture_venues_per_homes",
-            "More culture nearby: count it?",
+            "More culture nearby: do you want Burro to count this?",
         ),
         (
-            "honestly crime doesn't bother me one bit",
+            "honestly crime, I suppose",
             model_output(),
             "feature:crime_violence_robbery",
-            "Less recorded violence and robbery: count it?",
+            "Less recorded violence and robbery: do you want Burro to count this?",
         ),
     ],
 )
@@ -938,6 +1026,43 @@ def test_the_one_way_left_of_a_thing_in_doubt_is_asked_and_not_said(
     assert [way["guess"] for way in offer["choices"]] == [False, False]
     assert offer["does"] == does
     assert offer["add_all"] == ""
+
+
+@pytest.mark.parametrize(
+    ("text", "answer", "target", "note"),
+    [
+        (
+            "honestly not leafy",
+            model_output(tag_ops=[model_tag("leafy", words="leafy")]),
+            "tag:leafy",
+            NOT_WANTED,
+        ),
+        (
+            "honestly no theatres for me",
+            # A model that names the count is heard as a wish for what is ranked on.
+            model_output(weight_ops=[model_weight("culture_venues", words="theatres")]),
+            "feature:culture_venues_per_homes",
+            NOT_WANTED,
+        ),
+        (
+            "honestly crime doesn't bother me one bit",
+            model_output(),
+            "feature:crime_violence_robbery",
+            DOES_NOT_MATTER,
+        ),
+    ],
+)
+def test_no_way_is_left_of_a_thing_that_the_words_turn_round_and_nothing_says_it_is_added(
+    text: str, answer: Any, target: str, note: str
+):
+    # "Not leafy" was answered with "Leafy: do you want Burro to add this?", and the one
+    # way it held was to add it. A client that takes what is offered took it.
+    found = through_the_route(answer, text)
+
+    offer = next(offer for offer in found["suggestions"] if offer["target"] == target)
+    assert [way["id"] for way in offer["choices"]] == ["ignore"]
+    assert offer["does"] == NOTHING_TAKEN
+    assert (offer["note"], offer["add_all"]) == (note, "")
 
 
 def test_the_one_way_of_a_thing_that_nothing_puts_in_doubt_is_said():
@@ -967,17 +1092,33 @@ def test_no_offer_of_a_models_rests_on_a_communitys_amenity(words: str):
 
 
 def test_a_journey_that_took_no_number_says_which_number_it_will_have():
-    # "Can't be more than 45 minutes" holds a word of doubt, so its number is
-    # not taken. The journey is then added with a number nobody gave, and the
+    # "Can't be more than 45" holds a word of doubt, so a model's reading of its number
+    # is not taken, and the rules read no number of minutes in it: nothing says what the
+    # 45 is a number of. The journey is then added with a number nobody gave, and the
     # offer said nothing of it.
-    found, _ = served_again("own-022")
+    text = "I work at Pellam Exchange, honestly it can't be more than 45"
+    journey = model_commute(
+        destination_text="Pellam Exchange", max_minutes=45, strictness="hard", words=text
+    )
+    found = through_the_route(model_output(commute_ops=[journey]), text)
 
     [journey] = [offer for offer in found["suggestions"] if offer["target"] == "commute"]
     [edit] = [e for way in journey["choices"] for e in way["operations"]["commute_ops"]]
     assert edit["max_minutes"] == 0
     assert journey["said"][0].startswith(
-        "Burro took no number of minutes from these words, and will take 45. "
+        "Burro could not use a number of minutes from these words, so it will use 45. "
     )
+
+
+def test_a_cap_that_the_rules_read_says_nothing_of_a_number_that_was_not_taken():
+    # "Can't be more than 45 minutes" is the most the journey may take, and the rules read
+    # it so. What they offer holds the number, so nothing is said of one that was not taken.
+    found, _ = served_again("own-022")
+
+    [journey] = [offer for offer in found["suggestions"] if offer["target"] == "commute"]
+    [edit] = [e for way in journey["choices"] for e in way["operations"]["commute_ops"]]
+    assert edit["max_minutes"] == 45
+    assert not [line for line in journey["said"] if "number of minutes" in line]
 
 
 # --- What an offer says the person gave -----------------------------------------------------
@@ -1018,4 +1159,4 @@ def test_two_journeys_are_not_said_to_be_a_range_of_minutes():
 def test_a_range_of_minutes_is_said_with_which_was_taken(text: str, low: int):
     said = _said_of_the_journey(text, "Foxholt Market", 40)
 
-    assert f"You gave {low} to 40: Burro took 40." in said
+    assert f"You gave {low} to 40 minutes, so Burro has used 40." in said

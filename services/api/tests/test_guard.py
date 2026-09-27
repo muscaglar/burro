@@ -33,6 +33,9 @@ from burro_core.ids import (
     WeightAction,
 )
 from burro_core.interpret import (
+    NOT_SAID_TO_BE_WANTED,
+    NOT_WANTED,
+    NOT_WANTED_AND_COUNTED,
     SIGNS_OF_DOUBT,
     InterpretRequest,
     InterpretResult,
@@ -245,14 +248,17 @@ def test_a_least_distance_is_stopped_though_the_model_copies_the_number_alone():
     assert not [edit for edit in edits_of(result) if "max_minutes" in edit]
 
 
-def test_a_cap_that_holds_a_word_of_doubt_loses_its_minutes_and_keeps_its_journey():
-    # What the check costs: "can't be more than 45 minutes" is a cap. The
-    # rules' own offer of the journey stands, with no number of the model's.
+def test_a_cap_that_holds_a_word_of_doubt_is_offered_as_the_rules_read_it():
+    # "Can't be more than 45 minutes" is a cap, and holds a word of doubt. The model's
+    # reading of it as a firm limit is not offered. The rules' own offer of the journey
+    # stands: it holds the 45 minutes they read, as a guide, and carries no guess. Until the
+    # rules read a time that stands after its place, it held no number at all.
     result, _ = read_again("own-022")
 
     works = offers(result)["commute"]
     assert [way.id for way in works.choices] == [MORE, "ignore"]
-    assert [edit.max_minutes for way in works.choices for edit in way.operations.commute_ops] == [0]
+    held = [edit for way in works.choices for edit in way.operations.commute_ops]
+    assert [(edit.max_minutes, edit.strictness) for edit in held] == [(45, "unchanged")]
     assert guessed(result).get("commute") is None
 
 
@@ -266,8 +272,9 @@ def test_a_wish_raised_against_a_word_that_turns_is_offered_with_no_guess(look: 
 
     station = offers(result)["feature:station_walk"]
     assert not any(way.guess for way in station.choices)
-    # Every way is still open, as the rules alone give them.
-    assert [way.id for way in station.choices] == [MORE, OFF, "ignore"]
+    # No way is offered that counts the station for more, by the rules alone or with a
+    # model: whoever takes what is offered takes a thing that runs one way that way.
+    assert [way.id for way in station.choices] == [OFF, "ignore"]
 
 
 @pytest.mark.parametrize("words", ["not near a station", "a station", "station"])
@@ -277,7 +284,11 @@ def test_a_turn_is_found_though_the_model_copies_the_thing_alone(words: str):
 
     result, _ = asked(model_output(weight_ops=[raised]), text=text)
 
-    assert guessed(result) == {}
+    # The raise is no guess. What is marked is the rules' own reading of the turn, which
+    # takes the station off, whatever a model answered.
+    assert guessed(result) == {"feature:station_walk": OFF}
+    assert guessed(asked(model_output(), text=text)[0]) == {"feature:station_walk": OFF}
+    assert MORE not in [way.id for way in offers(result)["feature:station_walk"].choices]
     assert Check.TURNED in fired(model_output(weight_ops=[raised]), text)
 
 
@@ -409,12 +420,23 @@ AROUND = [
 def test_a_raise_is_no_guess_where_the_words_around_the_thing_turn_it_round(
     text: str, feature: str, words: str
 ):
+    either = FEATURES[FeatureId(feature)].polarity is Polarity.EITHER
     for quoted_by_the_model in (words, text):
         result, _ = asked(_raise_of(feature, quoted_by_the_model), text=text)
 
         assert guessed(result) == {}, quoted_by_the_model
-        # The thing is still offered, with every way open.
-        assert [way.id for offer in offers(result).values() for way in offer.choices if way.meant]
+        ways = [way for offer in offers(result).values() for way in offer.choices]
+        if either:
+            # A thing that runs two ways is still offered both ways, and neither is marked.
+            assert [way.id for way in ways if way.meant]
+            assert {MORE, LESS} <= {way.id for way in ways}
+        else:
+            # Of a thing that runs one way, no way is offered that counts it for more.
+            assert MORE not in [way.id for way in ways]
+            assert [offer.note for offer in offers(result).values()] in (
+                [NOT_WANTED],
+                [NOT_WANTED_AND_COUNTED],
+            )
 
 
 ANOTHERS = [
@@ -510,15 +532,22 @@ def test_a_wish_that_nothing_around_it_turns_is_still_the_guess(
 
 
 @pytest.mark.parametrize(
-    ("text", "feature", "words"),
+    ("text", "feature", "words", "does"),
     [
-        ("a station, god forbid", "station_walk", "a station"),
-        ("my mum, bless her, would like a park", "park_proximity", "a park"),
-        ("honestly a lido round the corner, heaven forbid", "park_facilities", "a lido"),
+        # What is left of a wish that is turned round is said, and is no wish for the thing.
+        ("a station, god forbid", "station_walk", "a station", "Stop counting this: "),
+        (
+            "honestly a lido round the corner, heaven forbid",
+            "park_facilities",
+            "a lido",
+            "Burro could not use these words",
+        ),
+        # A wish that may be somebody else's is asked.
+        ("my mum, bless her, would like a park", "park_proximity", "a park", "Nearer a park: do"),
     ],
 )
-def test_a_wish_in_doubt_is_asked_and_what_is_shown_takes_in_the_words_that_turned_it(
-    text: str, feature: str, words: str
+def test_a_wish_in_doubt_is_not_said_and_what_is_shown_takes_in_the_words_that_turned_it(
+    text: str, feature: str, words: str, does: str
 ):
     found = through_the_route(_raise_of(feature, words), text)
 
@@ -526,8 +555,9 @@ def test_a_wish_in_doubt_is_asked_and_what_is_shown_takes_in_the_words_that_turn
     shown = text[offer["shown"]["start"] : offer["shown"]["end"]]
     assert shown == text
     assert not any(way["guess"] for way in offer["choices"])
-    # It is a question, and the one button takes none of it.
-    assert offer["does"].endswith("?") and offer["add_all"] == ""
+    # Nothing of it says that the thing is added, and the one button takes none of it.
+    assert offer["does"].startswith(does) and offer["add_all"] == ""
+    assert not offer["does"].startswith(("Rank an area", "Add "))
 
 
 def _by_the_rules_alone(text: str) -> list[dict[str, Any]]:
@@ -537,18 +567,19 @@ def _by_the_rules_alone(text: str) -> list[dict[str, Any]]:
     return response.json()["data"]["suggestions"]
 
 
-def test_what_the_rules_alone_offer_is_offered_as_it_was():
-    # The new checks are made of what a model read. Where no model reads, a sister's
-    # playground is offered as the rules always offered it, and so is a journey to
-    # where a partner works, which is a place to reach and nobody's wish.
+def test_what_the_rules_alone_offer_of_a_sisters_wish_waits_for_the_person():
+    # Where no model reads, a sister's playground is offered with the way it had, and no
+    # press takes it with others: it waits for the person, who alone can say that the
+    # wish is their own. A journey to where a partner works is as it was, which is a
+    # place to reach and nobody's wish.
     [playground] = _by_the_rules_alone("My sister wants a playground")
     [journey] = _by_the_rules_alone("My partner works at Pellam Infirmary")
 
-    assert (playground["does"], playground["add_all"]) == (
-        "Rank areas higher for this: nearer a play space.",
-        "more",
-    )
+    assert [way["id"] for way in playground["choices"]] == [MORE, "ignore"]
+    assert (playground["only_by_choice"], playground["add_all"]) == (True, "")
+    assert playground["note"] == NOT_SAID_TO_BE_WANTED
     assert (journey["target"], journey["add_all"]) == ("commute", "more")
+    assert journey["only_by_choice"] is False
 
 
 def test_a_wish_a_model_read_that_is_somebody_elses_is_asked_and_not_said():
@@ -556,7 +587,7 @@ def test_a_wish_a_model_read_that_is_somebody_elses_is_asked_and_not_said():
     found = through_the_route(_raise_of("play_space_proximity", "a playground"), text)
 
     [playground] = found["suggestions"]
-    assert playground["does"] == "Nearer a play space: count it?"
+    assert playground["does"] == "Nearer a play space: do you want Burro to count this?"
     assert playground["add_all"] == ""
     assert not any(way["guess"] for way in playground["choices"])
 
@@ -617,7 +648,7 @@ def test_a_guess_on_a_scale_takes_the_end_the_person_named(text: str, tag: str, 
     ("text", "tag", "wrong"),
     [
         ("houses not flats", "homes", "high"),
-        ("somewhere calm, not buzzy, honestly", "pace", "high"),
+        ("somewhere calm, not buzzy, I'd say", "pace", "high"),
         ("honestly not buzzy at all", "pace", "high"),
         ("honestly buzzy, not calm", "pace", "low"),
     ],
@@ -630,6 +661,19 @@ def test_the_end_a_model_names_against_the_words_is_no_guess(text: str, tag: str
 
     assert guessed(result) == {}
     assert [way.id for way in offers(result)[f"tag:{tag}"].choices][:2] == [MORE, LESS]
+
+
+def test_the_end_the_rules_read_is_the_guess_whatever_end_a_model_names():
+    # The rules would apply the sentence, were what is said of the words alone not in
+    # it. The end they read is the guess, and the end the words turn away is not offered.
+    text = "somewhere calm, not buzzy, honestly"
+    for toward in ("high", "low", "default"):
+        answer = model_output(tag_ops=[model_tag("pace", toward=toward, words=text)])
+
+        result, _ = asked(answer, text=text)
+
+        assert guessed(result) == {"tag:pace": LESS}, toward
+        assert [way.id for way in offers(result)["tag:pace"].choices] == [LESS, "ignore"]
 
 
 @pytest.mark.parametrize(
@@ -792,7 +836,10 @@ def test_a_way_of_travelling_no_word_names_is_public_transport_and_the_offer_say
         edit["mode"] for way in journey["choices"] for edit in way["operations"]["commute_ops"]
     }
     assert modes == {ModeChoice.UNCHANGED.value}
-    assert "You named no way of travelling: Burro took public transport." in journey["said"]
+    assert (
+        "You did not say how you would travel, so Burro has assumed public transport."
+        in journey["said"]
+    )
 
 
 def test_on_foot_is_kept_where_a_word_of_the_sentence_says_so():
@@ -937,7 +984,8 @@ def test_a_budget_keeps_its_amount_and_tenure_where_only_the_size_does_not_fit()
     }
     assert offer["does"] == "Set a budget of \N{POUND SIGN}400,000 to buy, as a firm limit."
     assert offer["said"] == [
-        "Burro has prices by the kind of home, not by bedrooms: it left the size out."
+        "Burro knows prices by the kind of home, and not by the number of bedrooms, so it has "
+        "left the size out."
     ]
 
 
@@ -1250,12 +1298,13 @@ def test_what_the_rules_keep_is_served_as_the_rules_give_it_whatever_a_model_ans
         if "output" not in row:
             continue
         text, spec, _ = on_disk(case, look)
-        ruled = RuleInterpreter().interpret(
-            InterpretRequest(text=text, spec=spec, release=release())
-        )
-        kept = _kept_by_the_rules(ruled)
+        raw = RuleInterpreter().interpret(InterpretRequest(text=text, spec=spec, release=release()))
+        # The readings the rules keep for themselves are those that core gives a note.
+        # Each is held to what is served of it where a model reads and answers nothing.
+        theirs = _kept_by_the_rules(raw)
+        ruled, _ = asked(model_output(), text=text, spec=spec)
         result, _ = read_again(case, look)
-        if _as_served(result, kept) != kept or _marked(result, kept):
+        if _as_served(result, theirs) != _as_served(ruled, theirs) or _marked(result, theirs):
             changed.append(f"{case} look {look}")
     assert changed == []
 

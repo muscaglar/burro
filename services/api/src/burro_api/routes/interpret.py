@@ -38,7 +38,7 @@ from burro_api import logs
 from burro_api.calls import Caller, CallRecord, CallStatus, Endpoint
 from burro_api.deps import Context, Ctx, Deps
 from burro_api.guard import plainly_said, settled
-from burro_api.offers import of_the_rules
+from burro_api.offers import of_the_rules, waits_for_a_person
 from burro_api.providers.interface import ModelCapped, ModelRefused, ModelTimeout
 from burro_api.reader import Read, asks_a_model
 from burro_api.routes.common import (
@@ -234,6 +234,8 @@ def offered(
                 asks_place=offer.asks_place,
                 named_at=named[0] if named else None,
                 options=offer.options,
+                by_name=offer.by_name,
+                only_by_choice=waits_for_a_person(offer),
             )
         )
     return tuple(found)

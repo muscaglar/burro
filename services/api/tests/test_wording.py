@@ -13,10 +13,13 @@ from functools import cache
 from typing import Any
 
 import pytest
-from burro_api.wording import NO_JOURNEY, NOTHING_TAKEN
+from burro_api.errors import MESSAGES
+from burro_api.wire import ErrorCode
+from burro_api.wording import AN_AREA_AS_A_WHOLE, NO_JOURNEY, NOTHING_TAKEN, WHEN
 from burro_core.catalogue import FEATURES, NEAR_A_STATION, NEVER_A_TRADE_OFF, TAGS
 from burro_core.facts import SEGMENT_LABELS, money
 from burro_core.ids import FeatureId, Segment
+from burro_core.interpret import NOT_WANTED_AND_COUNTED
 from fastapi.testclient import TestClient
 
 from .support import (
@@ -71,12 +74,12 @@ def test_a_journey_says_where_how_long_and_how_and_what_each_way_does_to_areas()
     )
     assert wrote(journey, text) == "At most 35-40min commute from Foxholt Market"
     assert journey["said"] == [
-        "You gave 35 to 40: Burro took 40.",
-        "You named no way of travelling: Burro took public transport.",
+        "You gave 35 to 40 minutes, so Burro has used 40.",
+        "You did not say how you would travel, so Burro has assumed public transport.",
     ]
     assert buttons(journey) == [
-        "Add as a firm limit: areas further off are left out",
-        "Add as a guide: areas further off rank lower",
+        "Add it as a firm limit, which leaves out areas that are further away",
+        "Add it as a guide, which ranks areas lower when they are further away",
         "Skip",
     ]
     assert [way["guess"] for way in journey["choices"]] == [True, False, False]
@@ -93,8 +96,8 @@ def test_a_budget_says_the_amount_the_tenure_and_the_home_and_is_firm_where_the_
     assert wrote(budget, text) == "If I'm renting, max \N{POUND SIGN}1,900 a month for a 1 bed flat"
     assert budget["follows"] == "Dearer areas are left out."
     assert buttons(budget) == [
-        "Set as a firm limit: dearer areas are left out",
-        "Set as a guide: dearer areas rank lower",
+        "Set it as a firm limit, which leaves out areas that cost more",
+        "Set it as a guide, which ranks areas lower when they cost more",
         "Skip",
     ]
     assert [way["guess"] for way in budget["choices"]] == [True, False, False]
@@ -104,11 +107,11 @@ def test_a_wish_says_what_happens_to_areas_and_what_is_counted():
     found, text = served_again("own-022")
 
     culture = by_target(found["suggestions"])["feature:culture_venues_per_homes"]
-    assert culture["does"] == "Rank areas a little higher for this: more culture nearby."
+    assert culture["does"] == "Rank an area a little higher when it has more culture nearby."
     assert wrote(culture, text) == "a bit of culture"
     assert culture["follows"] == (
-        "What Burro counts: museums, galleries, theatres, cinemas, music venues and libraries "
-        "for each 1,000 homes within 800 m, in a straight line."
+        "This is what Burro measures for it: museums, galleries, theatres, cinemas, music "
+        "venues and libraries for each 1,000 homes within 800 m, in a straight line."
     )
     assert buttons(culture) == ["Add", "Skip"]
 
@@ -128,8 +131,8 @@ def test_an_offer_of_a_station_says_what_near_means_and_names_the_figure_no_walk
     assert (station["target"], station["label"]) == ("feature:station_walk", "Nearer a station")
     assert wrote(station, text) == "I think I want to be near a station"
     assert station["follows"] == (
-        "What Burro counts: straight-line distance to the nearest way in to a station. "
-        "Within 800 m in a straight line is about a 10 to 15 minute walk."
+        "This is what Burro measures for it: distance to the nearest station entrance, in a "
+        "straight line. Within 800 m in a straight line is about a 10 to 15 minute walk."
     )
     assert NEAR_A_STATION in station["follows"] and station["note"] == ""
     assert str(NEVER_A_TRADE_OFF[FeatureId.STATION_WALK]) in NEAR_A_STATION
@@ -152,10 +155,11 @@ def test_a_vibe_says_what_it_counts_and_what_it_cannot_see():
     assert quiet["does"] == "Add Quiet streets."
     assert wrote(quiet, text) == "Quiet but not dead"
     assert quiet["follows"] == (
-        "What it counts: homes away from main roads, from heavy traffic and from clusters of "
-        "pubs and bars, with little transport noise. It cannot see: one street or one home. An "
-        "area is many streets."
+        "This vibe counts homes away from main roads, from heavy traffic and from clusters "
+        "of pubs and bars, with little transport noise. It describes an area as a whole, so "
+        "it cannot tell you about one street or one home."
     )
+    assert quiet["follows"].endswith(AN_AREA_AS_A_WHOLE)
     assert buttons(quiet) == ["Add", "Skip"]
 
 
@@ -164,11 +168,11 @@ def test_an_end_of_a_scale_says_how_the_scale_runs(client: TestClient):
 
     pace = by_target(found["suggestions"])["tag:pace"]
     assert pace["does"] == "Add Going out, towards Buzzy, counted a little."
-    assert pace["follows"].startswith("Going out runs from Calm to Buzzy. What it counts: ")
+    assert pace["follows"].startswith("Going out runs from Calm to Buzzy. This vibe counts ")
     assert buttons(pace) == ["Towards Buzzy", "Towards Calm", "Skip"]
     assert wrote(pace, text) == "a bit buzzy"
     [named] = offered(client, "pace")
-    assert named["does"] == "Going out runs from Calm to Buzzy. Which way?"
+    assert named["does"] == "Going out runs from Calm to Buzzy. Which end do you want?"
     assert not any(way["guess"] for way in named["choices"])
 
 
@@ -176,9 +180,43 @@ def test_a_wish_turned_round_of_a_thing_that_runs_two_ways_is_fewer_of_it():
     found, _ = served_again("list-040")
 
     pubs = by_target(found["suggestions"])["feature:venue_evening_per_homes"]
-    assert pubs["does"] == "Rank areas higher for this: fewer pubs and bars."
+    assert pubs["does"] == "Rank an area higher when it has fewer pubs and bars."
     assert buttons(pubs) == ["More pubs and bars", "Fewer pubs and bars", "Skip"]
     assert [way["guess"] for way in pubs["choices"]] == [False, True, False]
+
+
+def test_a_measure_with_a_word_of_its_own_for_each_way_says_what_the_word_is_of(
+    client: TestClient,
+):
+    """ "Rank areas higher for this: dearer." said which way, and nothing of what.
+
+    A measure a person may ask for either way says its two ways in the catalogue's words,
+    "more" and "fewer" of a thing, or in a word of its own: "dearer", "denser". The word
+    alone names nothing, so the offer says what an area is or has, in a whole sentence.
+    """
+    own = {
+        feature_id
+        for feature_id, feature in FEATURES.items()
+        if feature.polarity == "either" and feature.higher != "more"
+    }
+    assert set(WHEN) == own and len(own) == 5
+    for more, less in WHEN.values():
+        for clause in (more, less):
+            assert clause[0].islower() and not clause.endswith(".")
+        assert more != less
+    # The mix of brands is the first reading of a word for a smart area, and carries the guess.
+    found = by_target(offered(client, "somewhere affluent, I think"))
+    asked = found["feature:price_median"]
+    assert asked["does"] == "What homes sell for: do you want dearer, or cheaper?"
+    assert asked["follows"] == (
+        "This is what Burro measures for it: the middle price paid for a home."
+    )
+    mix = found["feature:brand_mix"]
+    assert mix["does"] in (
+        "Mix of brands: do you want more premium, or less premium?",
+        "Rank an area higher when the chain grocers, gyms and coffee places near it are more "
+        "premium.",
+    )
 
 
 def test_a_wish_turned_round_of_a_thing_that_runs_one_way_stops_counting_it():
@@ -190,7 +228,9 @@ def test_a_wish_turned_round_of_a_thing_that_runs_one_way_stops_counting_it():
         "It counts a little now, because nobody chose. "
         "Burro cannot rank an area for the opposite of it."
     )
-    assert buttons(station) == ["Add", "Stop counting it", "Skip"]
+    # To add the station is no longer offered: the words turn it round.
+    assert buttons(station) == ["Stop counting it", "Skip"]
+    assert station["note"] == NOT_WANTED_AND_COUNTED
     assert wrote(station, text) == "a station"
 
 
@@ -201,7 +241,9 @@ def test_an_area_says_what_is_left_out(client: TestClient):
     assert out["does"] == "Leave Pellam Cross out of the results."
     assert out["follows"] == "No area of Pellam Cross is shown."
     assert buttons(out) == ["Leave it out of the results", "Skip"]
-    assert either["does"] == "Cindermoor: look only there, or leave it out?"
+    assert either["does"] == (
+        "Cindermoor: do you want Burro to look only there, or to leave it out?"
+    )
     assert buttons(either) == ["Look only in Cindermoor", "Leave it out of the results", "Skip"]
 
 
@@ -303,11 +345,48 @@ def test_a_wish_against_a_thing_is_never_said_to_be_counted_less():
         assert "counted less" not in said and "counted a little less" not in said
 
 
+def test_no_part_of_an_offer_and_no_failure_a_person_meets_says_a_word_of_the_design():
+    """A release, a recipe, a part of one and "counted from" are words of this repository.
+
+    A person who has never seen Burro knows none of them. Core holds its own fixed words
+    to the same in `test_the_words_of_the_design.py`.
+    """
+    of_the_design = re.compile(r"\b(?:releases?|recipes?|parts)\b|\bcounted from\b", re.I)
+    read = 0
+    for _, offer in every_offer():
+        said = [offer["label"], offer["does"], offer["follows"], offer["note"], offer["needs"]]
+        for words in (*said, *offer["said"], *buttons(offer)):
+            assert of_the_design.search(words) is None, words
+            read += 1
+    assert read > 1_500
+    # What only a caller that is written wrongly can meet says what is wrong with what
+    # it sent, and is read by whoever wrote the caller.
+    of_a_caller = {
+        ErrorCode.MALFORMED_JSON,
+        ErrorCode.BODY_TOO_LARGE,
+        ErrorCode.UNSUPPORTED_MEDIA_TYPE,
+        ErrorCode.METHOD_NOT_ALLOWED,
+    }
+    for code, message in MESSAGES.items():
+        if code in of_a_caller:
+            continue
+        assert of_the_design.search(message) is None, message
+        assert not re.search(r"\b(?:spec|route|contract|operations)\b", message), message
+
+
 def test_what_an_offer_would_do_begins_with_a_verb_or_is_a_question():
     verbs = ("Add", "Set", "Rank", "Stop", "Look", "Leave", "Take")
+    nothing = 0
     for _, offer in every_offer():
         does = offer["does"]
+        if does == NOTHING_TAKEN:
+            # No way of it is left to take, and what is said with it says why.
+            assert [way["id"] for way in offer["choices"]] == ["ignore"], offer["label"]
+            assert offer["note"], offer["label"]
+            nothing += 1
+            continue
         assert does.startswith(verbs) or does.endswith("?") or does == NO_JOURNEY, does
+    assert nothing
 
 
 def test_what_nobody_said_is_said():
@@ -319,19 +398,41 @@ def test_what_nobody_said_is_said():
     money_only = through_the_route(model_output(budget_ops=[budget]), "about 1500 would do")
 
     assert found["suggestions"][0]["said"] == [
-        "You named no way of travelling: Burro took public transport."
+        "You did not say how you would travel, so Burro has assumed public transport."
     ]
     assert money_only["suggestions"][0]["said"] == [
-        "You did not say renting or buying: Burro took renting, as the search stands."
+        "You did not say whether you are renting or buying, so Burro has kept your search on "
+        "renting."
     ]
 
 
 def test_a_way_of_travelling_that_was_named_and_not_taken_is_said_to_be_so(client: TestClient):
-    [journey] = offered(client, "30 minutes to Pellam Cross by bike is too long")
+    # The bike stands apart from the place, so nobody can say that it is the way there.
+    [journey] = offered(client, "30 minutes to Pellam Cross is too long by bike")
 
     assert journey["said"] == [
-        "Burro took public transport. "
-        "If you travel another way, change it once the journey is added."
+        "Burro has assumed public transport. If you travel another way, you can change "
+        "this once the journey has been added."
+    ]
+
+
+def test_a_way_of_travelling_that_stands_beside_the_place_is_taken_and_said(client: TestClient):
+    [journey] = offered(client, "ideally 30 minutes to Pellam Cross by bike")
+
+    assert journey["does"] == "Add a journey to Pellam Cross: at most 30 minutes, by bike."
+    assert journey["said"] == []
+
+
+def test_a_way_of_which_more_is_said_is_named_and_not_taken(client: TestClient):
+    # What follows the bike may say that it is wanted or that it is out of the question.
+    [journey] = offered(client, "30 minutes to Pellam Cross by bike is too long")
+
+    assert journey["does"] == (
+        "Add a journey to Pellam Cross: at most 30 minutes, by public transport."
+    )
+    assert journey["said"] == [
+        "Burro has assumed public transport. If you travel another way, you can change "
+        "this once the journey has been added."
     ]
 
 
@@ -379,14 +480,14 @@ def test_every_part_of_every_edit_is_named_on_the_face_of_its_offer():
                 if budget["tenure"] != "unchanged":
                     assert f"to {budget['tenure']}" in whole
                 if budget["strictness"] == "hard":
-                    assert "firm limit" in way["label"] and "left out" in way["label"]
+                    assert "firm limit" in way["label"] and "leaves out areas" in way["label"]
             for journey in way["operations"]["commute_ops"]:
                 place = release().place(journey["place_id"])
                 assert place is None or place.name in whole
                 if journey["max_minutes"]:
                     assert f"at most {journey['max_minutes']} minutes" in whole
                 if journey["strictness"] == "hard":
-                    assert "firm limit" in way["label"] and "left out" in way["label"]
+                    assert "firm limit" in way["label"] and "leaves out areas" in way["label"]
                 by = {"walk": "on foot", "cycle": "by bike"}.get(journey["mode"], "public")
                 assert by in whole
             for area in way["operations"]["area_ops"]:
@@ -421,7 +522,9 @@ def test_recorded_crime_is_chosen_under_its_own_name(client: TestClient):
         for way in ways:
             assert "recorded" in way["label"].lower()
         assert offer["add_all"] == ""
-        assert offer["needs"] == "recorded crime, which is added under its own name"
+        assert offer["needs"] == (
+            "recorded crime, which Burro adds only when you choose it by name"
+        )
         assert "Recorded crime depends on what is reported" in offer["note"]
 
 

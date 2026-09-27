@@ -51,8 +51,12 @@ BEYOND_BY = 10
 WORTH: Mapping[JourneyBand, float] = MappingProxyType(
     {JourneyBand.LIKELY_WITHIN: 1.0, JourneyBand.BORDERLINE: 0.5, JourneyBand.LIKELY_BEYOND: 0.0}
 )
-# What is said wherever an estimate is shown. Every surface says it, word for word.
-ESTIMATED = "Estimated from distance, not from a timetable."
+# What is said wherever an estimate is shown. Every surface says it, word for word. It
+# says that it is an estimate, what it was worked out from, and that it is no time of a
+# timetable, and gives no reason of its own.
+ESTIMATED = (
+    "This is an estimate that Burro worked out from the distance, and not a time from a timetable."
+)
 # How each band is said before "the 40 minutes you set".
 SAID: Mapping[JourneyBand, str] = MappingProxyType(
     {

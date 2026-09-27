@@ -329,7 +329,8 @@ def test_the_name_says_it_is_a_straight_line_and_core_says_the_same(
     metric = request.getfixturevalue(which).metric
     feature = FEATURES[metric.feature_id]
     assert metric.label == (
-        f"Straight-line distance to the nearest marked way into a park of {least} ha or more"
+        f"Distance to the nearest marked entrance to a park of {least} hectares or more, in a "
+        "straight line"
     )
     assert feature.label == metric.label and "walk" not in metric.label.lower()
     assert says_what_core_says(metric)

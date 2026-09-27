@@ -244,7 +244,38 @@ PLAIN = [
     "I work at Cindermoor Works. A 40 minute commute on foot.",
     "renting, leafy, 40 minutes to Cindermoor Works",
     "lots of young families",
+    # What they say of a home that the search cannot hold is said, and is not unread: a
+    # model is asked where words are unread, and what it reads is applied by nobody.
+    "I want to buy a 2 bed flat for 400k",
+    "renting a terraced house up to \N{POUND SIGN}2,000 a month, leafy",
+    "1 hour 15 to Cindermoor Works",
+    "walking distance to Cindermoor Works",
+    # A kind of home is in no list of a search to rent, so its words are unread, and the
+    # wish beside it is applied. A model was asked for the words, and the answer then held
+    # no edit: behind a model the wish for leafy was applied by nobody.
+    "leafy, a flat",
+    "leafy and quiet, a flat",
 ]
+
+
+def test_a_prompt_the_rules_applied_is_applied_behind_a_model_though_a_word_of_it_is_unread():
+    text = "leafy, a flat"
+    ruled = RuleInterpreter().interpret(
+        InterpretRequest(text=text, spec=renter(), release=release())
+    )
+    assert [edit.tag_id for edit in ruled.operations.tag_ops] == ["leafy"]
+    assert [text[span.start : span.end] for span in ruled.unread] == ["a flat"]
+
+    for answer in (
+        model_output(),
+        model_output(status="off_topic"),
+        model_output(tag_ops=[model_tag("leafy", words="leafy")]),
+    ):
+        found = through_the_route(answer, text)
+        assert [edit["tag_id"] for edit in found["operations"]["tag_ops"]] == ["leafy"]
+        assert [tag["tag_id"] for tag in found["spec"]["tags"]] == ["leafy"]
+        assert (found["status"], found["interpreter"]) == ("ok", "rule")
+        assert found["suggestions"] == [] and found["model_pending"] is False
 
 
 @pytest.mark.parametrize("text", PLAIN)

@@ -292,7 +292,10 @@ def test_nothing_is_written_to_the_store(tmp_path: Path):
 def test_the_name_says_it_is_a_straight_line_and_core_says_the_same(town: Walk):
     """Core's words are held here, so that this fails on the day core names a walk again."""
     metric, core = town.metric, FEATURES[FeatureId.PHARMACY_WALK]
-    assert metric.label == "Straight-line distance to the nearest pharmacy, placed by its postcode"
+    assert metric.label == (
+        "Distance to the nearest pharmacy, in a straight line, with each pharmacy placed by "
+        "its postcode"
+    )
     assert "walk" not in metric.label.lower()
     assert (core.label, core.unit) == (metric.label, "m")
     assert core.native_resolution is NativeResolution.POINT

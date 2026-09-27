@@ -144,7 +144,7 @@ def test_the_family_two_areas_are_least_alike_in_is_the_first_of_the_settings_on
         (FeatureId.INDEPENDENTS_NEARBY, RISING),
     )
     found = {b.area_id: b for b in similar(release, area_id(1), n=20)}
-    # Every part of Pace and food and of Daily life is the whole scale apart.
+    # Every part of Going out and food and of Daily life is the whole scale apart.
     assert found[area_id(7)].family is Family.PACE_FOOD
     assert list(FAMILIES).index(Family.PACE_FOOD) < list(FAMILIES).index(Family.DAILY_LIFE)
 
@@ -256,7 +256,7 @@ def test_each_area_that_is_offered_has_a_fact_with_one_sentence_that_is_true():
     assert far.template is TemplateId.LIKENESS
     assert render(far).text == (
         "Gorsebeck is in the same band as Alderwick on 22 of the 23 measures compared, "
-        "and least alike in Green."
+        "and least alike in Parks, gardens and water."
     )
     assert far.names == ("Gorsebeck", "Alderwick")
     assert far.numbers == ("22", "23")

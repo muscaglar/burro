@@ -367,7 +367,7 @@ def test_validation_error_response_does_not_echo_what_was_sent(watch: Watch, cle
 
     error = response.json()["error"]
     assert error["code"] == "invalid_spec"
-    assert error["message"] == "The preference spec is not valid."
+    assert error["message"] == "Burro could not read this search, so try starting it again."
     found = {(field["path"], field["problem"]) for field in error["fields"]}
     # Paths and codes. The name of the field that should not be there is not given.
     assert ("spec.tenure", "not_allowed") in found
@@ -1002,16 +1002,26 @@ def test_no_hash_of_a_spec_can_be_logged(name: str):
         logs.event("interpret", **{name: spec_hash(renter())})
 
 
-def test_the_service_holds_no_key_and_nothing_a_spec_could_be_kept_under():
+def test_no_key_is_held_that_a_spec_could_be_kept_under():
+    # Accounts hold two keys: one that the addresses of clients are counted under, and
+    # one that the website is known by. Neither is ever put to a spec. Outside the
+    # package of accounts nothing holds a key or makes an HMAC, and within it nothing
+    # works out the hash of a spec or the form a spec is hashed in.
     import burro_api
 
-    modules = {path.stem for path in Path(burro_api.__file__).parent.rglob("*.py")}
-    source = "\n".join(
-        path.read_text(encoding="utf-8") for path in Path(burro_api.__file__).parent.rglob("*.py")
-    )
+    root = Path(burro_api.__file__).parent
+    modules = {path.stem for path in root.rglob("*.py")}
+    within = [path for path in root.rglob("*.py") if root / "accounts" in path.parents]
+    without = [path for path in root.rglob("*.py") if path not in within]
+    assert len(within) > 3 and len(without) > 15
 
     assert "keyed" not in modules and "spec_key" not in {f.name for f in fields(Deps)}
-    assert "hmac" not in source and "spec_mac" not in source
+    for path in without:
+        source = path.read_text(encoding="utf-8")
+        assert "hmac" not in source and "spec_mac" not in source, path.name
+    for path in within:
+        source = path.read_text(encoding="utf-8")
+        assert not re.search(r"spec_hash|spec_mac|canonical", source), path.name
 
 
 def test_call_record_has_no_field_that_can_hold_free_text():

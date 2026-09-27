@@ -199,7 +199,7 @@ def test_where_the_guess_is_a_firm_journey_add_all_adds_the_guide():
     [journey] = found["suggestions"]
     assert [way["id"] for way in journey["choices"] if way["guess"]] == [FIRM]
     assert journey["add_all"] == GUIDE
-    assert journey["needs"] == "the journey can be made a firm limit"
+    assert journey["needs"] == "the journey, which you can make a firm limit"
 
 
 # What a newcomer types of the home they look for, after what they want of the place.
@@ -454,7 +454,7 @@ THE_FOUNDERS = (
     "At most 35-40min commute from Pellam Exchange. "
     "If I'm buying, max \N{POUND SIGN}400k for a 1 bed flat."
 )
-LONGER_TAKEN = "You gave 35 to 40 minutes. Burro has taken the longer."
+LONGER_TAKEN = "You gave 35 to 40 minutes, so Burro has used 40, the longer of the two."
 
 
 def journeys(found: dict[str, Any]) -> list[dict[str, Any]]:
@@ -496,9 +496,12 @@ def test_by_the_rules_alone_one_press_takes_a_journey_that_was_plainly_said_as_a
     assert journey["note"] == LONGER_TAKEN
     # One press takes the guide, and a person makes it firm with a press of its own.
     assert journey["add_all"] == GUIDE
-    assert journey["needs"] == "the journey can be made a firm limit"
+    assert journey["needs"] == "the journey, which you can make a firm limit"
+    # The park is taken with them since the way the words give is marked: "with access
+    # to parks" names it, and a park was offered two ways, to count it or to stop.
     assert pressed(found) == {
         "Quiet streets": MORE,
+        "Nearer a park": MORE,
         "More culture nearby": MORE,
         "Pellam Exchange": GUIDE,
         **dict.fromkeys(OF_A_HOME, MORE),
@@ -659,7 +662,6 @@ SOMEBODY_ELSES = (
 TO_BE_REACHED = (
     "my partner works at Pellam Infirmary",
     "my kids' school is Pellam Infirmary",
-    "my wife works at Pellam Infirmary, 30 minutes max",
     "my husband commutes to Pellam Exchange",
     "Honestly, I work at Pellam Infirmary",
     "Honestly, my boss and I work at Pellam Infirmary",
@@ -670,13 +672,16 @@ TO_BE_REACHED = (
     "no more than 30 minutes from Pellam Exchange",
 )
 # Each holds a word for far or for a least that a word before it turns round: it says near,
-# or says the most a journey may take. The journey is offered as it was.
+# or says the most a journey may take. The journey is offered, with the minutes that were
+# typed where it says the most: each was offered at the usual 45, which nobody said.
 TURNED_ROUND = (
-    "My commute to Pellam Exchange can't be more than 45 minutes",
-    "I'll be at Pellam Infirmary, so ideally neither of us is more than 40 minutes away",
-    "Pellam Infirmary, and I don't want to move far",
-    "Pellam Exchange can't be far",
+    ("My commute to Pellam Exchange can't be more than 45 minutes", 45),
+    ("I'll be at Pellam Infirmary, so ideally neither of us is more than 40 minutes away", 40),
+    ("Pellam Infirmary, and I don't want to move far", 0),
+    ("Pellam Exchange can't be far", 0),
 )
+# What turns a least round is a sign of doubt in the clause it stands in.
+TURNS_IT_ROUND = ("can't", "neither")
 
 
 def wrongly(text: str) -> dict[str, Any]:
@@ -711,7 +716,7 @@ def test_a_place_to_stay_away_from_is_never_a_journey_to_it(text: str, reader: s
     # the offer says so in one sentence.
     [journey] = journeys(found)
     assert [way["id"] for way in journey["choices"]] == ["ignore"]
-    assert journey["does"] == "Burro took no journey from these words."
+    assert journey["does"] == "Burro could not make a journey from these words."
     assert (journey["note"], journey["follows"], journey["said"]) == (NO_STAYING_AWAY, "", [])
 
 
@@ -743,16 +748,33 @@ def test_a_place_the_household_must_reach_is_taken_as_it_was(text: str):
     assert held["strictness"] == "soft"
 
 
-@pytest.mark.parametrize("text", TURNED_ROUND)
-def test_a_word_for_far_that_is_turned_round_is_no_wish_to_stay_away(text: str):
+def test_a_place_the_household_must_reach_holds_the_time_that_was_typed_beside_it():
+    """It was taken at the usual 45 minutes, by one press, where the person typed 30."""
+    found = by_the_rules("my wife works at Pellam Infirmary, 30 minutes max")
+
+    [journey] = journeys(found)
+    # "Max" makes the time a limit, and the journey was not plainly said: it is offered as
+    # a firm limit and as a guide, with no guess, and no press takes it with others.
+    assert ways_of_a_journey(journey) == [
+        (FIRM, False, 30, "hard", "unchanged"),
+        (GUIDE, False, 30, "soft", "unchanged"),
+    ]
+    assert (journey["note"], journey["add_all"]) == ("", "")
+    assert "You gave no number of minutes" not in " ".join(journey["said"])
+
+
+@pytest.mark.parametrize(("text", "minutes"), TURNED_ROUND)
+def test_a_word_for_far_that_is_turned_round_is_no_wish_to_stay_away(text: str, minutes: int):
     found = by_the_rules(text)
 
-    # The journey is offered as it was, and says nothing of staying away. One press takes
-    # it or leaves it as before: it leaves it where its own clause holds a sign of doubt.
+    # The journey is offered, and says nothing of staying away. One press takes it or
+    # leaves it: it leaves it where a clause it rests on holds a sign of doubt.
     [journey] = journeys(found)
     assert [way["id"] for way in journey["choices"]] == [MORE, "ignore"]
     assert journey["note"] == ""
-    assert journey["add_all"] == ("" if "can't" in text else MORE)
+    assert [edit[2] for edit in ways_of_a_journey(journey)] == [minutes]
+    in_doubt = any(word in text for word in TURNS_IT_ROUND)
+    assert journey["add_all"] == ("" if in_doubt else MORE)
     assert found["applied"] == []
 
 
@@ -772,8 +794,9 @@ KINDS_OF_HOUSE = ["terraced", "semi_detached", "detached"]
 A_HOUSE = "buying a house, about \N{POUND SIGN}600k, near a station"
 A_HOUSE_IN_MORE = "If I'm buying, max \N{POUND SIGN}400k for a house"
 A_TERRACED_HOUSE = (
-    "You named no kind of house, so Burro has taken a terraced house, the least dear kind "
-    "in most areas. Semi-detached and detached are one press away."
+    "You did not say what kind of house, so Burro has assumed a terraced house, which is the "
+    "kind of house that costs the least in most areas. You can choose a semi-detached or a "
+    "detached house instead."
 )
 
 
@@ -947,9 +970,9 @@ def test_a_budget_for_a_house_is_asked_about_where_no_terraced_house_has_a_price
     budget = budget_of(found)
     assert [way["id"] for way in budget["choices"]] == ["semi_detached", "detached", "ignore"]
     assert budget["does"] == (
-        "A budget of \N{POUND SIGN}600,000 for a house: semi-detached or detached?"
+        "A budget of \N{POUND SIGN}600,000 for a house: do you mean semi-detached or detached?"
     )
-    assert budget["note"].startswith("Burro holds what houses sold for by kind of house")
+    assert budget["note"].startswith("Burro knows what houses sold for by kind of house")
     assert not [way for way in budget["choices"] if way["guess"]]
     assert (budget["add_all"], budget["needs"]) == ("", "a budget of \N{POUND SIGN}600,000")
 

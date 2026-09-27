@@ -105,15 +105,15 @@ from burro_core.ops import (
 )
 from burro_core.places import Names as NamesOfTheRelease
 from burro_core.rank import ENGINE_VERSION
-from burro_core.reading import COUNTED, MINUTES, Is, Line, lines_of, whole
+from burro_core.reading import COUNTED, MINUTES, Is, Line, hours_at, lines_of, whole
 from burro_core.reducer import apply, given_way_spec, minutes_limit
 from burro_core.release import InMemoryRelease, ReleaseError, open_release
 from burro_core.spec import (
     DEFAULT_COMMUTE_MINUTES,
     DEFAULT_COMMUTE_MODE,
-    DEFAULT_SEGMENT,
     DEFAULT_STRICTNESS,
     PreferenceSpec,
+    default_budget,
     default_spec,
 )
 from burro_core.vocabulary import CAPS, FIRM_OF_MINUTES, FIRM_OF_MONEY
@@ -168,6 +168,7 @@ GROUPS = (
     "suggestions",
     "vibes",
     "whole_searches",
+    "visits",
 )
 
 
@@ -302,6 +303,7 @@ EXPECT_KEYS = frozenset(
         "notice",
         "unmet",
         "ask",
+        "not_dropped",
     }
 )
 CASE_KEYS = frozenset({"id", "text", "tenure", "held", "plain", "expect", "why"})
@@ -369,6 +371,9 @@ class Expect:
     notice: str = Notice.NONE.value
     unmet: tuple[UnmetCategory, ...] = ()
     ask: str = "no"
+    # Words of the sentence that are not to be dropped without a word: each is to be among
+    # what an edit rests on, what is offered, what is missing or what is said to be unread.
+    not_dropped: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -389,7 +394,7 @@ class Case:
         """Whether the words ask for anything, so that to do nothing is to fall short."""
         e = self.expect
         edits = (e.rise, e.fall, e.rise_any, e.fall_any, e.add, e.remove, e.exclude, e.only)
-        said = (e.clear, e.unmet, e.amount, e.segment, e.strictness, e.no_amount)
+        said = (e.clear, e.unmet, e.amount, e.segment, e.strictness, e.no_amount, e.not_dropped)
         return (
             any(edits)
             or any(said)
@@ -546,6 +551,10 @@ def _expect(raw: object, names: Names, where: str) -> Expect:
         ) from None
     parts["notice"] = found.get("notice", Notice.NONE.value)
     parts["ask"] = found.get("ask", "no")
+    dropped = _listed(found.get("not_dropped", []), f"{where}.not_dropped")
+    if not all(isinstance(words, str) and words.split() for words in dropped):
+        raise CaseError(f"{where}.not_dropped: each must be words of the sentence")
+    parts["not_dropped"] = tuple(str(words) for words in dropped)
     if parts["notice"] not in NOTICES:
         raise CaseError(f"{where}.notice: must be one of {', '.join(sorted(NOTICES))}")
     if parts["ask"] not in ASKS:
@@ -664,6 +673,8 @@ def load_cases(folder: Path, release: InMemoryRelease) -> tuple[list[Case], list
                 if not isinstance(raw.get("plain"), bool | None):
                     raise CaseError(f"{where}: 'plain' is true or false")
                 expect = _expect(raw["expect"], names, f"{where}.expect")
+                if any(text.count(words) != 1 for words in expect.not_dropped):
+                    raise CaseError(f"{where}.expect.not_dropped: each must stand in the text once")
                 start = _held(raw.get("held", {}), tenure, names, release, f"{where}.held")
                 if expect.segment and expect.segment not in {
                     s.value for s in segments_for(expect.tenure or tenure)
@@ -1034,7 +1045,7 @@ def _money(case: Case, final: PreferenceSpec) -> list[Finding]:
 
     # What the budget holds where nobody has said anything, after a change of tenure or none.
     unsaid_amount = None if switched else start.budget.amount
-    unsaid_segment = DEFAULT_SEGMENT[final.tenure] if switched else start.budget.segment
+    unsaid_segment = default_budget(final.tenure).segment if switched else start.budget.segment
     unsaid_strictness = DEFAULT_STRICTNESS if switched else start.budget.strictness
     amount = final.budget.amount
     if expect.no_amount:
@@ -1091,6 +1102,33 @@ def _money(case: Case, final: PreferenceSpec) -> list[Finding]:
     return findings
 
 
+def _in_a_list(text: str, words: str, result: Any) -> bool:
+    """Whether some words of the text are among what the reader says it made something of.
+
+    What an edit rests on, what is offered, what is missing from the release
+    and what is said to be unread are each a list of where words stand. Words
+    that stand in none were dropped without a word: the person is told
+    nothing of them. Every word of the stretch must stand in some list.
+    """
+    begins = text.index(words)
+    listed = [
+        (span.start, span.end)
+        for span in (
+            *getattr(result, "rests_on", ()),
+            *getattr(result, "unread", ()),
+            *(s for found in getattr(result, "suggestions", ()) for s in found.spans),
+            *(s for found in getattr(result, "not_in_release", ()) for s in found.spans),
+        )
+    ]
+    at = begins
+    for word in words.split():
+        start = text.index(word, at)
+        at = start + len(word)
+        if not any(begun <= start and at <= ended for begun, ended in listed):
+            return False
+    return True
+
+
 def _said_back(case: Case, result: Any) -> list[Finding]:
     """The notice, what was reported as unmet, and whether a question was asked."""
     expect = case.expect
@@ -1115,6 +1153,14 @@ def _said_back(case: Case, result: Any) -> list[Finding]:
             Finding(
                 Verdict.MET if category in unmet else Verdict.MISSED,
                 f"{category.value} was to be reported as unmet",
+                required=True,
+            )
+        )
+    for words in expect.not_dropped:
+        findings.append(
+            Finding(
+                Verdict.MET if _in_a_list(case.text, words, result) else Verdict.MISSED,
+                "words that were typed were to be in some list: applied, offered or unread",
                 required=True,
             )
         )
@@ -1216,26 +1262,35 @@ def _figures(word: str) -> set[int]:
 
 
 def _typed(text: str) -> set[int]:
-    """Every number the person typed."""
-    return {n for line in lines_of(text) for token in line.tokens for n in _figures(token.word)}
+    """Every number the person typed. A time in hours is the minutes it is: "1 hour 15" is 75."""
+    found: set[int] = set()
+    for line in lines_of(text):
+        for at, token in enumerate(line.tokens):
+            found |= _figures(token.word)
+            in_hours = hours_at(line.tokens, at)
+            if in_hours is not None:
+                found.add(in_hours[0])
+    return found
 
 
-def _against(line: Line, at: int, words: Iterable[str]) -> bool:
+def _against(line: Line, at: int, words: Iterable[str], size: int = 1) -> bool:
     """Whether the words that make a limit firm stand against the number at a place.
 
     Straight before it, with nothing between but a word that caps, "no more
     than about 40", or straight after it and what it is a number of, "40
     minutes at most". No further than a mark. `words` is core's list for the
-    kind of limit: an amount of money, or a number of minutes.
+    kind of limit: an amount of money, or a number of minutes. `size` is how
+    many tokens the number takes, which is more than one for a time in hours.
     """
     tokens = line.tokens
-    first = last = at
+    first = at
+    last = at + size - 1
     while first > 0 and not tokens[first].apart:
         first -= 1
     while last + 1 < len(tokens) and not tokens[last + 1].apart:
         last += 1
     before = _said(" ".join(token.word for token in tokens[first:at]))
-    after = _said(" ".join(token.word for token in tokens[at + 1 : last + 1]))
+    after = _said(" ".join(token.word for token in tokens[at + size : last + 1]))
     firmly = [_said(phrase) for phrase in words]
     while not any(before.endswith(phrase) for phrase in firmly):
         cap = next((cap for cap in map(_said, CAPS) if before.endswith(cap)), None)
@@ -1271,12 +1326,16 @@ def _said_firmly(text: str, number: int, words: Iterable[str], *, of_minutes: bo
     40 minutes". A range of minutes is firm at its longer end, with no word
     against it: whoever gives one has said how long is too long.
     """
-    return any(
-        number in _figures(token.word)
-        and (_against(line, at, words) or (of_minutes and _ends_a_range(line, at, number)))
-        for line in lines_of(text)
-        for at, token in enumerate(line.tokens)
-    )
+    for line in lines_of(text):
+        for at, token in enumerate(line.tokens):
+            ranged = of_minutes and _ends_a_range(line, at, number)
+            if number in _figures(token.word) and (_against(line, at, words) or ranged):
+                return True
+            # A time in hours is one number, of several tokens: "at most 1 hour 15".
+            minutes, size = (hours_at(line.tokens, at) if of_minutes else None) or (0, 0)
+            if size and minutes == number and _against(line, at, words, size):
+                return True
+    return False
 
 
 # The grammar of the release last judged, made ready once: it takes longer to
@@ -1317,6 +1376,12 @@ def never_offered(case: Case, result: Any, release: InMemoryRelease, names: Name
     type, a number of minutes or an amount they did not type, a way of
     travelling no word names, and an offer of a model's that rests on a wish
     about who lives somewhere.
+
+    The service marks a guess of the rules' own too: the way they would
+    apply of a sentence, were it all that was typed. It is held to all of
+    this but the first. To type the name of an end of the vibe that counts
+    recorded crime is to ask for it (ADR 0013), so the rules' own guess at
+    that vibe is a fault only where the words name no end of it.
     """
     lexicon = lexicon_of(release.manifest.gritty_variant)
     typed = _typed(case.text)
@@ -1324,10 +1389,13 @@ def never_offered(case: Case, result: Any, release: InMemoryRelease, names: Name
     found: list[str] = []
     for suggestion, way in _ways(result):
         guess = bool(getattr(way, "guess", False))
-        meant = guess or bool(getattr(way, "meant", False))
+        pointed = bool(getattr(way, "meant", False))
+        meant = guess or pointed
         models = getattr(suggestion, "read_by", None) is InterpreterName.MODEL
         if not (meant or models):
             continue
+        # The rules' own reading: they offered the way, and no model read or pointed at it.
+        own = guess and not pointed and not models and bool(getattr(way, "ruled", False))
         edits = way.operations
         theirs = models or not getattr(way, "ruled", False)
         if theirs and any(
@@ -1339,7 +1407,14 @@ def never_offered(case: Case, result: Any, release: InMemoryRelease, names: Name
                 f"an offer that rests on a wish about who lives somewhere: {suggestion.target}"
             )
         for tag in edits.tag_ops:
-            if tag.tag_id in HOLDS_CRIME:
+            ends = [
+                phrase
+                for phrase, target in lexicon.items()
+                if tag.tag_id in target.tags
+                and target.provenance is EditProvenance.STATED
+                and not target.no_end
+            ]
+            if tag.tag_id in HOLDS_CRIME and not (own and _holds(case.text, ends)):
                 found.append(f"a vibe that counts recorded crime: tag:{tag.tag_id.value}")
             if tag.action is WeightAction.SET and tag.value not in (0.0, 1.0):
                 found.append(f"a number for a weight: tag:{tag.tag_id.value}")

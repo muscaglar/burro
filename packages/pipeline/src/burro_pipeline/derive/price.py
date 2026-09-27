@@ -213,7 +213,7 @@ class Home:
 
     @property
     def label(self) -> str:
-        return f"Median price paid for {self.a_home}"
+        return f"The middle price paid for {self.a_home}"
 
     @property
     def cost_key(self) -> str | None:

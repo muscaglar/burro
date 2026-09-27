@@ -89,7 +89,7 @@ KEYED_BY = Geography.POINT
 CENSUS = 2021
 # What a person reads beside the figure: it is a straight line, and no walk, and it is
 # measured to a way in.
-LABEL = "Straight-line distance to the nearest way in to a station"
+LABEL = "Distance to the nearest station entrance, in a straight line"
 # What the measure is, from whom, for what period, and what it is not.
 DEFINITION = (
     "The distance in a straight line, in metres, from the point the statistics office gives as "

@@ -348,7 +348,7 @@ def test_the_method_is_the_one_the_distance_to_a_park_is_worked_out_by():
 def test_the_row_says_a_straight_line_in_metres_and_names_every_source(town: Nearest):
     metric = town.metric
     assert metric.feature_id is FeatureId.STATION_WALK
-    assert metric.label == "Straight-line distance to the nearest way in to a station"
+    assert metric.label == "Distance to the nearest station entrance, in a straight line"
     assert (metric.unit, metric.polarity) == ("m", Polarity.LESS)
     assert metric.native_resolution is NativeResolution.POINT
     assert metric.vintage == SAVED and town.saved == SAVED

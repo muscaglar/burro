@@ -4,6 +4,7 @@ from functools import cache
 import pytest
 from burro_core.catalogue import FEATURES, JUDGEMENT, NEVER_A_TRADE_OFF
 from burro_core.explain import (
+    MAX_REASONS,
     REASON_MIN_UTILITY,
     TRADE_OFF_MAX_UTILITY,
     Ask,
@@ -28,7 +29,7 @@ from burro_core.ids import (
     Tenure,
     Toward,
 )
-from burro_core.rank import Contribution, RankedArea, RankResult, rank
+from burro_core.rank import Contribution, RankedArea, RankResult, asked_for, rank
 from burro_core.reducer import given_way_spec
 from burro_core.release import InMemoryRelease
 from burro_core.spec import Commute, FeatureWeight, PreferenceSpec, TagWeight, default_spec
@@ -100,12 +101,13 @@ def test_the_worked_example_is_explained_as_the_contract_says():
     assert alderwick.trade_off is None
     assert alderwick.missing == ()
     assert [s.text for s in alderwick.reasons] == [
-        "The upper end is £50 under your budget of £1,800.",
+        "For this kind of home, the upper end of the range of costs here is £1,750, which "
+        "is £50 under your budget of £1,800.",
         "By public transport to Pellam Cross: about 32 minutes on a typical weekday "
-        "morning, 37 if you just miss a service.",
+        "morning, or 37 minutes if you just miss a service.",
         # Two of the four areas are further from a park, and none is level.
-        "Straight-line distance to the nearest marked way into a park of 2 ha or more: "
-        "280 m, closer than 50% of the 4 areas compared in this release.",
+        "Distance to the nearest marked entrance to a park of 2 hectares or more, in a "
+        "straight line: 280 m, which is closer than 50% of the 4 areas Burro compared.",
     ]
     assert not any(s.replaced for s in sentences(alderwick))
     assert {s.origin for s in sentences(alderwick)} == {SentenceOrigin.TEMPLATE}
@@ -145,12 +147,23 @@ def test_being_over_budget_is_never_given_as_a_reason():
     # Its walk to a park is worth 0.40, which is neither done well nor badly.
     assert brackenhythe.trade_off is not None
     assert brackenhythe.trade_off.fact_ids == (f"{BRACKENHYTHE}/budget_fit/rent.bed_1",)
-    assert brackenhythe.trade_off.text == "The upper end is £150 over your budget of £1,800."
+    assert brackenhythe.trade_off.text == (
+        "For this kind of home, the upper end of the range of costs here is £1,950, which "
+        "is £150 over your budget of £1,800."
+    )
     # Within budget by a pound, or by nothing, it is a reason. By nothing it is at the
     # budget, and no sentence gives a difference of nothing.
     for amount, said in (
-        (1950, "The upper end is at your budget of £1,950."),
-        (1951, "The upper end is £1 under your budget of £1,951."),
+        (
+            1950,
+            "For this kind of home, the upper end of the range of costs here is at your "
+            "budget of £1,950.",
+        ),
+        (
+            1951,
+            "For this kind of home, the upper end of the range of costs here is £1,950, "
+            "which is £1 under your budget of £1,951.",
+        ),
     ):
         spec = build_worked_spec().replace(
             budget=build_worked_spec().budget.replace(amount=amount), commutes=()
@@ -242,8 +255,8 @@ def test_a_sentence_about_the_commute_cites_the_leg_that_drove_the_score():
 def test_a_dropped_component_gets_one_sentence_that_says_it_was_left_out():
     (brackenhythe,) = worked(areas=(BRACKENHYTHE,))
     assert [s.text for s in brackenhythe.missing] == [
-        "There is no Share of residents exposed to 55 dB or more of transport noise figure for "
-        "Brackenhythe in this release, so it was left out of the score."
+        "Share of residents exposed to 55 dB or more of transport noise: Burro has no figure "
+        "for this in Brackenhythe, so it does not count towards the fit of this area."
     ]
     assert brackenhythe.missing[0].fact_ids == (f"{BRACKENHYTHE}/missing/feature:noise_exposure",)
 
@@ -640,15 +653,15 @@ def test_a_reason_is_said_from_the_better_side_and_a_trade_off_from_the_worse():
     spec, release = park_alone(20.0)
     (well,) = explain(rank(spec, release), release, spec, (ALDERWICK,), TemplateExplainer())
     assert [s.text for s in well.reasons] == [
-        "Straight-line distance to the nearest marked way into a park of 2 ha or more: "
-        "280 m, closer than 50% of the 4 areas compared in this release."
+        "Distance to the nearest marked entrance to a park of 2 hectares or more, in a "
+        "straight line: 280 m, which is closer than 50% of the 4 areas Burro compared."
     ]
     spec, release = park_alone(90.0)
     (badly,) = explain(rank(spec, release), release, spec, (ALDERWICK,), TemplateExplainer())
     assert badly.trade_off is not None
     assert badly.trade_off.text == (
-        "Straight-line distance to the nearest marked way into a park of 2 ha or more: "
-        "910 m, further than 75% of the 4 areas compared in this release."
+        "Distance to the nearest marked entrance to a park of 2 hectares or more, in a "
+        "straight line: 910 m, which is further than 75% of the 4 areas Burro compared."
     )
     assert not badly.trade_off.replaced
 
@@ -658,15 +671,17 @@ Searched = tuple[PreferenceSpec, RankResult, tuple[Explanation, ...]]
 
 @cache
 def searches() -> tuple[Searched, ...]:
-    """Eighty searches of the small release, each ranked and explained. Made once for them all.
+    """A hundred and twenty searches of the small release, each ranked and explained. Made once.
 
     What a search asks for is drawn from what the release carries, so the searches move
-    when it carries more. Eighty keep each thing the tests look for well above its floor.
+    when it carries more. One in three is a visit, which holds no budget, so where eighty
+    searches for a home kept each thing the tests look for well above its floor, a
+    hundred and twenty hold as many of them.
     """
     release = small_release()
     draw = draws(63)
     found: list[Searched] = []
-    for _ in range(80):
+    for _ in range(120):
         spec = random_spec(draw, release)
         result = rank(spec, release)
         areas = tuple(a.area_id for a in result.ranked)
@@ -695,32 +710,33 @@ def about(explanation: Explanation, key: str) -> ExplainedSentence:
     return next(sentence for sentence in said if sentence.fact_ids[0].endswith(key))
 
 
-# A result is to say in a few lines why this place. The sentence of a vibe ran
-# to thirty words, half of them its dates and that the recipe is a judgement,
-# the same on every card that led with that vibe.
+# A result is to say in a few lines why this place. The full sentence of a vibe
+# is long, and half of it is its dates and that the choice of its measurements
+# is a judgement, the same on every card that led with that vibe.
 IN_SHORT = [
     (
         TagId.LEAFY,
         Toward.HIGH,
         "Alderwick",
-        "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in "
-        "this release.",
+        "Leafy: band 5 of 5 among the 21 areas Burro compared, where the bands run from "
+        "least to most.",
     ),
-    # A band that rests on part of a recipe still says so: nothing is filled in.
+    # A band that rests on some of its measurements still says so: nothing is filled in.
     (
         TagId.EVERYDAY_ON_FOOT,
         Toward.HIGH,
         "Foxholt",
-        "Everyday on foot: band 5 of 5, counted from least to most, among the 21 areas "
-        "compared in this release. Worked out from 3 of its 5 parts, 70 of 100 by weight.",
+        "Everyday on foot: band 5 of 5 among the 21 areas Burro compared, where the bands "
+        "run from least to most. Burro has a figure for 3 of the 5 measurements that go "
+        "into this vibe, and they count for 70 of 100 in it.",
     ),
     # A mixed area is still a range, and never a point in the middle.
     (
         TagId.PACE,
         Toward.HIGH,
         "Foxholt",
-        "Going out: varies within this area, from band 3 to band 5 of 5, counted from Calm "
-        "to Buzzy.",
+        "Going out: this varies within the area, from band 3 to band 5 of 5, where the "
+        "bands run from Calm to Buzzy.",
     ),
 ]
 
@@ -748,7 +764,7 @@ def test_what_a_short_sentence_leaves_out_is_still_held_by_the_fact_it_cites():
         fact = facts[about(found, f"/tag/{tag_id.value}").fact_ids[0]]
         in_full = render(fact).text
         assert in_full.startswith(about(found, f"/tag/{tag_id.value}").text)
-        assert in_full.endswith(f"Parts dated {fact.slots['span']}. {JUDGEMENT}")
+        assert in_full.endswith(f"Its measurements are dated {fact.slots['span']}. {JUDGEMENT}")
         assert fact.slots["judgement"] == JUDGEMENT
         assert fact.as_of == fact.slots["span"]
         checked += 1
@@ -792,7 +808,7 @@ def test_no_reason_is_said_in_the_word_a_trade_off_is_said_in():
                 if " than " not in sentence.text:
                     continue
                 said += 1
-                assert f", {bad if worse else good} than " in sentence.text, sentence.text
+                assert f", which is {bad if worse else good} than " in sentence.text, sentence.text
     assert said > 100
 
 
@@ -807,8 +823,8 @@ def test_each_journey_with_no_time_has_a_sentence_of_its_own():
         rank(soft, release), release, soft, (ALDERWICK, BRACKENHYTHE), TemplateExplainer()
     )
     assert [s.text for s in one.missing] == [
-        "There is no journey time from Alderwick to Foxholt Works in this release, "
-        "so that journey was left out of the score."
+        "Burro has no journey time from Alderwick to Foxholt Works, so that journey does not "
+        "count towards the fit of this area."
     ]
     # The journey that has a time is still scored. It is no reason while another is unknown.
     assert not any("/travel/" in s.fact_ids[0] for s in one.reasons)
@@ -825,7 +841,8 @@ def test_a_journey_over_its_limit_is_what_an_area_gives_up_and_says_by_how_much(
     assert cindermoor.trade_off is not None
     assert cindermoor.trade_off.text == (
         "By public transport to Pellam Cross: about 44 minutes on a typical weekday morning, "
-        "49 if you just miss a service, 4 minutes over the 40 you set."
+        "or 49 minutes if you just miss a service. This journey is 4 minutes over the limit "
+        "of 40 minutes you set."
     )
 
 
@@ -879,6 +896,85 @@ def test_explain_refuses_a_result_that_is_not_the_ranking_of_this_spec_and_relea
         explain(result, other, spec, (ALDERWICK,), TemplateExplainer())
 
 
+# What a person asked for leads what nobody chose
+
+
+def asking_lightly(tenure: Tenure = Tenure.RENT) -> PreferenceSpec:
+    """A search that asks for four vibes, each at a tenth, with the usual settings beside them.
+
+    A usual setting gives way to a quarter of itself once something is asked
+    for, and the walk to a station then weighs a tenth too. So a usual setting
+    may add as much to the fit of an area as a thing that was asked for.
+    """
+    asked = (TagId.LEAFY, TagId.QUIET_RESIDENTIAL, TagId.FOODIE, TagId.PARKS_CLOSE_BY)
+    tags = tuple(
+        TagWeight(tag_id=tag_id, weight=0.1, toward=Toward.HIGH, provenance=Provenance.UI_EDIT)
+        for tag_id in asked
+    )
+    return given_way_spec(default_spec(tenure)).replace(tags=tags)
+
+
+def reasons_of(spec: PreferenceSpec) -> dict[str, tuple[list[str], list[Contribution]]]:
+    """Of each area of the committed release: what its reasons cite, and what it does well."""
+    release = fixture_release()
+    result = rank(spec, release)
+    areas = tuple(area.area_id for area in result.ranked)
+    explained = explain(result, release, spec, areas, TemplateExplainer())
+    found: dict[str, tuple[list[str], list[Contribution]]] = {}
+    for area, said in zip(result.ranked, explained, strict=True):
+        cited = {c.fact_ids[0]: c.component for c in area.contributions if c.fact_ids}
+        well = [
+            c
+            for c in area.contributions
+            if c.present and c.utility is not None and c.utility >= REASON_MIN_UTILITY
+        ]
+        found[area.area_id] = ([cited[s.fact_ids[0]] for s in said.reasons], well)
+    return found
+
+
+@pytest.mark.parametrize("tenure", [Tenure.RENT, Tenure.VISIT])
+def test_the_reasons_are_what_was_asked_for_where_three_of_those_are_done_well(tenure: Tenure):
+    """The walk to a station, which nobody chose, was given as a reason in their place."""
+    spec = asking_lightly(tenure)
+    asked = asked_for(spec)
+    assert asked == {"tag:leafy", "tag:quiet_residential", "tag:foodie", "tag:parks_close_by"}
+    held = 0
+    for reasons, well in reasons_of(spec).values():
+        asked_well = [c.component for c in well if c.component in asked]
+        if len(asked_well) < MAX_REASONS:
+            continue
+        # The three of them that add most to the fit, in that order, and nothing else.
+        assert reasons == asked_well[:MAX_REASONS]
+        held += any(c.component not in asked for c in well[:MAX_REASONS])
+    # In five areas of the made-up city a usual setting added more than one of the three.
+    assert held >= 5
+
+
+@pytest.mark.parametrize("tenure", [Tenure.RENT, Tenure.VISIT])
+def test_a_usual_setting_is_a_reason_only_where_what_was_asked_for_gives_fewer_than_three(
+    tenure: Tenure,
+):
+    spec = asking_lightly(tenure)
+    asked = asked_for(spec)
+    filled = 0
+    for reasons, well in reasons_of(spec).values():
+        asked_well = [c.component for c in well if c.component in asked]
+        usual = [c.component for c in well if c.component not in asked]
+        # What was asked for comes first, and what nobody chose makes up the three.
+        assert reasons == [*asked_well, *usual][:MAX_REASONS]
+        if len(asked_well) < MAX_REASONS and usual:
+            assert [c for c in reasons if c not in asked] == usual[: MAX_REASONS - len(asked_well)]
+            filled += 1
+    assert filled >= 5
+
+
+def test_a_search_that_asks_for_nothing_is_given_its_usual_settings_as_reasons_as_it_was():
+    spec = default_spec(Tenure.RENT)
+    assert asked_for(spec) == frozenset()
+    for reasons, well in reasons_of(spec).values():
+        assert reasons == [c.component for c in well][:MAX_REASONS]
+
+
 def test_every_explanation_of_every_search_is_made_of_sentences_that_passed():
     explained = 0
     for _, _, every in searches():
@@ -923,9 +1019,13 @@ def test_no_reason_in_any_search_is_something_the_area_does_badly():
             ]
             over_budget += any(c.component == "budget" for c in passed_over)
             over_the_cap += any(c.component == "commute" for c in passed_over)
-            # Everything done well is a reason, up to three, largest contribution first.
+            # Everything done well is a reason, up to three: what was asked for, and then
+            # what nobody chose, each with the largest contribution first.
+            in_order = [c for c in area.contributions if c in done_well]
+            asked = [c for c in in_order if c.component in asked_for(spec)]
+            usual = [c for c in in_order if c.component not in asked_for(spec)]
             assert [r.fact_ids[0] for r in found.reasons] == [
-                c.fact_ids[0] for c in area.contributions if c in done_well
+                c.fact_ids[0] for c in (*asked, *usual)
             ][:3]
             without += not found.reasons and bool(behind)
     assert reasons > 300

@@ -904,7 +904,9 @@ def test_the_measure_is_cores_measure_of_main_roads_and_a_build_carries_it(town:
 def test_the_row_of_the_catalogue_says_what_core_says_of_the_measure(town: Exposure):
     metric, core = town.metric, FEATURES[FeatureId.ROAD_MAJOR_EXPOSURE]
     assert metric.feature_id is FeatureId.ROAD_MAJOR_EXPOSURE
-    assert metric.label == core.label == "Share of homes within 100 m of a main road"
+    assert (
+        metric.label == core.label == "Homes within 100 m of a main road, as a share of all homes"
+    )
     assert (metric.unit, metric.polarity) == ("%", Polarity.LESS)
     assert metric.dimension is Dimension.AIR_NOISE
     # A home is placed at the centre of its output area, so the figure is of output areas.

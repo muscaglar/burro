@@ -274,7 +274,8 @@ def test_the_offer_of_a_firm_budget_to_rent_says_the_margin_the_place_and_the_ca
     )
     assert budget["note"] == RENTS_NOTE == f"{RENT_IS_OF_A_PLACE} {RENT_CAUTION}"
     assert [way["label"] for way in budget["choices"]] == [
-        "Set as a firm limit: areas where the middle rent is more than 25% over it are left out",
+        "Set it as a firm limit, which leaves out areas where the middle rent is more than 25% "
+        "over it",
         "Skip",
     ]
 

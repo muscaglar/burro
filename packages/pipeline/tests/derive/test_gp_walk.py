@@ -411,7 +411,8 @@ def test_the_name_says_it_is_a_straight_line_and_core_says_the_same(town: Walk):
     """Core's words are held here, so that this fails on the day core names a walk again."""
     metric, core = town.metric, FEATURES[FeatureId.GP_WALK]
     assert metric.label == (
-        "Straight-line distance to the nearest GP practice, placed by its postcode"
+        "Distance to the nearest GP practice, in a straight line, with each practice placed "
+        "by its postcode"
     )
     assert "walk" not in metric.label.lower()
     assert (core.label, core.unit) == (metric.label, "m")

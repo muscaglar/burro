@@ -198,10 +198,12 @@ def test_an_area_with_no_figure_is_not_left_out_and_is_not_ranked_as_if_cheap(
     firm = strictness is Strictness.HARD
     assert there.untested_filters == ((FilterReason.OVER_BUDGET,) if firm else ())
     said = facts_of(FOUR, buyer(strictness))[f"{FOUR}/missing/budget"]
+    # It is the cost that was asked about: the area may hold a price of another kind.
     assert render(said).text == (
-        "There is no cost figure for Dulcimer Green in this release, "
-        "so it was left out of the score."
+        "What this kind of home costs: Burro has no figure for this in Dulcimer Green, so "
+        "it does not count towards the fit of this area."
     )
+    assert verify(render(said), {said.fact_id: said}).ok
 
 
 @pytest.mark.parametrize("strictness", list(Strictness))
@@ -239,9 +241,9 @@ def test_a_price_with_no_range_is_said_as_the_middle_price_of_homes_of_all_sizes
     }
     assert set(fact.numbers) == {"£437500", "2026", "08", "8"}
     assert render(fact).text == (
-        "Price for a flat: £437,500. This is the middle price of flats of all sizes sold "
-        "in the year ending August 2026. The publisher gives no range, and does not say "
-        "how many sales it rests on."
+        "The middle price of flats of all sizes sold in the year ending August 2026 was "
+        "£437,500. The publisher gives no range of prices, and does not say how many sales "
+        "this figure rests on."
     )
 
 
@@ -257,7 +259,9 @@ def test_a_price_with_no_range_is_said_as_the_middle_price_of_homes_of_all_sizes
 def test_every_kind_of_home_is_said_of_all_sizes(segment: Segment, homes: str):
     release = dataclasses.replace(small_release(), costs=(median(ONE, 610_000, segment),))
     fact = next(f for f in facts_for(release, ONE, None) if f.kind is FactKind.COST)
-    assert f"the middle price of {homes} of all sizes sold in the year" in render(fact).text
+    assert render(fact).text.startswith(
+        f"The middle price of {homes} of all sizes sold in the year"
+    )
 
 
 def test_the_sentence_of_a_price_states_no_range_and_no_word_for_its_confidence():
@@ -310,15 +314,16 @@ def test_every_fact_of_a_price_with_no_range_names_a_source_and_a_date():
         assert fact.as_of == AS_OF and fact.synthetic is True
 
 
-def test_a_price_with_a_range_is_said_as_it_was():
+def test_a_price_with_a_range_is_said_as_a_range_with_how_sure_burro_is_of_it():
     fact = next(
         f for f in facts_for(small_release(), ONE, None) if f.fact_id == f"{ONE}/cost/buy.flat"
     )
     assert fact.template is TemplateId.COST_BUY
     assert render(fact).text == (
-        "Price for a flat: £300,000 to £400,000, middle £350,000, as of August 2026. "
-        "Confidence: high."
+        "A flat sells for £300,000 to £400,000, and the middle price is £350,000, as of "
+        "August 2026. Burro has high confidence in this range."
     )
+    assert verify(render(fact), {fact.fact_id: fact}).ok
 
 
 def test_every_sentence_of_a_price_with_no_range_passes_the_verifier():

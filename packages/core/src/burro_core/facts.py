@@ -165,21 +165,24 @@ COST_OF_KINDS: Mapping[CostOfKind, str] = {
 }
 # What is said of the place, in one sentence, wherever a figure of a wider place is shown
 # beside an area: which place it is of, and that it is not of the area alone.
-IS_OF = "This is of {of}, and not of {name} alone."
+IS_OF = "These rents are for {of}, and not for {name} alone."
 # What stands, once, wherever a person reads a rent that is of a wider place: beside a
 # rent on an area's page, in the offer of a budget to rent, and on the methods page. The
 # publisher collects the rents from the agents and landlords who are willing to give
 # them, and says that the figures should not be compared between areas. It is said in
-# plain words, and quotes no figure.
+# plain words, and quotes no figure. What Burro does with the rents is said as it was
+# decided, and no less of it: it uses them, for a general idea. It holds a budget against
+# them and ranks areas by that, so it is never said to treat them "only" as one. It said
+# "as a rough guide", which the founder asked that no word served to a person say.
 RENT_CAUTION = (
-    "These rents are a sample that was not drawn at random. Their publisher advises "
-    "against comparing one area with another on them. Burro uses them as a rough guide "
-    "to what a home lets for."
+    "These rents come from a sample that was not drawn at random, and their publisher "
+    "advises against using them to compare one area with another. Because of that, Burro "
+    "uses them to give a general idea of what a home lets for."
 )
 # What is said of where such a rent is of, where no one area is spoken of: in the offer of
 # a budget to rent, and beside the count of the areas a firm budget left out.
 RENT_IS_OF_A_PLACE = (
-    "Each rent is of a postcode district or of a whole borough, and not of one area alone."
+    "Each rent is for a postcode district or for a whole borough, and not for one area alone."
 )
 COST_LABELS: Mapping[Tenure, str] = {Tenure.RENT: "Rent", Tenure.BUY: "Price"}
 
@@ -209,34 +212,52 @@ def rents_are_of_places(release: Release) -> bool:
     )
 
 
-# What the `missing` sentence calls a component that has no figure.
-MISSING_LABELS: Mapping[str, str] = {BUDGET: "cost"}
+# What the `missing` sentence calls a cost that has no figure. It is the cost of the kind
+# of home the budget is for, and an area may hold a cost of another kind. The fact holds
+# no kind of home, so its name says this kind, and names none.
+MISSING_LABELS: Mapping[str, str] = {BUDGET: "What this kind of home costs"}
 # What joins the publishers that write one name, where more than one does.
 WRITTEN_BY = " and "
 # How the ends of a one-way vibe are said, which has no names for them.
 LEAST, MOST = "least", "most"
 # A mixed area is said as a range once the middle half of its homes span this many bands.
 RANGE_FROM_BANDS = 3
-# What a band says of itself where it rests on part of its recipe. A part
-# with no figure is dropped and the rest reweighted, and the sentence says
-# so: how many parts had a figure, and what they carry of the recipe's 100.
-PARTLY = "Worked out from {known} of its {parts} parts, {share} of 100 by weight."
+# What a band says of itself where it rests on some of the measurements of its vibe. A
+# measurement with no figure is dropped and the rest reweighted, and the sentence says
+# so: how many had a figure, and what they carry of the 100 the vibe adds up to.
+PARTLY = (
+    "Burro has a figure for {known} of the {parts} measurements that go into this vibe, "
+    "and they count for {share} of 100 in it."
+)
 WHOLE = 100
-# Where a figure sits among the areas it is compared with. Every release says
-# "in this release", so a synthetic one can never say "London".
+# Where a figure sits among the areas it is compared with. Every clause says "the areas
+# Burro compared" and names no city, so a synthetic release can never say "London". Each
+# stands by itself where a page lays it out, and after "which is" in a sentence.
 STANDINGS: Mapping[str, str] = {
-    "beyond": "{comparative} {pct}% of the {compared} areas compared in this release",
+    "beyond": "{comparative} {pct}% of the {compared} areas Burro compared",
     "beyond_and_level": (
-        "{comparative} {pct}% of the {compared} areas compared in this release, "
+        "{comparative} {pct}% of the {compared} areas Burro compared, "
         "and the same as {level} {other}"
     ),
-    "level": "the same as {level} of the {others} other areas compared in this release",
-    "all_level": "the same as all {others} other areas compared in this release",
-    "one_level": "the same as the only other area compared in this release",
-    # Nothing is beyond it on this side and nothing is level with it. "The
-    # same as 0 others" would be true and would say nothing.
-    "none": "{comparative} none of the {others} other areas compared in this release",
-    "alone": "with no other area in this release to compare it with",
+    "level": "the same as {level} of the {others} other areas Burro compared",
+    "all_level": "the same as all {others} other areas Burro compared",
+    "one_level": "the same as the only other area Burro compared",
+    # Nothing is beyond it on this side and nothing is level with it, so every other area
+    # is beyond it on the other side, and the clause is said in the word of that side:
+    # an area that is closer than none is further than all. "Closer than none of the 20
+    # other areas" was true, and had to be read twice.
+    "none": "{comparative} all {others} other areas Burro compared",
+    "none_of_one": "{comparative} the only other area Burro compared",
+    # Every area that was compared is beyond it on this side. That is so only of an area
+    # that is not one of them: an area that is not ranked is held against the areas that
+    # are. "More than 100% of the 21 areas" was what was said, and is said of no share.
+    "every": "{comparative} all {compared} areas Burro compared",
+    # Some areas are beyond it on this side, and they are under one in a hundred of those
+    # compared, and none is level with it. A share of 0% would say nothing, and "the same
+    # as 0 of the 982 other areas" was what a city of a thousand areas was told of the few
+    # that stand nearest an end. What is true and worth saying is how many they are.
+    "few": "{comparative} {beyond} of the {others} other areas Burro compared",
+    "alone": "not compared, because Burro has no other area to compare it with",
 }
 _MONTHS = (
     "January",
@@ -357,21 +378,49 @@ def standing(value: float, population: Sequence[float], among: bool) -> Standing
     )
 
 
-def _side(found: Standing, beyond: int, comparative: str) -> tuple[dict[str, str], list[str]]:
+def _side(
+    found: Standing, beyond: int, comparative: str, opposite: str
+) -> tuple[dict[str, str], list[str]]:
     """What is said of a standing from one side: the clause, its parts, and the numbers in it.
 
     `beyond` is how many areas are strictly beyond this one on that side, and
-    `comparative` the word for being on it: "closer than".
+    `comparative` the word for being on it: "closer than". `opposite` is the
+    word for being on the other side, "further than", which is what is said
+    where every other area is beyond this one on that other side.
     """
     if found.others == 0:
         return {"standing": STANDINGS["alone"]}, []
+    if found.compared == 1 and beyond == 1:
+        # One area is compared, and this one is not it: an area that is not ranked is held
+        # against the areas that are. The one area is all of them, and "more than 100% of
+        # the 1 areas" was what was said. It is the only other area, from either side.
+        clause = STANDINGS["none_of_one"].format(comparative=comparative)
+        return {"standing": clause, "comparative": comparative}, [str(found.others)]
+    apart = found.others == found.compared > 1
+    if apart and found.level == 0 and beyond in (0, found.compared):
+        # It is not one of the areas compared, and every one of them stands on one side of
+        # it. It is said in the word of the side they are beyond it on, from either side.
+        word = comparative if beyond else opposite
+        clause = STANDINGS["every"].format(comparative=word, compared=found.compared)
+        return {"standing": clause, "comparative": comparative}, [str(found.compared)]
     pct = found.share(beyond)
     if pct == 0:
-        # Nothing is strictly beyond it, or under one area in a hundred is.
-        # What is true and worth saying is how many are level with it.
+        # Nothing is strictly beyond it, or under one area in a hundred is. A share of
+        # 0% would say nothing, so what is said is a count of areas: how many are level
+        # with it, and where none is, how many are beyond it.
         if beyond == 0 and found.level == 0:
-            clause = STANDINGS["none"].format(comparative=comparative, others=found.others)
+            which = "none_of_one" if found.others == 1 else "none"
+            clause = STANDINGS[which].format(comparative=opposite, others=found.others)
+            # The part is the word of this side, as it is of every clause said from it.
             return {"standing": clause, "comparative": comparative}, [str(found.others)]
+        if found.level == 0:
+            clause = STANDINGS["few"].format(
+                comparative=comparative, beyond=beyond, others=found.others
+            )
+            return {"standing": clause, "comparative": comparative}, [
+                str(beyond),
+                str(found.others),
+            ]
         every = found.level == found.others
         which = ("one_level" if found.others == 1 else "all_level") if every else "level"
         clause = STANDINGS[which].format(level=found.level, others=found.others)
@@ -398,7 +447,7 @@ def said(
     said from the other, of the areas that do strictly better. Each is the
     whole clause and its parts, for a client that lays them out for itself.
     """
-    up, down = (found.below, higher), (found.above, lower)
+    up, down = (found.below, higher, lower), (found.above, lower, higher)
     good, bad = (up, down) if better is Direction.MORE else (down, up)
     from_better, numbers = _side(found, *good)
     from_worse, more = _side(found, *bad)
@@ -1104,7 +1153,8 @@ def facts_for(release: Release, area_id: str, spec: PreferenceSpec | None) -> tu
     Without a spec it returns what a profile page needs, the areas most like
     this one among it. With one it returns what a ranking needs: the
     `travel`, `budget_fit` and `missing` facts for that spec, and each
-    figure said from the side that counts as better in that spec.
+    figure said from the side that counts as better in that spec. With the
+    spec of a visit it returns no `cost` and no `budget_fit`.
     """
     area = release.neighbourhood(area_id)
     if area is None:
@@ -1114,10 +1164,17 @@ def facts_for(release: Release, area_id: str, spec: PreferenceSpec | None) -> tu
         if problems:
             raise SpecError(problems)
     build = _Builder(release, area)
-    facts = [build.area_fact(), *build.features(spec), *build.tags(), *build.costs()]
+    facts = [build.area_fact(), *build.features(spec), *build.tags()]
+    # A visit holds no budget and no kind of home. So what a home costs is among none of
+    # its facts, nothing that is said of it can cite one, and the release is asked for none.
+    visiting = spec is not None and spec.visiting
+    if not visiting:
+        facts += build.costs()
     facts += build.stations()
     if spec is None:
         facts += build.likeness()
     else:
-        facts += [*build.travel(spec), *build.budget_fit(spec), *build.missing(spec)]
+        facts += [*build.travel(spec), *build.missing(spec)]
+        if not visiting:
+            facts += build.budget_fit(spec)
     return tuple(sorted(facts, key=lambda fact: fact.fact_id))

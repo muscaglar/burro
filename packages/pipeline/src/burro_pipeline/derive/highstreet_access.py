@@ -74,7 +74,7 @@ METHOD = Method(
 )
 METHODS: tuple[Method, ...] = (METHOD,)
 # What a person reads beside the figure: a straight line, to a town centre, and no walk.
-LABEL = "Straight-line distance to the nearest town centre boundary"
+LABEL = "Distance to the edge of the nearest town centre, in a straight line"
 # What the measure is, from whom, for what period, and what it is not.
 DEFINITION = (
     "The distance in a straight line, in metres, from the point the statistics office gives as "

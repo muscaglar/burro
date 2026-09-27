@@ -1,27 +1,54 @@
 """The app: `create_app(deps)` for tests and for the service alike.
 
-It holds one release in memory and no database. Nothing is kept for a search:
-the client holds the spec and sends it again to rank, to explain and to share.
+It holds one release in memory. Nothing is kept for a search: the client holds
+the spec and sends it again to rank, to explain and to share.
+
+Accounts are off until they are turned on. With them off no route of them is
+served and no file is opened, and the app is what it was before there were any.
+With them on, their one file is the only database there is, and a search still
+knows nobody: a person who has signed in keeps a search by pressing, through a
+route of accounts.
 """
+
+from collections.abc import Sequence
+from typing import Any
 
 from burro_core.explain import TemplateExplainer
 from burro_core.interpret import Interpreter, RuleInterpreter
 from burro_core.spec import SpecError
-from fastapi import Depends, FastAPI, Request
+from fastapi import APIRouter, Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from fastapi.routing import APIRoute
 from starlette.exceptions import HTTPException
 
+from burro_api.accounts.service import open_accounts
 from burro_api.boundary import ERROR_CODE, Boundary
 from burro_api.calls import InMemoryCallLog
 from burro_api.cap import Cap
 from burro_api.deps import Clock, Context, Deps, RandomIds, SystemClock, context_for
-from burro_api.errors import ApiError, error_response, from_validation, spec_refused
+from burro_api.errors import (
+    KNOWN_NAMES,
+    KNOWN_TO_ACCOUNTS,
+    ApiError,
+    error_response,
+    from_validation,
+    spec_refused,
+)
 from burro_api.loading import load_census, load_income, load_release
 from burro_api.providers.choose import Choice, by_rules, never_called
 from burro_api.reader import ModelInterpreter
-from burro_api.routes import areas, census, income, interpret, meta, places, rank, shares
+from burro_api.routes import (
+    accounts,
+    areas,
+    census,
+    income,
+    interpret,
+    meta,
+    places,
+    rank,
+    shares,
+)
 from burro_api.routes.common import NotModified
 from burro_api.settings import Settings
 from burro_api.stores import InMemoryShareStore
@@ -30,8 +57,10 @@ from burro_api.wire import ErrorCode, FieldProblem
 __all__ = ["Deps", "create_app", "deps_from"]
 
 TITLE = "Burro API"
-# The version of the contract the routes are built to, not of the code.
-CONTRACT_VERSION = "2"
+# The version of the contract the routes are built to, not of the code. It is 3 since a
+# search may be a visit: `defaults` of route 11 holds what a visit starts from, which is
+# required, so a record changed its shape (contract, section 9.2).
+CONTRACT_VERSION = "3"
 DESCRIPTION = (
     "Ranks named neighbourhoods for a preference spec and shows its working. "
     "Every response says whether the data behind it is synthetic, and whether the release "
@@ -53,10 +82,11 @@ def _operation_id(route: APIRoute) -> str:
 
 
 def identify(request: Request) -> None:
-    """The place for sign-in. Out of scope for this build: every caller is anonymous.
+    """The place for sign-in on a route of the search. It is empty: nobody is known there.
 
-    An identity read from a header goes here. No route needs one, and no spec
-    or share holds a user id.
+    A search knows nobody, signed in or not, and no spec or share holds the id of an
+    account. Who is signed in is known to the routes of accounts alone, which are served
+    only where accounts are turned on, and is decided by `accounts.gate`.
     """
 
 
@@ -82,10 +112,18 @@ def _refuse(
 
 
 def _install_handlers(app: FastAPI, context: Context) -> None:
+    of_accounts = frozenset(
+        route.path for route in accounts.router.routes if isinstance(route, APIRoute)
+    )
+
     def invalid(request: Request, error: Exception) -> JSONResponse:
         assert isinstance(error, RequestValidationError)
+        # The names of the fields of accounts are known to a route of accounts, and to
+        # no route of the search: with accounts off its answers are what they were.
+        asked_of = getattr(request.scope.get("route"), "path", None)
+        names = KNOWN_TO_ACCOUNTS if asked_of in of_accounts else KNOWN_NAMES
         # Only `loc` and `type` are read. What was sent is in the rest.
-        code, fields = from_validation(error.errors())
+        code, fields = from_validation(error.errors(), names)
         return _refuse(request, context, code, fields)
 
     def refused(request: Request, error: Exception) -> JSONResponse:
@@ -117,8 +155,7 @@ def _install_handlers(app: FastAPI, context: Context) -> None:
     app.add_exception_handler(HTTPException, unrouted)
 
 
-def create_app(deps: Deps) -> FastAPI:
-    context = context_for(deps)
+def _serving(routers: Sequence[APIRouter]) -> FastAPI:
     # The OpenAPI document is published as a file, `contracts/openapi.json`,
     # and not served: the routes of the service are the routes of the contract.
     app = FastAPI(
@@ -133,20 +170,44 @@ def create_app(deps: Deps) -> FastAPI:
         # with no envelope, and with the path, share id and all, in a header.
         redirect_slashes=False,
     )
-    app.state.context = context
-
     gates = [Depends(identify), Depends(admit)]
-    groups = (interpret, rank, areas, census, income, places, shares, meta)
-    routers = [group.router for group in groups]
     for router in routers:
         app.include_router(router, dependencies=gates)
     app.include_router(meta.health)
+    return app
+
+
+def create_app(deps: Deps) -> FastAPI:
+    context = context_for(deps, CONTRACT_VERSION)
+    groups = (interpret, rank, areas, census, income, places, shares, meta)
+    routers = [group.router for group in groups]
+    # With accounts off no route of them exists, and the service is what it was.
+    served = routers if deps.accounts is None else [*routers, accounts.router]
+    app = _serving(served)
+    app.state.context = context
+
+    def document() -> dict[str, Any]:
+        """The contract, which lists the routes of accounts whether or not they are served.
+
+        A client is made from it, and must be the same client wherever accounts are
+        turned on. It is made when it is asked for, which the service never does.
+        """
+        if app.openapi_schema is None:
+            app.openapi_schema = _serving([*routers, accounts.router]).openapi()
+        return app.openapi_schema
+
+    app.openapi = document
 
     _install_handlers(app, context)
     # The routes as they were declared. How the framework nests them once
     # they are included is its own business, and has changed between versions.
-    declared = [route for router in (*routers, meta.health) for route in router.routes]
-    app.add_middleware(Boundary, context=context, routes=declared)
+    declared = [route for router in (*served, meta.health) for route in router.routes]
+    sealed = frozenset(
+        route.path
+        for route in accounts.router.routes
+        if isinstance(route, APIRoute) and deps.accounts is not None
+    )
+    app.add_middleware(Boundary, context=context, routes=declared, sealed=sealed)
     return app
 
 
@@ -189,6 +250,12 @@ def deps_from(settings: Settings, choice: Choice | None = None) -> Deps:
     choice = _as_capped(settings, by_rules() if choice is None else choice)
     release = load_release(settings.release_dir)
     clock = SystemClock()
+    # The file of accounts is opened here, and only where accounts are turned on.
+    held = (
+        None
+        if settings.accounts is None
+        else open_accounts(settings.accounts, settings.host, settings.allowed_origins, clock.now)
+    )
     return Deps(
         release=release,
         census=load_census(settings.census_dir, release, settings.census_named),
@@ -203,4 +270,5 @@ def deps_from(settings: Settings, choice: Choice | None = None) -> Deps:
         model_id=choice.model,
         model_timeout_s=settings.model_timeout_s,
         allowed_origins=settings.allowed_origins,
+        accounts=held,
     )

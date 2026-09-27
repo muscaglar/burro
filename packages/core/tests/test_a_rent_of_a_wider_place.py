@@ -301,7 +301,7 @@ def test_a_rent_of_a_district_says_the_district_the_months_and_the_count():
         "of_name": "QH1",
         "of": "postcode district QH1",
         "name": "Alderwick",
-        "is_of": "This is of postcode district QH1, and not of Alderwick alone.",
+        "is_of": "These rents are for postcode district QH1, and not for Alderwick alone.",
         "confidence": "high",
         "half_let": "About half of the rents recorded there were under £1,600.",
         "caution": RENT_CAUTION,
@@ -312,9 +312,9 @@ def test_a_rent_of_a_district_says_the_district_the_months_and_the_count():
     }
     assert fact.names == ("QH1", "Alderwick")
     assert render(fact).text == (
-        "Rent for a 1-bedroom home: £1,350 to £1,910 a month, middle £1,600. This is of "
-        "postcode district QH1, and not of Alderwick alone. It rests on about 170 rents "
-        "recorded there from April 2025 to March 2026."
+        "A 1-bedroom home rents for £1,350 to £1,910 a month, and the middle rent is £1,600. "
+        "These rents are for postcode district QH1, and not for Alderwick alone. The range "
+        "rests on about 170 rents recorded there from April 2025 to March 2026."
     )
 
 
@@ -323,9 +323,9 @@ def test_a_rent_of_a_borough_says_that_it_is_of_the_whole_borough():
     assert fact.template is TemplateId.COST_RENT_RECORDED
     assert (fact.slots["of_kind"], fact.slots["of_name"]) == ("borough", QUILLHAVEN)
     assert render(fact).text == (
-        "Rent for a 1-bedroom home: £1,950 to £2,510 a month, middle £2,200. This is of "
-        "the whole borough of Quillhaven, and not of Eskerfold alone. It rests on about 520 "
-        "rents recorded there from April 2025 to March 2026."
+        "A 1-bedroom home rents for £1,950 to £2,510 a month, and the middle rent is £2,200. "
+        "These rents are for the whole borough of Quillhaven, and not for Eskerfold alone. "
+        "The range rests on about 520 rents recorded there from April 2025 to March 2026."
     )
 
 
@@ -334,7 +334,7 @@ def test_no_sentence_of_a_rent_of_a_place_is_without_the_place_the_months_and_th
         assert "{of}" in TEMPLATES[template]
     told = TEMPLATES[TemplateId.COST_RENT_RECORDED]
     assert "{is_of}" in told and "{rents}" in told and "{period}" in told
-    assert IS_OF == "This is of {of}, and not of {name} alone."
+    assert IS_OF == "These rents are for {of}, and not for {name} alone."
     # It prints no word for how sure a figure is: it says how many rents it rests on.
     assert "{confidence}" not in told
 
@@ -378,11 +378,22 @@ def test_the_fact_of_a_budget_holds_what_the_page_shows_beside_it():
 
 def test_the_caution_is_in_plain_words_and_quotes_no_figure():
     assert RENT_CAUTION == (
-        "These rents are a sample that was not drawn at random. Their publisher advises "
-        "against comparing one area with another on them. Burro uses them as a rough guide "
-        "to what a home lets for."
+        "These rents come from a sample that was not drawn at random, and their publisher "
+        "advises against using them to compare one area with another. Because of that, Burro "
+        "uses them to give a general idea of what a home lets for."
     )
     assert re.search(r"[0-9£%]", RENT_CAUTION) is None
+    # It says the three things it said: how the rents were sampled, what their publisher
+    # advises, and what Burro makes of them.
+    for said in ("not drawn at random", "publisher advises against", "a general idea"):
+        assert said in RENT_CAUTION
+    # Burro holds a budget against these rents, and a firm one leaves areas out on them. So
+    # it says that it uses them, as was decided, and not that they are only a guide to it.
+    assert "Burro uses them to give a general idea" in RENT_CAUTION
+    assert "only" not in RENT_CAUTION.split()
+    # The founder: "remove the concept of rough guide, we don't want to pass this on to a
+    # user". It was said of a vibe, and these were the last words served that said it.
+    assert "rough" not in RENT_CAUTION
 
 
 def test_a_rent_of_the_area_alone_is_said_as_it_was():

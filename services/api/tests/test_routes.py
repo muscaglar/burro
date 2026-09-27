@@ -11,7 +11,7 @@ from typing import Any, cast
 import pytest
 from burro_api.app import deps_from
 from burro_api.deps import Deps
-from burro_api.providers.choose import BY_RULES, told_of
+from burro_api.providers.choose import told_of
 from burro_api.providers.terms import (
     RULES_NOTICE,
     SETTINGS,
@@ -21,7 +21,7 @@ from burro_api.providers.terms import (
     Question,
 )
 from burro_api.reader import ModelInterpreter
-from burro_api.routes.common import default_for, told_tag
+from burro_api.routes.common import default_for
 from burro_api.settings import Settings
 from burro_api.stores import InMemoryShareStore
 from burro_api.wire import BODIES, CompareStatus
@@ -51,6 +51,7 @@ from burro_core.ids import (
     UnrankedReason,
 )
 from burro_core.interpret import (
+    NOT_SAID_TO_BE_WANTED,
     InterpretRequest,
     InterpretResult,
     RuleInterpreter,
@@ -84,16 +85,25 @@ from .support import (
 
 GETS = ("/v1/areas", "/v1/areas/geometry", "/v1/areas/syn-n0001", "/v1/meta")
 OF_THE_RELEASE = GETS
-LOADED = '"syn-2026-09-23-01"'
-# Route 11 says who reads what is typed, which is no part of the release. Its tag names
-# the release and what is told, so that an answer which tells of another reader is never kept.
+# A tag names the release and eight characters of what made the answer: the release as it
+# was loaded, the engine and the contract. Route 11 says who reads what is typed as well,
+# which is no part of the release, and its eight characters change with what is told, so
+# that an answer which tells of another reader is never kept.
 META = "/v1/meta"
-META_BY_RULES = f'"syn-2026-09-23-01.{told_tag(BY_RULES)}"'
+A_TAG = r'"syn-2026-09-23-01\.[0-9a-f]{8}"'
+
+
+@cache
+def _given() -> dict[str, str]:
+    """The tag the service gives for each route that may be kept, where the rules read."""
+    client = client_for(make_deps())
+    return {path: client.get(path).headers["etag"] for path in GETS}
 
 
 def tag_of(path: str) -> str:
     """The tag a browser is given for a route, where the rules read what is typed."""
-    return META_BY_RULES if path == META else LOADED
+    assert re.fullmatch(A_TAG, _given()[path])
+    return _given()[path]
 
 
 @pytest.fixture
@@ -335,7 +345,7 @@ def test_a_browser_that_holds_anything_else_is_answered_in_full(client: TestClie
 
 def test_an_answer_that_stands_is_as_readable_from_the_web_app_as_any_other():
     client = client_for(make_deps(allowed_origins=LISTED))
-    held = {"if-none-match": META_BY_RULES}
+    held = {"if-none-match": tag_of(META)}
 
     allowed = client.get("/v1/meta", headers=held | {"origin": LISTED[0]})
     elsewhere = client.get("/v1/meta", headers=held | {"origin": "https://elsewhere.example"})
@@ -353,7 +363,7 @@ def test_an_answer_that_stands_is_as_readable_from_the_web_app_as_any_other():
 
 
 def test_only_an_answer_that_would_be_given_is_said_to_stand(client: TestClient):
-    asked = {"if-none-match": LOADED}
+    asked = {"if-none-match": tag_of("/v1/areas")}
     made = data(client.post("/v1/shares", json={"spec": wire(searching())}))
 
     nowhere = client.get("/v1/areas/nowhere", headers=asked)
@@ -715,7 +725,7 @@ def test_a_wish_for_safety_never_weights_crime_without_being_asked(client: TestC
         ("feature:crime_burglary_theft", "Less recorded burglary and theft"),
     ]
     for offered in found["suggestions"]:
-        assert offered["note"].startswith("Burro cannot say how safe a place is.")
+        assert offered["note"].startswith("Burro cannot tell you how safe a place is.")
         assert "Recorded crime depends on what is reported" in offered["note"]
     # To press one is to ask for it by name, and then it counts.
     pressed = found["suggestions"][0]["choices"][0]["operations"]
@@ -747,6 +757,83 @@ def test_a_plain_prompt_about_money_and_work_is_read_in_full(client: TestClient)
     assert found["places"] == [THE_WORKS]
 
 
+@pytest.mark.parametrize(
+    ("text", "held", "label", "words", "note"),
+    [
+        (
+            "I want to buy a 2 bed flat for 400k",
+            ("buy", 400_000, "flat"),
+            "A 2-bedroom home",
+            "a 2 bed",
+            "Burro knows what homes sell for by kind of home, such as a flat or a terraced "
+            "house, and not by the number of bedrooms.",
+        ),
+        (
+            "renting a terraced house up to \N{POUND SIGN}2,000 a month",
+            ("rent", 2_000, "bed_1"),
+            "A terraced house",
+            "a terraced house",
+            "Burro knows what homes rent for by the number of bedrooms, and not by kind of home.",
+        ),
+    ],
+)
+def test_what_a_home_cannot_hold_is_said_in_a_prompt_that_is_applied(
+    client: TestClient, text: str, held: tuple[str, int, str], label: str, words: str, note: str
+):
+    """It was in no list: not applied, not offered, not said to be unread."""
+    found = data(client.post("/v1/interpret", json={"text": text}))
+
+    # The prompt is applied as it was, and its status says nothing of what is said beside it.
+    assert (found["status"], found["unmet"], found["unread"]) == ("ok", [], [])
+    assert [edit["changed"] for edit in found["applied"]] == [True]
+    budget = found["spec"]["budget"]
+    assert (found["spec"]["tenure"], budget["amount"], budget["segment"]) == held
+    # What the search cannot hold is said in the words of an offer, with nothing to press.
+    [said] = found["suggestions"]
+    assert (said["target"], said["label"], said["note"]) == ("budget", label, note)
+    assert said["does"] == "Burro could not use these words in your search."
+    assert [text[span["start"] : span["end"]] for span in said["spans"]] == [words]
+    assert [(way["direction"], way["operations"]) for way in said["choices"]] == [
+        ("ignore", NO_EDITS)
+    ]
+    assert (said["add_all"], said["read_by"], found["model_pending"]) == ("", "rule", False)
+    # It rests on no word that an edit rests on.
+    taken = [(rests["start"], rests["end"]) for rests in found["rests_on"]]
+    assert not [
+        span
+        for span in said["spans"]
+        if any(span["start"] < end and start < span["end"] for start, end in taken)
+    ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "I can pay up to \N{POUND SIGN}1,300 for a studio or a one bed",
+        "I can pay up to \N{POUND SIGN}1,300 for a studio or a one bed, I think",
+    ],
+)
+def test_of_two_sizes_of_home_neither_is_taken_and_one_press_takes_nothing_of_their_clause(
+    client: TestClient, text: str
+):
+    """The one bed was applied, and the studio was in no list."""
+    found = data(client.post("/v1/interpret", json={"text": text}))
+
+    assert (found["status"], found["operations"]) == ("suggest", NO_EDITS)
+    budget, studio, one_bed = found["suggestions"]
+    # Nobody can say which size is meant, so each is offered and waits on the person.
+    assert [(size["label"], size["add_all"]) for size in (studio, one_bed)] == [
+        ("A studio", ""),
+        ("A 1-bedroom home", ""),
+    ]
+    # The rules would not apply the clause, were it all that was typed. So one press takes
+    # no more of it than they do: the budget is offered as it was said, with no guess.
+    assert (budget["label"], budget["add_all"]) == ("A budget of \N{POUND SIGN}1,300", "")
+    [firm, _] = budget["choices"]
+    assert firm["operations"]["budget_ops"][0]["strictness"] == "hard"
+    assert not [way for offer in found["suggestions"] for way in offer["choices"] if way["guess"]]
+
+
 def test_a_prompt_that_is_not_plain_applies_nothing_and_offers_what_was_noticed(
     client: TestClient,
 ):
@@ -768,7 +855,7 @@ def test_a_prompt_that_is_not_plain_applies_nothing_and_offers_what_was_noticed(
         ("ignore", "Skip"),
     ]
     # The rules never guess which way a thing was meant.
-    assert pubs["does"] == "Pubs and bars: more, or fewer?"
+    assert pubs["does"] == "Pubs and bars: do you want more, or fewer?"
     assert not any(c["guess"] for offer in found["suggestions"] for c in offer["choices"])
     assert (noise["target"], noise["label"]) == ("feature:noise_exposure", "Less transport noise")
     assert [c["direction"] for c in noise["choices"]] == ["less", "ignore"]
@@ -847,10 +934,13 @@ def test_every_choice_that_is_offered_is_an_edit_that_route_2_applies(client: Te
 @pytest.mark.parametrize(
     ("text", "note"),
     [
-        ("somewhere safe", "Burro cannot say how safe a place is."),
+        ("somewhere safe", "Burro cannot tell you how safe a place is."),
         ("near a leisure centre", "Burro cannot tell a swimming pool or a leisure centre"),
-        ("a sense of community", "Burro cannot measure whether neighbours know each other."),
-        ("I want a big garden", "Burro cannot see whether one home has a garden."),
+        (
+            "a sense of community",
+            "Burro has no way of measuring whether neighbours know each other.",
+        ),
+        ("I want a big garden", "Burro cannot see whether one home has a garden, but"),
         # The name the scale had. It names no end, so it is offered with both.
         ("street character", "Gritty counts recorded criminal damage"),
     ],
@@ -862,9 +952,12 @@ def test_what_burro_cannot_do_is_said_beside_what_it_offers_in_its_place(
 
     assert (found["status"], found["operations"]) == ("suggest", NO_EDITS)
     assert found["suggestions"] and all(s["note"].startswith(note) for s in found["suggestions"])
-    # Most things that are noticed need nothing said of them.
+    # Most things that are noticed need nothing said of them. A nuisance that is only
+    # named is one a person may like, and says that it waits for them.
     plain = data(client.post("/v1/interpret", json={"text": "Pubs are so noisy"}))
-    assert [s["note"] for s in plain["suggestions"]] == ["", ""]
+    assert [s["note"] for s in plain["suggestions"]] == ["", NOT_SAID_TO_BE_WANTED]
+    wanted = data(client.post("/v1/interpret", json={"text": "Honestly, pubs and a park"}))
+    assert [s["note"] for s in wanted["suggestions"]] == ["", ""]
 
 
 @pytest.mark.parametrize(
@@ -1783,7 +1876,10 @@ def test_a_band_that_rests_on_part_of_its_recipe_says_how_much_wherever_it_is_sa
     found = data(client.post("/v1/explanations", json={"spec": wire(renter(tags=(on_foot,)))}))
 
     facts = {fact["fact_id"]: fact for fact in found["facts"]}
-    clause = "Worked out from 3 of its 5 parts, 70 of 100 by weight."
+    clause = (
+        "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they "
+        "count for 70 of 100 in it."
+    )
     said = 0
     for explanation in found["explanations"]:
         for sentence in explanation["reasons"]:
@@ -1821,8 +1917,9 @@ def test_a_vibe_that_is_a_reason_is_said_in_short_and_its_fact_holds_the_rest(
             if fact["kind"] != "tag":
                 continue
             # A result says in a few lines why this place: the band, and no more.
-            assert sentence["text"].endswith("compared in this release.")
-            assert "Parts dated" not in sentence["text"]
+            assert sentence["text"].endswith("where the bands run from least to most.")
+            assert " Burro compared" in sentence["text"]
+            assert "are dated" not in sentence["text"]
             assert "judgement" not in sentence["text"]
             # What was left out is served with the sentence, to be shown with its source.
             assert fact["slots"]["judgement"] == JUDGEMENT
@@ -2577,7 +2674,7 @@ def test_meta_gives_a_form_everything_it_needs(client: TestClient):
     assert [f["feature_id"] for f in found["features"]] == carried
     assert len(carried) == 110 and set(carried) < set(FeatureId)
     assert {t["tag_id"]: len(t["terms"]) for t in found["tags"]}["village_feel"] == 4
-    assert found["catalogue_version"] == 15 and found["preview"] is False
+    assert found["catalogue_version"] == 17 and found["preview"] is False
     assert found["limits"]["cutoff_minutes"] == {"pt": 90, "cycle": 60, "walk": 60}
     assert found["limits"]["rent"] == {"minimum": 300, "maximum": 20000, "unit": 25}
     assert found["limits"]["max_text"] == 600
@@ -2664,7 +2761,7 @@ def test_an_answer_that_tells_of_another_reader_is_never_said_to_stand():
 
     # One release, and a tag for each thing people can be told.
     assert len(set(tags.values())) == len(tellings)
-    assert all(re.fullmatch(r'"syn-2026-09-23-01\.[0-9a-f]{8}"', tag) for tag in tags.values())
+    assert all(re.fullmatch(A_TAG, tag) for tag in tags.values())
     for name, deps in tellings.items():
         client = client_for(deps)
         for held_by, tag in tags.items():
@@ -2673,9 +2770,10 @@ def test_an_answer_that_tells_of_another_reader_is_never_said_to_stand():
             assert answered.status_code == (304 if held_by == name else 200), (name, held_by)
             assert answered.headers["etag"] == tags[name]
         # The release alone is no longer enough to say that route 11 stands.
-        assert client.get(META, headers={"if-none-match": LOADED}).status_code == 200
+        loaded = tag_of("/v1/areas")
+        assert client.get(META, headers={"if-none-match": loaded}).status_code == 200
         # The routes that are of the release alone are tagged as they were.
-        assert client.get("/v1/areas").headers["etag"] == LOADED
+        assert client.get("/v1/areas").headers["etag"] == loaded
 
 
 def test_meta_gives_the_vibes_the_release_carries_with_all_a_shelf_needs(client: TestClient):
@@ -2701,7 +2799,9 @@ def test_meta_gives_the_vibes_the_release_carries_with_all_a_shelf_needs(client:
     # Gritty carries it. The two vibes that count who lived there come last.
     assert [tag["shelf_order"] for tag in found["tags"]] == [*range(1, 11), 12, 13, 14, 15]
     for tag in found["tags"]:
-        assert tag["cannot_see"][0] == "One street or one home. An area is many streets."
+        assert tag["cannot_see"][0] == (
+            "What one street or one home is like, because an area is made up of many streets."
+        )
         assert len(tag["cannot_see"]) > 1 and tag["meaning"]
         scale = tag["shape"] == "scale"
         assert (tag["low_end"] is not None) is (tag["high_end"] is not None) is scale
@@ -2715,10 +2815,10 @@ def test_meta_gives_the_vibes_the_release_carries_with_all_a_shelf_needs(client:
     }
     assert found["families"] == [
         {"family": "streets_homes", "label": "Streets and homes"},
-        {"family": "pace_food", "label": "Pace and food"},
-        {"family": "green", "label": "Green"},
+        {"family": "pace_food", "label": "Going out and food"},
+        {"family": "green", "label": "Parks, gardens and water"},
         {"family": "daily_life", "label": "Daily life"},
-        {"family": "who_lives_there", "label": "Who lives there, at the 2021 census"},
+        {"family": "who_lives_there", "label": "Who lived there, at the census of 2021"},
     ]
     assert found["limits"]["reason_min_utility"] == REASON_MIN_UTILITY == 0.5
     assert found["limits"]["trade_off_max_utility"] == TRADE_OFF_MAX_UTILITY == 0.35

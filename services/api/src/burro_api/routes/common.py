@@ -70,14 +70,20 @@ def told_tag(told: Told) -> str:
 
 
 def release_headers(context: Context, told: Told | None = None) -> dict[str, str]:
-    """The headers of an answer that may be kept: the tag names the release that made it.
+    """The headers of an answer that may be kept: the tag names what made the answer.
 
-    Where the answer also says who reads what is typed, the tag names that
-    too. An answer that tells of one reader is then never said to stand once
-    the service is set to another.
+    It is the id of the release, a full stop, and eight characters that
+    change with the release as it was loaded, with the engine and with the
+    contract: an answer that another engine made, or that was made of a
+    release built again under its id, is never said to stand. Where the
+    answer also says who reads what is typed, the eight change with that too.
+    An answer that tells of one reader is then never said to stand once the
+    service is set to another.
     """
-    tag = context.meta.release_id if told is None else f"{context.meta.release_id}.{told_tag(told)}"
-    return {"Cache-Control": ASK_EACH_TIME, "ETag": f'"{tag}"'}
+    made = context.made
+    if told is not None:
+        made = f"{zlib.crc32(f'{made}.{told_tag(told)}'.encode()):08x}"
+    return {"Cache-Control": ASK_EACH_TIME, "ETag": f'"{context.meta.release_id}.{made}"'}
 
 
 def of_the_release(
@@ -87,8 +93,9 @@ def of_the_release(
 
     The address of such a route does not name the release. So a browser asks
     each time, and is told that what it holds still stands while the release
-    does. What it sent is compared and never sent back. `told` is given by
-    the one route that says who reads what is typed.
+    does, and while the service is what it was that made the answer. What it
+    sent is compared and never sent back. `told` is given by the one route
+    that says who reads what is typed.
     """
     headers = release_headers(context, told)
     held = request.headers.get("if-none-match", "").split(",")

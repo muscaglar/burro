@@ -56,6 +56,11 @@ LOGGABLE = frozenset(
         "exception",
         "causes",
         "frames",
+        # What happened to do with accounts, and how it ended: each a word of a closed
+        # list, `accounts.events`. Never an address, a token, a session, an account,
+        # the address of a client or a spec.
+        "happened",
+        "outcome",
     }
 )
 

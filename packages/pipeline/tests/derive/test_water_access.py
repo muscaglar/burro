@@ -543,8 +543,8 @@ def test_the_row_of_the_catalogue_counts_homes_and_core_says_the_same(town: Acce
         town.metric.label
         == core.label
         == (
-            "Share of homes within 300 m, in a straight line, of the centre line of a river, "
-            "canal or lake"
+            "Homes within 300 m of the centre line of a river, canal or lake, in a straight "
+            "line, as a share of all homes"
         )
     )
     assert measures.says_what_core_says(town.metric)

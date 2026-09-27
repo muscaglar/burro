@@ -157,12 +157,22 @@ def test_one_small_area_is_said_as_one():
     found["areas"][0]["output_areas"] = 1
     one = panel(parse_census(found, RELEASE_ID, True, AREAS), AREAS[0], NAME)
     assert one is not None
-    assert one.notes[2].startswith(f"{NAME} is drawn by Burro from 1 made-up small area.")
+    # The whole of the note is said of one as of many: "and adds up the made-up counts
+    # for them" was said of an area that is drawn from one small area.
+    assert one.notes[2] == (
+        f"Burro draws {NAME} from 1 made-up small area, and the figures are made-up counts, "
+        "which Burro has added up."
+    )
+    for words in (CENSUS_2021, MADE_UP):
+        # The sentence that counts the small areas speaks of them as no "them".
+        counts_them = words.notes[2].split(". ")[0]
+        assert "{areas}" in counts_them
+        assert not re.search(r"\b(?:them|they|these|those)\b", counts_them)
     assert one.derivation_line.startswith(
         f"Added up by Burro over the 1 made-up small area of {NAME}."
     )
     many = shown()
-    assert many.notes[2].startswith(f"{NAME} is drawn by Burro from 12 made-up small areas.")
+    assert many.notes[2].startswith(f"Burro draws {NAME} from 12 made-up small areas, and")
     assert "over the 12 made-up small areas of" in many.derivation_line
 
 
@@ -243,7 +253,7 @@ def test_a_table_is_left_out_where_too_few_were_counted_and_says_so():
     )
     group = table_of(found, CensusKind.ETHNIC_GROUP)
     assert (group.reason, group.rows) == (CensusLeftOut.NOT_HELD, ())
-    assert group.left_out is not None and "holds no figures" in group.left_out
+    assert group.left_out == f"Ethnic group, made up. The made-up count has no figures for {NAME}."
     # A table that is left out gives no figure anywhere: not in its caption either.
     for table in found.tables:
         assert not re.search(r"\d", table.caption)
@@ -291,7 +301,33 @@ def test_the_real_census_says_its_day_and_that_it_was_taken_in_a_lockdown():
     assert "taken on {day}" in CENSUS_2021.date_line
     assert "Census 2021" in CENSUS_2021.heading and "Census 2021" in CENSUS_2021.caption
     assert CENSUS_2021.notes[0].startswith("The census was taken during a lockdown.")
-    assert "An area can change." in CENSUS_2021.notes[1]
+    # It says that an area can change, and so that the figures are of that day and not of today.
+    assert CENSUS_2021.notes[1] == (
+        "An area can change, so these figures describe it on that day, and not as it is today."
+    )
+    assert MADE_UP.notes[1] == CENSUS_2021.notes[1]
+
+
+def test_the_notes_say_what_they_said_in_sentences_that_are_joined():
+    """The words round the census were written for ADR 0014. Each says what it said."""
+    for words in (CENSUS_2021, MADE_UP):
+        # Beside a figure is the whole city's, and nothing else, and no word on what it means.
+        assert words.notes[-1] == (
+            "Beside each figure you will see the figure for {city} as a whole, and nothing "
+            "else. Burro does not say what any figure means."
+        )
+        # A table that is shown and never ranked on says so, and says the three things
+        # that are never done with it.
+        assert words.shown_only == (
+            "Burro shows this table here and nowhere else. It never ranks, filters or "
+            "compares areas by it."
+        )
+    # The areas it is drawn from, whose counts they are, and that no official table matches.
+    assert CENSUS_2021.notes[2] == (
+        "Burro draws {name} from {areas}, and the figures are the statistics office's counts, "
+        "which Burro has added up. No official table uses this boundary, so none will match "
+        "these figures exactly."
+    )
 
 
 def test_the_publishers_sentence_about_the_day_stands_under_the_tables_it_bears_on():

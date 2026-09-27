@@ -151,7 +151,10 @@ def test_a_vibe_on_part_of_its_recipe_says_how_much_and_any_other_says_it_cannot
     assert len(vibes) == 14
     homes = vibes.pop(f"{AREA}/tag/homes")
     assert homes["template"] == "vibe"
-    assert homes["slots"]["partly"] == "Worked out from 2 of its 3 parts, 75 of 100 by weight."
+    assert homes["slots"]["partly"] == (
+        "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they "
+        "count for 75 of 100 in it."
+    )
     # It cites what its two parts cite, and is dated as they are: never the day it was built.
     assert homes["sources"] and homes["as_of"] == homes["slots"]["span"]
     for fact in vibes.values():
@@ -194,7 +197,8 @@ def test_every_answer_of_a_preview_says_that_it_is_one(client: TestClient):
         }
     assert client.get("/healthz").headers["x-burro-preview"] == "true"
     # An answer that stands has no body, and says so in its header.
-    stands = client.get("/v1/areas", headers={"if-none-match": '"syn-2026-09-23-01"'})
+    held = client.get("/v1/areas").headers["etag"]
+    stands = client.get("/v1/areas", headers={"if-none-match": held})
     assert (stands.status_code, stands.headers["x-burro-preview"]) == (304, "true")
 
 

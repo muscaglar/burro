@@ -107,7 +107,20 @@ from burro_core.ids import (
 # is a nuisance, as main roads are, and a person may rank on it. A street with no count
 # point near it has no figure, which is not a figure of nought. Quiet streets holds it at
 # 20 in 100, which it took from main roads, and no other recipe moved.
-CATALOGUE_VERSION = 15
+# 16 says what a vibe means and what it cannot see in words for a person who has never seen
+# Burro. Each line of what a vibe cannot see is a thing the vibe cannot tell a person, and
+# says what it is a thing of: "What a building is like inside", where it said "Its inside".
+# The line every vibe says first is one sentence. It names a measure so too: what is
+# measured stands first, and what qualifies it after, "Distance to the nearest station
+# entrance, in a straight line". A name keeps every claim it made: that a distance is a
+# straight line, that a figure is modelled, what it is a share of, and whose sorting of the
+# chains a tier is. A hectare and a square kilometre are written out. No id, end, recipe
+# or figure moved.
+# 17 says what Burro does where no traffic is counted near a street, in one line of what
+# Quiet streets cannot see: it works the vibe out from its other measurements, where the
+# line said that the area "is placed on" them, which is a word of the design. No id, end,
+# recipe, name or figure moved.
+CATALOGUE_VERSION = 17
 
 # Below this share of a tag's formula, by weight, the tag is unknown for the area.
 TAG_MIN_COVERAGE_HUNDREDTHS = 60
@@ -122,14 +135,19 @@ PART_MAX_WHERE_RESIDENTS_COUNT = 40
 CENSUS_SAID = "Census 2021"
 BANDS = 5
 
-# The groups of the settings, in the order they are shown.
+# The groups of the settings, in the order they are shown. Each is named for what a person
+# finds in it. The vibe that was Pace is named Going out since 2026-09-24, and its group is
+# named with it. The group of parks, gardens, woodland and water is named for them, and
+# never green space: one of its sources maps public parks and gardens alone, and asks that
+# they are not described as all green space. The last says who lived there, and names the
+# census as every sentence of core names it: a census is of the day it was taken.
 FAMILIES: Mapping[Family, str] = MappingProxyType(
     {
         Family.STREETS_HOMES: "Streets and homes",
-        Family.PACE_FOOD: "Pace and food",
-        Family.GREEN: "Green",
+        Family.PACE_FOOD: "Going out and food",
+        Family.GREEN: "Parks, gardens and water",
         Family.DAILY_LIFE: "Daily life",
-        Family.WHO_LIVES_THERE: "Who lives there, at the 2021 census",
+        Family.WHO_LIVES_THERE: "Who lived there, at the census of 2021",
     }
 )
 # Words a person types that are part place and part judgement. Each is read as
@@ -210,7 +228,7 @@ _PER_1000_HOMES = "per 1,000 homes"
 # What was recorded is counted from points, over the homes of the area: a release holds
 # no count of residents.
 _PER_1000_HOMES_A_YEAR = "per 1,000 homes a year"
-_PER_KM2 = "per km²"
+_PER_KM2 = "per square kilometre"
 # The unit of a flow of traffic: every vehicle but a pedal cycle, on an average day of a
 # year. A figure of it is printed whole, with a separator, as metres and pounds are.
 MOTOR_VEHICLES_A_DAY = "motor vehicles a day"
@@ -441,7 +459,9 @@ _CHAINS = (
 )
 CHAINS: Mapping[FeatureId, Chain] = MappingProxyType({c.feature_id: c for c in _CHAINS})
 
-_BY_THE_TABLE = "by Burro's table of tiers"
+# Which chain is of which tier is Burro's own judgement (ADR 0026), and the name of every
+# measure of a tier says whose sorting it is.
+_BY_THE_TABLE = "as Burro sorts the chains"
 
 
 def _tiered(kind: str, tier: str) -> tuple[Feature, Feature]:
@@ -465,8 +485,8 @@ def _tiered(kind: str, tier: str) -> tuple[Feature, Feature]:
         _feature(
             of_a_tier(kind, tier, DISTANCE),
             _D.BRANDS,
-            f"Straight-line distance to the nearest {said} {one} within "
-            f"{NEAREST_WITHIN_M:,} m of home, {_BY_THE_TABLE}",
+            f"Distance to the nearest {said} {one} within {NEAREST_WITHIN_M:,} m of home, "
+            f"in a straight line, {_BY_THE_TABLE}",
             f"Nearer a {said} {one}",
             "m",
             _LESS,
@@ -489,8 +509,8 @@ _OF_THE_TIERS = (*(pair[0] for pair in _PAIRS), *(pair[1] for pair in _PAIRS))
 _THE_MIX = _feature(
     _F.BRAND_MIX,
     _D.BRANDS,
-    f"Share of the chain grocers, gyms and coffee places within {WITHIN_M} m of home that "
-    f"are premium, with a mid-range one counted as half, {_BY_THE_TABLE}",
+    f"Premium chains as a share of the chain grocers, gyms and coffee places within "
+    f"{WITHIN_M} m of home, with a mid-range chain counted as half, {_BY_THE_TABLE}",
     "Mix of brands",
     "%",
     _EITHER,
@@ -506,8 +526,8 @@ _OF_THE_CHAINS = tuple(
     _feature(
         chain.feature_id,
         _D.BRANDS,
-        f"Straight-line distance to the nearest {chain.nearest} within "
-        f"{NEAREST_WITHIN_M:,} m of home",
+        f"Distance to the nearest {chain.nearest} within {NEAREST_WITHIN_M:,} m of home, "
+        "in a straight line",
         f"Nearer {chain.one}",
         "m",
         _LESS,
@@ -561,7 +581,7 @@ _FEATURES = (
     _feature(
         _F.SCHOOL_PRIMARY_ATTAINMENT,
         _D.SCHOOLS,
-        "Pupils meeting the expected standard at nearby primaries",
+        "Pupils meeting the expected standard at nearby primary schools",
         "Higher primary school results",
         "%",
         _MORE,
@@ -573,7 +593,7 @@ _FEATURES = (
     _feature(
         _F.SCHOOL_SECONDARY_ATTAINMENT,
         _D.SCHOOLS,
-        "Attainment 8 at nearby secondaries",
+        "Average Attainment 8 score at nearby secondary schools",
         "Higher secondary school results",
         "points",
         _MORE,
@@ -613,7 +633,8 @@ _FEATURES = (
         _D.GREEN_WATER,
         # No network of streets is built, so the distance is a straight line and the name
         # says so. It is measured to a way in that the publisher marks, from a point.
-        "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+        "Distance to the nearest marked entrance to a park of 2 hectares or more, in a "
+        "straight line",
         "Nearer a park",
         "m",
         _LESS,
@@ -625,7 +646,7 @@ _FEATURES = (
     _feature(
         _F.PLAY_SPACE_PROXIMITY,
         _D.GREEN_WATER,
-        "Straight-line distance to the nearest marked way into a play space",
+        "Distance to the nearest marked entrance to a play space, in a straight line",
         "Nearer a play space",
         "m",
         _LESS,
@@ -639,8 +660,8 @@ _FEATURES = (
         _D.GREEN_WATER,
         # The figure is a share of homes, and it is measured to the line its file draws
         # along the middle of the water, and not to the bank. The file draws a lake too.
-        "Share of homes within 300 m, in a straight line, of the centre line of a river, "
-        "canal or lake",
+        "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, "
+        "as a share of all homes",
         "Nearer a river or canal",
         "%",
         _MORE,
@@ -652,7 +673,7 @@ _FEATURES = (
     _feature(
         _F.AIR_NO2,
         _D.AIR_NOISE,
-        "Modelled annual mean nitrogen dioxide",
+        "Nitrogen dioxide in the air, as a modelled average over a year",
         "Cleaner air",
         "µg/m³",
         _LESS,
@@ -741,7 +762,7 @@ _FEATURES = (
         _D.VENUES_CULTURE,
         # The outlines are of town centres, and a town centre is not a high street: no
         # name of the measure says one. The id is kept, as an id always is.
-        "Straight-line distance to the nearest town centre boundary",
+        "Distance to the edge of the nearest town centre, in a straight line",
         "Nearer a town centre",
         "m",
         _LESS,
@@ -779,7 +800,7 @@ _FEATURES = (
         _D.HOMES,
         "Homes per hectare",
         "Homes close together",
-        "per ha",
+        "per hectare",
         _EITHER,
         _N.LSOA,
         "denser",
@@ -789,7 +810,7 @@ _FEATURES = (
     _feature(
         _F.CONSERVATION_COVER,
         _D.HOMES,
-        "Share of the area in a conservation area",
+        "Land in a conservation area, as a share of the area",
         "More protected streets",
         "%",
         _MORE,
@@ -801,7 +822,7 @@ _FEATURES = (
     _feature(
         _F.STATION_WALK,
         _D.STATION_ACCESS,
-        "Straight-line distance to the nearest way in to a station",
+        "Distance to the nearest station entrance, in a straight line",
         "Nearer a station",
         "m",
         _LESS,
@@ -828,8 +849,8 @@ _FEATURES = (
         # A share of the places within reach, and not a count of them: a count says how
         # much is about, and the share says what kind of place it is. It is measured in a
         # straight line, and a place is independent where its file names no chain for it.
-        "Share of the places to eat and drink within 800 m of home, in a straight line, "
-        "that belong to no chain",
+        "Places to eat and drink that belong to no chain, as a share of those within 800 m "
+        "of home, in a straight line",
         "More independent places nearby",
         "%",
         _MORE,
@@ -889,7 +910,7 @@ _FEATURES = (
     _feature(
         _F.ROAD_MAJOR_EXPOSURE,
         _D.AIR_NOISE,
-        "Share of homes within 100 m of a main road",
+        "Homes within 100 m of a main road, as a share of all homes",
         "Away from main roads",
         "%",
         _LESS,
@@ -903,7 +924,8 @@ _FEATURES = (
         _D.AIR_NOISE,
         # A cluster is three or more, and the file of places cannot say how late one is
         # open. So the name says pubs and bars, and says how many.
-        "Share of homes with three or more pubs or bars within 150 m, in a straight line",
+        "Homes with three or more pubs or bars within 150 m, in a straight line, as a share "
+        "of all homes",
         "Away from clusters of pubs and bars",
         "%",
         _LESS,
@@ -946,7 +968,7 @@ _FEATURES = (
         _EITHER,
         _N.LSOA,
         "more",
-        "fewer",
+        "less",
         _K.TASTE,
     ),
     _feature(
@@ -977,7 +999,8 @@ _FEATURES = (
         _F.PARK_LARGE_PROXIMITY,
         _D.GREEN_WATER,
         # A straight line, as the distance to any park is.
-        "Straight-line distance to the nearest marked way into a park of 20 ha or more",
+        "Distance to the nearest marked entrance to a park of 20 hectares or more, in a "
+        "straight line",
         "Nearer a large park",
         "m",
         _LESS,
@@ -1004,7 +1027,7 @@ _FEATURES = (
         # A straight line, as every distance is. A food shop is a place its file gives as
         # a grocer, a supermarket or a convenience store: the definition of a release
         # says which. The id says a walk, because an id is never renamed.
-        "Straight-line distance to the nearest food shop",
+        "Distance to the nearest food shop, in a straight line",
         "Nearer a food shop",
         "m",
         _LESS,
@@ -1065,7 +1088,8 @@ _FEATURES = (
     _feature(
         _F.GP_WALK,
         _D.SERVICES,
-        "Straight-line distance to the nearest GP practice, placed by its postcode",
+        "Distance to the nearest GP practice, in a straight line, with each practice placed "
+        "by its postcode",
         "Nearer a GP surgery",
         "m",
         _LESS,
@@ -1077,7 +1101,8 @@ _FEATURES = (
     _feature(
         _F.PHARMACY_WALK,
         _D.SERVICES,
-        "Straight-line distance to the nearest pharmacy, placed by its postcode",
+        "Distance to the nearest pharmacy, in a straight line, with each pharmacy placed by "
+        "its postcode",
         "Nearer a pharmacy",
         "m",
         _LESS,
@@ -1109,7 +1134,7 @@ _FEATURES = (
     _feature(
         _F.PRICE_MEDIAN,
         _D.HOMES,
-        "Median price paid for a home",
+        "The middle price paid for a home",
         "What homes sell for",
         "£",
         _EITHER,
@@ -1207,7 +1232,7 @@ _FEATURES = (
     _feature(
         _F.UNDERGROUND_PROXIMITY,
         _D.STATION_ACCESS,
-        "Straight-line distance to the nearest Underground or DLR station",
+        "Distance to the nearest Underground or DLR station, in a straight line",
         "Nearer the Underground or DLR",
         "m",
         _LESS,
@@ -1222,7 +1247,7 @@ _FEATURES = (
         # The national file of stops gives one kind of railway station, whoever runs its
         # trains. Which of them the Overground or the Elizabeth line calls at is read from
         # the file of Transport for London, which names the modes at each of its stations.
-        "Straight-line distance to the nearest Overground or Elizabeth line station",
+        "Distance to the nearest Overground or Elizabeth line station, in a straight line",
         "Nearer the Overground or Elizabeth line",
         "m",
         _LESS,
@@ -1236,7 +1261,7 @@ _FEATURES = (
         _D.STATION_ACCESS,
         # A railway station at which no more than the Overground or the Elizabeth line
         # calls is not one of these. A tram stop is counted with them.
-        "Straight-line distance to the nearest National Rail station or tram stop",
+        "Distance to the nearest National Rail station or tram stop, in a straight line",
         "Nearer National Rail or a tram stop",
         "m",
         _LESS,
@@ -1344,14 +1369,17 @@ _FEATURES = (
         "fewer",
         _K.TASTE,
     ),
-    # How far what homes sold for has risen. It is the middle price now for each £100 of the
-    # middle price then, so it is never below nought, and a fall reads under £100. It is
-    # offered for a word for a place on the rise, and never applied. It says what was paid,
-    # and promises nothing of what will be.
+    # How far what homes sold for has risen. It is the middle price of the latest year its
+    # publisher gives for each £100 of the middle price then, so it is never below nought,
+    # and a fall reads under £100. It is offered for a word for a place on the rise, and
+    # never applied. It says what was paid, and promises nothing of what will be. The name
+    # says the latest year and never "now": the figure is of a year that has ended, and
+    # its date stands beside it.
     _feature(
         _F.PRICE_RISE_5Y,
         _D.HOMES,
-        "Median price paid for a home, for each £100 of the median five years before",
+        "The middle price paid for a home in the latest year, for each £100 of the middle price "
+        "five years before",
         "Price rise over five years",
         "£",
         _EITHER,
@@ -1363,7 +1391,8 @@ _FEATURES = (
     _feature(
         _F.PRICE_RISE_10Y,
         _D.HOMES,
-        "Median price paid for a home, for each £100 of the median ten years before",
+        "The middle price paid for a home in the latest year, for each £100 of the middle price "
+        "ten years before",
         "Price rise over ten years",
         "£",
         _EITHER,
@@ -1397,7 +1426,7 @@ _FEATURES = (
     _feature(
         _F.ROAD_TRAFFIC_NEARBY,
         _D.AIR_NOISE,
-        f"Traffic past the busiest count point within {TRAFFIC_WITHIN_M} m of home, in a "
+        f"Traffic past the busiest counting point within {TRAFFIC_WITHIN_M} m of home, in a "
         "straight line",
         "Less traffic nearby",
         MOTOR_VEHICLES_A_DAY,
@@ -1504,6 +1533,20 @@ COUNTS_RESIDENTS: frozenset[FeatureId] = frozenset(
     for feature_id, feature in FEATURES.items()
     if feature.describes is Describes.RESIDENTS
 )
+# The measures of what homes sold for: the middle price that was paid, and how far it rose.
+# Each says what it costs to buy a home, so none is weighed by a search for somewhere to
+# stay, which holds no budget either (contract, section 5.3, rule 16). What describes the
+# homes of an area and no purchase is none of them: the council tax bands they stand in.
+SOLD_FOR: frozenset[FeatureId] = frozenset({_F.PRICE_MEDIAN, _F.PRICE_RISE_5Y, _F.PRICE_RISE_10Y})
+# The measures that a decision holds to be offered and never applied. The share of homes in
+# the higher council tax bands is a reading of a word for a smart area, and of all that such
+# a word is read as it follows what households are estimated to have most closely: it is
+# offered for the word and never applied (ADR 0028). So no reading of a word sets it
+# counting for a person, whoever reads and whatever takes what is offered. It counts where
+# a person chooses it, or asks for it by its own name. What counts who lived somewhere and
+# what counts recorded crime are held by rules of their own, which `only_by_choice` says
+# with this one. A measure is named here, or taken out, by a decision that is written down.
+OFFERED_AND_NEVER_APPLIED: frozenset[FeatureId] = frozenset({_F.HOMES_HIGHER_BANDS})
 # The measures that rest on the conservation areas. Their publisher asks that its data
 # never decides a vibe alone, so the parts of a recipe that rest on it come to under 60
 # in 100 together: with nothing else known of an area, no vibe places it.
@@ -1517,24 +1560,39 @@ HOLDS_CRIME = frozenset({TagId.STREET_CHARACTER})
 
 # What is said wherever a figure of recorded crime is said, or offered to be counted.
 CRIME_CAVEAT = "Recorded crime depends on what is reported, and locations are approximate."
-# The line every vibe says first of what it cannot see.
-COMMON_CANNOT_SEE = "One street or one home. An area is many streets."
+# The line every vibe says first of what it cannot see. It is one sentence, which says
+# what a vibe cannot tell a person and why: a vibe is of an area, and an area is many streets.
+COMMON_CANNOT_SEE = (
+    "What one street or one home is like, because an area is made up of many streets."
+)
 # What every vibe says of itself, and how its sources are introduced, so that
-# no publisher appears to have placed an area.
-JUDGEMENT = "The recipe is Burro's own. The weights are a judgement."
-MADE_FROM = "Burro's recipe. Made from data published by:"
-# What a vibe that is a rough guide says of itself wherever it is shown: one short label,
-# and one sentence that says why. The founder decided on 2026-09-25 that Village feel is
-# served though it did not reach the bar they had set, and that it must say it is less
-# sure than the other vibes (ADR 0013, as amended). Every surface says both, word for
-# word, in sight and not behind a press. The sentence gives no figure that a build could
-# make false, and names no place.
+# no publisher appears to have placed an area. Which measurements a vibe is made of is
+# Burro's own choice, and so is how much each counts: both are said to be a judgement.
+JUDGEMENT = (
+    "Burro chose which measurements go into this vibe and how much each of them counts. "
+    "That choice is a judgement, and not a fact about the place."
+)
+MADE_FROM = "Burro worked this out from data published by:"
+# What is said of a vibe that is a rough guide: one short label, and one sentence that
+# says why. The founder decided on 2026-09-25 that Village feel is served though it did
+# not reach the bar they had set, and that it must say it is less sure than the other
+# vibes (ADR 0013, as amended). On 2026-09-26 the founder asked that no person who uses
+# Burro is told: "remove the concept of rough guide, we don't want to pass this on to a
+# user". So the service passes neither on, in no answer, no offer and no note. They are
+# held here for whoever decides a recipe, and the review desk shows them. How the vibe is
+# handled is as it was: `ROUGH_GUIDES`. The sentence gives no figure that a build could
+# make false, and names no place. It says that the vibe is less sure and why: what people
+# made of the areas it puts highest, and the two kinds of street it takes for a village.
+# The people were asked, and did not look at the areas: each read the name of a high street
+# and its borough, and none knew the places. So the sentence says no more than that.
 ROUGH_GUIDE = "Rough guide"
 WHY_A_ROUGH_GUIDE: Mapping[TagId, str] = MappingProxyType(
     {
         TagId.VILLAGE_FEEL: (
-            "Of the areas it puts highest, about half read as villages to people, and it "
-            "takes some busy main roads and some grand inner streets for villages."
+            "This vibe is less sure than the others, because only about half of the areas it "
+            "puts highest seemed like villages to the people who were asked, and it also "
+            "takes some busy main roads and some grand streets near the centre of the city "
+            "for villages."
         )
     }
 )
@@ -1691,8 +1749,9 @@ _TAGS = (
         "Leafy",
         _GREEN,
         "Gardens, woodland and trees, and a public park near home",
-        "Trees under 3 m. Planting or felling since the map was made. Street trees. A wood "
-        "that is a public park is counted twice, by woodland and by public parks",
+        "Trees under 3 m. Planting or felling since the map was made. Street trees. Whether "
+        "a wood is also a public park: a wood that is one is counted twice, by woodland and by "
+        "public parks",
         1,
         (40, _F.LAND_GARDENS, _HIGH),
         (30, _F.LAND_WOODLAND, _HIGH),
@@ -1736,7 +1795,8 @@ _TAGS = (
         "Going out",
         _PACE,
         "How much there is to eat, drink and go out to within reach of homes",
-        "How a weekday differs from a weekend. Who the venues serve. Opening hours. What is on",
+        "How a weekday differs from a weekend. Who the venues serve. When places are open. "
+        "What is on at a venue",
         3,
         (35, _F.VENUE_EVENING_PER_HOMES, _HIGH),
         (30, _F.VENUE_FOOD_DRINK_PER_HOMES, _HIGH),
@@ -1749,8 +1809,8 @@ _TAGS = (
     # half of what main roads held, and nothing of any other part. Main roads say how many
     # homes stand beside a motorway or an A road, and traffic how busy the busiest road
     # near a home is, which the class of a road cannot say. A street nobody counted has
-    # no figure of traffic, and the area is then placed on its other parts. The weights
-    # are a first judgement, for a person to review.
+    # no figure of traffic, and the vibe is then worked out from its other parts. The
+    # weights are a first judgement, for a person to review.
     _tag(
         TagId.QUIET_RESIDENTIAL,
         "Quiet streets",
@@ -1758,9 +1818,9 @@ _TAGS = (
         "Homes away from main roads, from heavy traffic and from clusters of pubs and bars, "
         "with little transport noise",
         "Noise from neighbours, venues or works. Which noise is from roads and which from "
-        "aircraft. How busy a street is where no count point stands near: an area with no "
-        "figure of traffic is placed on its other parts, and is not taken to have none. How "
-        "late a pub or a bar is open",
+        "aircraft. How busy a street is where no traffic is counted near it: for an area "
+        "with no figure for traffic, Burro works this vibe out from its other measurements, "
+        "and does not take the area to have no traffic. How late a pub or a bar is open",
         4,
         (20, _F.ROAD_MAJOR_EXPOSURE, _LOW),
         (20, _F.ROAD_TRAFFIC_NEARBY, _LOW),
@@ -1774,8 +1834,9 @@ _TAGS = (
         _STREETS,
         "Homes built since 2000 at one end. Period homes, listed buildings and protected "
         "streets at the other",
-        "The state of a building. Its inside. An area the conservation data does not "
-        "cover is unknown, not zero",
+        "The state of a building. What a building is like inside. Whether an area has "
+        "protected streets where the conservation data does not cover it: Burro treats that "
+        "as not known, and never as none",
         5,
         (35, _F.HOMES_PRE1919, _HIGH),
         (25, _F.CONSERVATION_COVER, _HIGH),
@@ -1789,10 +1850,13 @@ _TAGS = (
         "Everyday on foot",
         _DAILY,
         "A food shop, a town centre, a station, a GP and a pharmacy close to home",
-        "It is mostly a map of how built up a place is. How long the walk is: each distance "
-        "is a straight line. Which side of a railway a home is on. How large a food shop is, "
-        "and what it sells. Whether a surgery takes new patients. Opening hours. Step-free "
-        "access at every station",
+        # The first of its own says what a build of London found of it: its order is
+        # mostly that of homes to the hectare. It measures how close five things are, so it
+        # is never said to be unable to see whether what a person needs is close.
+        "Much more than how built up a place is, which is mostly what this vibe shows. How "
+        "long the walk is: each distance is a straight line. Which side of a railway a home "
+        "is on. How large a food shop is, and what it sells. Whether a surgery takes new "
+        "patients. When places are open. Whether every station has step-free access",
         6,
         (25, _F.GROCERY_WALK, _LOW),
         (25, _F.HIGHSTREET_ACCESS, _LOW),
@@ -1806,7 +1870,8 @@ _TAGS = (
         "Parks close by",
         _GREEN,
         "A park within a walk, a large one not far, and things to do in it",
-        "Upkeep. Whether a park is busy. Opening hours. No open rating of parks exists",
+        "How well a park is kept. Whether a park is busy. When a park is open. How good a "
+        "park is, because no rating of parks is published for anyone to use",
         7,
         (40, _F.PARK_PROXIMITY, _LOW),
         (30, _F.PARK_LARGE_PROXIMITY, _LOW),
@@ -1830,8 +1895,8 @@ _TAGS = (
         "Food and drink",
         _PACE,
         "Many places to eat and drink, many of them independent",
-        "Whether the food is good. Prices. Whether a place is still open. Hygiene "
-        "ratings are never shown",
+        "Whether the food is good. What a meal or a drink costs. Whether a place is still "
+        "open. How clean a kitchen is: Burro never shows hygiene ratings",
         9,
         (40, _F.VENUE_FOOD_DRINK_PER_HOMES, _HIGH),
         (40, _F.INDEPENDENTS_NEARBY, _HIGH),
@@ -1842,9 +1907,11 @@ _TAGS = (
         "Family amenities",
         _DAILY,
         # It is a different thing from Family area, which counts the households that hold
-        # children too. This one counts what is there for them, and says so.
-        "Primary schools, play space and parks nearby. It counts places alone",
-        "Catchments. School places. What childcare costs. Who lives there",
+        # children too. This one counts what is there for them, and says that it counts nobody.
+        "Primary schools, play space and parks nearby. It counts places, and nothing about "
+        "who lives there",
+        "Which school catchment a home is in. Whether a school has places. What childcare "
+        "costs. Who lives there",
         10,
         (40, _F.SCHOOL_PRIMARY_NEARBY, _HIGH),
         (35, _F.PLAY_SPACE_PROXIMITY, _LOW),
@@ -1916,9 +1983,9 @@ _TAGS = (
         "Family area",
         _WHO,
         f"Households with dependent children at {CENSUS_SAID}, with primary schools, play "
-        "space and a park nearby. It counts who lived there beside what is there",
-        f"{_SINCE_THE_CENSUS}. How many children there are, and how old. Catchments. School "
-        "places. What childcare costs",
+        "space and a park nearby. It counts who lived there as well as what is there",
+        f"{_SINCE_THE_CENSUS}. How many children there are, and how old. Which school "
+        "catchment a home is in. Whether a school has places. What childcare costs",
         14,
         (40, _F.HOUSEHOLDS_DEPENDENT_CHILDREN, _HIGH),
         (25, _F.SCHOOL_PRIMARY_NEARBY, _HIGH),
@@ -1934,9 +2001,9 @@ _TAGS = (
         "Young professionals",
         _WHO,
         f"Residents aged 20 to 34 at {CENSUS_SAID}, with a station, places to eat and drink "
-        "and culture nearby. It counts who lived there beside what is there",
+        "and culture nearby. It counts who lived there as well as what is there",
         f"What anyone does for work: it counts residents by their age alone. "
-        f"{_SINCE_THE_CENSUS}. Who is a student. Opening hours and what is on",
+        f"{_SINCE_THE_CENSUS}. Who is a student. When places are open, and what is on at them",
         15,
         (40, _F.RESIDENTS_AGED_20_34, _HIGH),
         (25, _F.STATION_WALK, _LOW),
@@ -1950,16 +2017,48 @@ TAGS: Mapping[TagId, Tag] = MappingProxyType({t.tag_id: t for t in _TAGS})
 HOLDS_RESIDENTS: frozenset[TagId] = frozenset(
     tag.tag_id for tag in _TAGS if any(term.feature_id in COUNTS_RESIDENTS for term in tag.terms)
 )
-# The vibes that are a rough guide. Each is offered with its label and its sentence, is
-# never applied from a word and never taken with others at one press, and is on a result
-# only where a person asked for it.
+# The vibes that are a rough guide. Each is never applied from a word and never taken with
+# others at one press, and is on a result only where a person asked for it. No offer of one
+# says that it is one.
 ROUGH_GUIDES: frozenset[TagId] = frozenset(
     tag.tag_id for tag in _TAGS if tag.sureness is Sureness.ROUGH_GUIDE
 )
 
 
+def only_by_choice(thing: FeatureId | TagId, named: bool) -> bool:
+    """Whether a measure or a vibe that is offered waits for a person to choose it.
+
+    What waits is never applied for a person, by whoever takes what is
+    offered and asks nothing. `named` is whether the person's own words name
+    the thing, and are no word that it was only read into.
+
+    What counts who lived somewhere waits whatever the words are: no word
+    applies it, its own name among them (ADR 0006). Recorded crime counts
+    only when a person asks for it by name, so it waits wherever the words do
+    not name it: "safe" names none, and "gritty" names the vibe that holds it
+    (ADR 0013). So does a measure of `OFFERED_AND_NEVER_APPLIED`. A vibe is
+    held to what every part of its recipe is held to.
+    """
+    parts = (
+        (thing,)
+        if isinstance(thing, FeatureId)
+        else tuple(term.feature_id for term in TAGS[thing].terms)
+    )
+    if any(part in COUNTS_RESIDENTS for part in parts):
+        return True
+    by_name_alone = any(
+        FEATURES[part].dimension is Dimension.CRIME or part in OFFERED_AND_NEVER_APPLIED
+        for part in parts
+    )
+    return by_name_alone and not named
+
+
 class RoughGuide(Record):
-    """What stands beside a vibe that is a rough guide, wherever the vibe is shown."""
+    """What is said of a vibe that is a rough guide: its label, and why it is less sure.
+
+    The review desk shows it to whoever decides a recipe. The service hands it
+    to no client: route 11 holds a list of these, which is always empty.
+    """
 
     tag_id: TagId
     # One short label, the same for every vibe that is one.
@@ -1969,7 +2068,7 @@ class RoughGuide(Record):
 
 
 def says_rough(tag_id: TagId) -> str:
-    """What a rough guide says of itself wherever it is offered: its label, and why."""
+    """The label of a rough guide and why it is one, in one line. No offer holds it."""
     return f"{ROUGH_GUIDE}. {WHY_A_ROUGH_GUIDE[tag_id]}"
 
 

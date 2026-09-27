@@ -63,9 +63,12 @@ def budget_fact(found: Found) -> Fact:
 WAYS = [
     pytest.param(
         *(with_a_range, 1_950, TemplateId.BUDGET_AT, "upper"),
-        "The upper end is at your budget of £1,950.",
-        "The upper end is £1 under your budget of £1,951.",
-        "The upper end is £1 over your budget of £1,949.",
+        "For this kind of home, the upper end of the range of costs here is at your budget of "
+        "£1,950.",
+        "For this kind of home, the upper end of the range of costs here is £1,950, which is "
+        "£1 under your budget of £1,951.",
+        "For this kind of home, the upper end of the range of costs here is £1,950, which is "
+        "£1 over your budget of £1,949.",
         id="a range",
     ),
     pytest.param(
@@ -118,7 +121,13 @@ def test_every_way_a_budget_is_held_has_a_sentence_for_a_difference_of_nothing()
         at = TemplateId(under.value.replace("_under", "_at"))
         over = TemplateId(under.value.replace("_under", "_over"))
         assert at in AT and over in OF_A_BUDGET
-        assert TEMPLATES[at] == TEMPLATES[under].replace("£{margin} under", "at")
+        # Of a range the sentence gives the upper end and then the difference. Where the
+        # upper end is the budget, the two are one amount, and it is said once.
+        given = "£{margin} under"
+        if at is TemplateId.BUDGET_AT:
+            given = "£{upper}, which is £{margin} under"
+        assert given in TEMPLATES[under]
+        assert TEMPLATES[at] == TEMPLATES[under].replace(given, "at")
         assert TEMPLATES[over].startswith(TEMPLATES[under].replace(" under ", " over ")[:-1])
         assert "{margin}" not in TEMPLATES[at]
     # And these are all the sentences that give a difference.
@@ -140,7 +149,7 @@ def test_a_journey_that_takes_the_minutes_of_its_limit_is_at_it_and_under_it_by_
     assert at.template is TemplateId.TRAVEL_PT
     assert render(at).text == (
         "By public transport to Pellam Cross: about 44 minutes on a typical weekday morning, "
-        "49 if you just miss a service."
+        "or 49 minutes if you just miss a service."
     )
     assert "margin" not in at.slots and "margin_unit" not in at.slots
     assert (at.slots["limit"], at.slots["verdict"]) == ("44", AT_THE_LIMIT)
@@ -150,7 +159,9 @@ def test_a_journey_that_takes_the_minutes_of_its_limit_is_at_it_and_under_it_by_
     # A minute either side of it is a minute, said as it was.
     over, under = journey(43), journey(45)
     assert over.template is TemplateId.TRAVEL_PT_OVER
-    assert render(over).text.endswith(", 1 minute over the 43 you set.")
+    assert render(over).text.endswith(
+        " This journey is 1 minute over the limit of 43 minutes you set."
+    )
     assert (over.slots["margin"], under.slots["margin"]) == ("1", "1")
     assert under.template is TemplateId.TRAVEL_PT
     assert "verdict" not in over.slots and "verdict" not in under.slots

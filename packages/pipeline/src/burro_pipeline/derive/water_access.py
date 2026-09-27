@@ -172,7 +172,8 @@ METHODS: tuple[Method, ...] = (METHOD,)
 # It says that the distance is a straight line, and that it is to the line the file draws
 # along the middle of the water and not to the bank.
 LABEL = (
-    "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake"
+    "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, "
+    "as a share of all homes"
 )
 # What the measure is, from whom, for what period, and what it is not.
 DEFINITION = (

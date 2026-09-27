@@ -28,6 +28,7 @@ from burro_core.grammar import (
     Grammar,
     Join,
     about_a_campus,
+    part_of_a_longer_time,
 )
 from burro_core.ids import (
     FeatureId,
@@ -39,7 +40,14 @@ from burro_core.ids import (
     Toward,
     UnmetCategory,
 )
-from burro_core.interpret import SIGNS_OF_DOUBT, may_ask_for_fewer
+from burro_core.interpret import (
+    BY_THE_MONTH,
+    SIGNS_OF_DOUBT,
+    known_in,
+    may_ask_for_fewer,
+    names_a_visit,
+    paid_by,
+)
 from burro_core.lexicon import (
     ENDS_NAMED_AS_HOMES,
     Target,
@@ -51,15 +59,21 @@ from burro_core.reading import COUNTED, MINUTES, Is, Item, Line, Token, lines_of
 from burro_core.release import Release
 from burro_core.vocabulary import (
     ARTICLE,
+    ASIDES,
     ASKS_BURRO,
+    CANNOT_BEAR,
     CAPS,
     CAPS_FIRMLY,
+    CARRIES_A_TURN,
     COURTESY,
     DREADS,
     ESSENTIAL,
     FIRM_OF_MINUTES,
     FIRM_OF_MONEY,
     FOR_WHOM,
+    GOOD,
+    HEADS_WHAT_IS_WANTED,
+    IMPORTANT,
     IN_CASE,
     JOINS,
     LARGE_STEP,
@@ -74,6 +88,7 @@ from burro_core.vocabulary import (
     STRENGTHENS,
     TAKES_OFF,
     TAKES_OFF_AFTER,
+    THE_MOST_AFTER,
     TO_DO,
     TROUBLES,
     TURNS_DOWN,
@@ -105,9 +120,11 @@ __all__ = [
     "is_nuisance",
     "not_minded",
     "overlap",
+    "said_not_to_matter",
     "somebody_elses",
     "stands_against",
     "turned_about",
+    "turned_once",
     "without",
 ]
 
@@ -160,7 +177,7 @@ _SAYS_NO = _phrases(TURNS_FIRMLY, TURNS_SOFTLY, WORDS_THAT_TURN_AWAY)
 _COUNTS_FOR_LESS = _phrases(TAKES_OFF, TAKES_OFF_AFTER, TURNS_DOWN, TURNS_DOWN_AFTER)
 # What leads in to a thing and is no doubt about it: "not far from a park". And
 # what says a number is the most it may be, which never makes it a least.
-_NO_DOUBT = _phrases(NEAR_TO, CAPS, CAPS_FIRMLY)
+_NO_DOUBT = _phrases(NEAR_TO, CAPS, CAPS_FIRMLY, THE_MOST_AFTER)
 # What makes an amount of money a firm limit, and what makes a number of minutes one. Each
 # is core's list, so that a model's reading is held to the words the rules are held to.
 FIRMLY_OF_MONEY = _phrases(FIRM_OF_MONEY)
@@ -193,6 +210,16 @@ _NO_DOUBT_ABOUT = _phrases(_NO_DOUBT, NEARBY.words)
 # Who else may wish, and the third person of a wish, which says whose wish it is only
 # where somebody stands straight before it who is not of the speaker's own household.
 _WHO_ELSE = _phrases(WHO_ELSE)
+_CARRIES_A_TURN = _phrases(CARRIES_A_TURN)
+# What may head a list of things that are wanted: what core lists as such, what names
+# nothing, and what says that a thing counts or is good.
+_HEADS_A_WISH = _phrases(
+    HEADS_WHAT_IS_WANTED, _NAMES_NOTHING, ESSENTIAL, IMPORTANT.words, GOOD.words
+)
+_STANDS_FOR = _phrases(STANDS_FOR)
+_CANNOT_BEAR = _phrases(CANNOT_BEAR)
+# What a person says of their own words, and of no wish: "honestly", "I think".
+_ASIDES = frozenset(_phrases(ASIDES))
 _WISHES_OF_ANOTHER = tuple(tuple(wish.split()) for wish in sorted(WISHES_OF_ANOTHER))
 _HOUSEHOLD = frozenset(whom.split()[-1] for whom in FOR_WHOM.words)
 # The words that begin a wish of the speaker's own: "I want", "we'd like", "I am after".
@@ -321,17 +348,25 @@ def overlap(one: Span, other: Span) -> bool:
 # What core reads a number as, where its own words say: money, minutes or
 # bedrooms. A number that it reads as one is never offered as another.
 _MONEY, _MINUTES, _BEDROOMS, _A_WORD = "money", "minutes", "bedrooms", "a word"
+# An amount that core reads as paid by the week, or by any period but the month. A rent is
+# held by the month, so it is no amount of a budget at the figure that was typed: what a
+# week comes to is core's to work out, and the rules offer it.
+_BY_NO_MONTH = "money by no month"
+# A number that core reads as part of a longer time that it did not read whole: "15", of "1
+# hour, 15 minutes", and the hour of "a third of an hour". By itself it is no number of
+# minutes that the person gave, so a model's reading of it as one is a number nobody typed.
+_PART_OF_A_TIME = "part of a longer time"
 _SAID_AFTER = (
     (_MINUTES, _phrases(MINUTES)),
     (_BEDROOMS, _phrases(BEDROOMS)),
     (_MONEY, _phrases(MONTHLY, IN_MONEY, THOUSANDS)),
 )
-_NOT_MINUTES = frozenset({_MONEY, _BEDROOMS, _A_WORD})
+_NOT_MINUTES = frozenset({_MONEY, _BEDROOMS, _A_WORD, _BY_NO_MONTH, _PART_OF_A_TIME})
 # What may stand between a number and the words that are said of it: before
 # it a word that caps, "about", and after it what it is a number of, "minutes".
 _OR_SO = _phrases(CAPS)
 _OF_A_NUMBER = _phrases(MINUTES, MONTHLY, IN_MONEY, THOUSANDS, BEDROOMS)
-_NO_AMOUNT = frozenset({_MINUTES, _BEDROOMS})
+_NO_AMOUNT = frozenset({_MINUTES, _BEDROOMS, _BY_NO_MONTH, _PART_OF_A_TIME})
 
 
 class _Number(NamedTuple):
@@ -391,6 +426,14 @@ class Typed:
         self._lexicon = grammar.known.lexicon
         self._named_by = _named_by(release.manifest.gritty_variant)
         self._numbers = self._numbers_typed()
+        self._grammar = grammar
+        # Where the sentences stand that a sentence beside them takes back, and those the
+        # rules read. Each is asked of few requests, so it is worked out when first asked.
+        self._known: tuple[Span, ...] | None = None
+        # Whether one word that turns leads up to a thing, by where the thing stands. It
+        # is asked of every thing of a list for each thing that stands after it, so a list
+        # of a hundred things asked it ten thousand times, and anybody may send one.
+        self._led_by_a_turn: dict[Span, bool] = {}
 
     def says_something(self, span: Span) -> bool:
         """Whether a stretch holds a word that may name a thing, a place or a number.
@@ -630,13 +673,24 @@ class Typed:
         With each is what core's own words say it is a number of: money,
         minutes or bedrooms, by how it is written or by what stands
         straight after it. Figures in a word that holds letters of its own
-        are part of a word, "35b", and are read as no number of minutes.
+        are part of a word, "35b", and are read as no number of minutes. An
+        amount that core reads as paid by the week, or by any other period
+        but the month, is money by no month: "350 a week", "18,000 a year".
+        A number that core reads as part of a longer time, which it did not
+        read whole, is no number of minutes by itself: "15", of "1 hour, 15
+        minutes".
         """
         found: list[_Number] = []
-        for item in (item for items in self._items for item in items):
-            if item.what is Is.NUMBER:
+        for items in self._items:
+            for at, item in enumerate(items):
+                if item.what is not Is.NUMBER:
+                    continue
                 by_unit = {"min": _MINUTES, "bed": _BEDROOMS, "month": _MONEY}.get(item.unit, "")
                 kind = _MONEY if item.money else by_unit or self._said_after(item.span)
+                if kind in ("", _MONEY) and paid_by(items, at).by not in ("", BY_THE_MONTH):
+                    kind = _BY_NO_MONTH
+                if kind in ("", _MINUTES) and part_of_a_longer_time(items, at):
+                    kind = _PART_OF_A_TIME
                 values = {item.value, item.low} if item.low else {item.value}
                 found.append(_Number(item.span, frozenset(values), kind))
         read = [number.where for number in found]
@@ -730,6 +784,212 @@ class Typed:
             found.append(((begins, where[0]), (where[1], ends)))
         return tuple(found)
 
+    def named_at(
+        self, spans: Sequence[Span], thing: FeatureId | TagId
+    ) -> tuple[tuple[Span, Target], ...]:
+        """Where core finds a thing named within some stretches, and what each phrase says.
+
+        It is where the thing stands as the rules read the words: the longest
+        phrase of the lexicon, and never part of one. A model chooses the
+        words it quotes, so what is said of a thing is asked where core finds
+        it, however much an offer rests on.
+        """
+        return tuple(
+            (item.span, self._lexicon[item.text])
+            for items in self._items
+            for item in items
+            if item.what is Is.THING
+            and any(overlap(item.span, span) for span in spans)
+            and thing in (*self._lexicon[item.text].features, *self._lexicon[item.text].tags)
+        )
+
+    def without_asides(self) -> str:
+        """The text, less each part of a sentence that is said of the words and of no wish.
+
+        A part is what stands between two marks. Where the whole of one is a
+        phrase core lists as such, "honestly", "I think", it is blanked out
+        with the mark that sets it apart, and the rest of the sentence stands
+        as it would without it. The text keeps its length, so that what is
+        read of it stands where it stood in what was typed. It is handed to
+        the rules and kept nowhere.
+        """
+        left = list(self.text)
+        for line in self._lines:
+            tokens = line.tokens
+            begins = [at for at, token in enumerate(tokens) if at == 0 or token.apart]
+            for first, after in zip(begins, [*begins[1:], len(tokens)], strict=True):
+                part = (tokens[first].start, tokens[after - 1].end)
+                if self.said(part) not in _ASIDES:
+                    continue
+                # With the mark that parts it from the rest: the one after it where it
+                # begins its sentence, and the one before it anywhere else.
+                start = line.start if first == 0 else tokens[first - 1].end
+                end = tokens[after].start if first == 0 and after < len(tokens) else part[1]
+                left[start:end] = " " * (end - start)
+        return "".join(left)
+
+    def _sentence_of(self, span: Span) -> tuple[Sequence[Token], Sequence[Item], int] | None:
+        """The sentence a stretch begins in, what core finds there, and where the stretch begins."""
+        for line, items in zip(self._lines, self._items, strict=True):
+            for at, token in enumerate(line.tokens):
+                if overlap(span, (token.start, token.end)):
+                    return line.tokens, items, at
+        return None
+
+    def under_a_heading_of_other_words(self, span: Span) -> bool:
+        """Whether a stretch stands under a heading that core does not know to head a wish.
+
+        A heading is what stands before a colon, in the sentence of the
+        stretch. It is said of all that is listed after it: "Dealbreakers:
+        pubs, a station". One made of words that core lists as heading what
+        is wanted, or that name nothing, leaves the list a list of wishes:
+        "Must haves: a park", "I want: a park".
+        """
+        found = self._sentence_of(span)
+        if found is None:
+            return False
+        tokens, _, first = found
+        colons = [at for at in range(1, first + 1) if ":" in tokens[at].marks]
+        if not colons:
+            return False
+        ends = colons[-1]
+        begins = ends - 1
+        while begins > 0 and not tokens[begins].apart:
+            begins -= 1
+        heading = self.said((tokens[begins].start, tokens[ends - 1].end))
+        return bool(without(heading, _HEADS_A_WISH))
+
+    def closed_by_a_turn(self, span: Span) -> bool:
+        """Whether the list a thing stands in ends in words that turn all of it away.
+
+        "A station, a high street, nightlife: I can do without all of them."
+        The last part of the sentence names nothing, holds one word that
+        turns, and a word that stands for what was named: "them", "it",
+        "those". It is said of the list before it, as far back as a wish of
+        the speaker's own or the word that begins a new one.
+        """
+        found = self._sentence_of(span)
+        if found is None:
+            return False
+        tokens, items, first = found
+        last = len(tokens) - 1
+        while last > 0 and not tokens[last].apart:
+            last -= 1
+        if last <= first:
+            return False
+        between = range(first + 1, last + 1)
+        if any(tokens[at].word == _BUT or _own_wish(tokens, at) for at in between):
+            closing_own = _own_wish(tokens, last)
+            if not closing_own or any(
+                tokens[at].word == _BUT or _own_wish(tokens, at) for at in range(first + 1, last)
+            ):
+                return False
+        if any(item.what in _READ and item.first >= last for item in items):
+            return False
+        closing = (tokens[last].start, tokens[-1].end)
+        return turned_once(self, closing) and holds(self.said(closing), _STANDS_FOR)
+
+    def listed_after_a_turn(self, span: Span) -> bool:
+        """Whether a thing stands later in a list in which a thing before it is turned away.
+
+        It is asked within the sentence of the thing, of the things core
+        finds before the clause it stands in. A clause that begins a wish of
+        the speaker's own, or with the word that begins a new wish, is no
+        part of the list before it: "no pubs, but a park", "no, I want a park".
+        """
+        for line, items in zip(self._lines, self._items, strict=True):
+            tokens = line.tokens
+            inside = [
+                at for at, token in enumerate(tokens) if overlap(span, (token.start, token.end))
+            ]
+            if not inside:
+                continue
+            clause = inside[0]
+            while clause > 0 and not tokens[clause].apart:
+                clause -= 1
+            if tokens[clause].word == _BUT or _own_wish(tokens, clause):
+                return False
+            begins = clause
+            while begins > 0:
+                if tokens[begins - 1].word == _BUT or _own_wish(tokens, begins - 1):
+                    begins -= 1
+                    break
+                begins -= 1
+            return any(
+                item.what is Is.THING
+                and begins <= item.first < clause
+                and self._is_led_by_a_turn(item.span)
+                for item in items
+            )
+        return False
+
+    def _is_led_by_a_turn(self, span: Span) -> bool:
+        """Whether one word that turns a wish leads up to a thing. It is read once for each."""
+        if span not in self._led_by_a_turn:
+            self._led_by_a_turn[span] = turned_once(self, self.led_up_to(span))
+        return self._led_by_a_turn[span]
+
+    def read_by_the_rules(self, span: Span) -> bool:
+        """Whether a stretch stands in a sentence that the rules read, were it all that was typed.
+
+        The grammar makes the whole of the sentence, less what is said of the
+        words alone, and no sentence beside it takes it back.
+        """
+        if self._known is None:
+            words = self.without_asides()
+            self._known = tuple(
+                (found.start, found.end) for found in known_in(words, self._grammar)
+            )
+        return any(overlap(span, sentence) for sentence in self._known)
+
+    def _names_something(self, at: int) -> bool:
+        """Whether core finds a thing, a name, a number or a word for people in a sentence."""
+        return any(item.what in _READ for item in self._items[at])
+
+    def _heads_what_is_not_wanted(self, at: int) -> bool:
+        """Whether a sentence may head a list of things that are not wanted.
+
+        It names nothing itself. And it ends in a colon, "Dealbreakers:",
+        holds a word for what a person cannot bear, "Things I hate", or
+        turns and says nothing more: "No."
+        """
+        line = self._lines[at]
+        if self._names_something(at):
+            return False
+        said = self.said((line.start, line.end))
+        return ":" in line.closed_by or holds(said, _CANNOT_BEAR) or _turns_alone(said)
+
+    def taken_back(self, span: Span) -> bool:
+        """Whether a sentence beside the one a stretch stands in turns it round.
+
+        The sentence after it names nothing, turns, and says nothing more:
+        "I want a station. Not really." Or the stretch stands in a list that
+        a sentence before it heads, as far as the list goes: "Things I hate.
+        Pubs. A station." A sentence in which the speaker says a wish of their
+        own is no part of a list, and nor is one that names nothing.
+
+        A sentence of words that are not known is as likely said of something
+        else, and turns nothing: "Not sure where to begin. Somewhere leafy."
+        """
+        inside = [
+            at for at, line in enumerate(self._lines) if overlap(span, (line.start, line.end))
+        ]
+        if not inside:
+            return False
+        at = inside[0]
+        if at + 1 < len(self._lines) and not self._names_something(at + 1):
+            after = self._lines[at + 1]
+            if _turns_alone(self.said((after.start, after.end))):
+                return True
+        back = at
+        while back >= 0:
+            tokens = self._lines[back].tokens
+            own = any(_own_wish(tokens, index) for index in range(len(tokens)))
+            if own or not self._names_something(back):
+                break
+            back -= 1
+        return 0 <= back < at and self._heads_what_is_not_wanted(back)
+
     def names(self, span: Span, thing: FeatureId | TagId) -> tuple[Target, ...]:
         """What core's own phrases for a thing say of it, for each that stands in a stretch."""
         said = self.said(span)
@@ -793,10 +1053,15 @@ class Typed:
 
         "If I rent, up to 1,700, and if I buy, max 400k" names both, and so
         does "my partner wants to buy but I'd rather rent". Which of two is
-        meant is the person's to say.
+        meant is the person's to say. A visit is named where core reads its
+        words as one: "a holiday home" names none, and nor does "I work at a
+        hotel".
         """
         said = self.said((0, len(self.text)))
-        return frozenset(tenure for tenure, words in _TENURES if holds(said, words))
+        named = {tenure for tenure, words in _TENURES if holds(said, words)}
+        if any(names_a_visit(items, at) for items in self._items for at in range(len(items))):
+            named.add(Tenure.VISIT)
+        return frozenset(named)
 
     def reads(self, span: Span) -> bool:
         """Whether core finds a thing, a name or a number in a stretch."""
@@ -879,6 +1144,22 @@ def in_doubt(
     return holds(without(said, _NO_DOUBT), signs)
 
 
+def turned_once(typed: Typed, reach: Span) -> bool:
+    """Whether one word that turns a wish stands in a stretch, and no second.
+
+    Two words that turn may turn a wish round twice, which is to wish for the
+    thing, "I can't live without a park", or may say twice that it is not
+    wanted: nobody can say which from a list of words. What leads in to a
+    thing and what caps a number is no turn.
+    """
+    said = typed.said(reach)
+    found = _turns_in(said)
+    if found < 2:
+        return found == 1
+    # What carries a turn on is no turn of its own beside another.
+    return _turns_in(without(said, _CARRIES_A_TURN)) == 1
+
+
 def _turns_alone(said: str) -> bool:
     """Whether some words turn a wish round and say nothing more: "no thanks", "I'd hate that".
 
@@ -919,6 +1200,29 @@ def somebody_elses(typed: Typed, where: Span) -> bool:
     return typed.anothers(where)
 
 
+def _either_side(typed: Typed, where: Span, others: Sequence[Span]) -> tuple[str, str]:
+    """What is said before a thing and after it, within its clause.
+
+    No further than the next of some other things, either way.
+    """
+    begins, ends = typed.clause(where)
+    apart = [other for other in others if not overlap(other, where)]
+    begins = max([begins, *(end for _, end in apart if end <= where[0])])
+    ends = min([ends, *(start for start, _ in apart if start >= where[1])])
+    return typed.said((begins, where[0])), typed.said((where[1], ends))
+
+
+def said_not_to_matter(typed: Typed, where: Span, others: Sequence[Span] = ()) -> bool:
+    """Whether the words say that a nuisance is not minded, where core finds it named.
+
+    What is said of how much it counts, before it or after: "I don't mind
+    crime", "noise is not important". And a word that says no, after it:
+    "crime doesn't bother me". Before it, such a word is the wish itself.
+    """
+    before, after = _either_side(typed, where, others)
+    return holds(f"{before} {after}", _COUNTS_FOR_LESS) or holds(after, _SAYS_NO)
+
+
 def not_minded(
     typed: Typed, where: Span, thing: FeatureId | TagId, others: Sequence[Span] = ()
 ) -> bool:
@@ -932,12 +1236,8 @@ def not_minded(
     don't mind crime". What troubles the person is the wish wherever it
     stands: "burglary worries me".
     """
-    begins, ends = typed.clause(where)
-    apart = [other for other in others if not overlap(other, where)]
-    begins = max([begins, *(end for _, end in apart if end <= where[0])])
-    ends = min([ends, *(start for start, _ in apart if start >= where[1])])
-    before, after = typed.said((begins, where[0])), typed.said((where[1], ends))
-    if holds(f"{before} {after}", _COUNTS_FOR_LESS) or holds(after, _SAYS_NO):
+    if said_not_to_matter(typed, where, others):
         return True
+    before, after = _either_side(typed, where, others)
     low = any(one.wanted_low for one in typed.names(where, thing))
     return not (low or holds(before, _TROUBLED_BY) or holds(after, _TROUBLED_BY))

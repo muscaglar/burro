@@ -38,6 +38,8 @@ from .support import (
 
 AREA = area_id(1)
 PARK = f"{AREA}/feature/park_proximity"
+# How every comparison says which areas it is a comparison with. It names no city.
+COMPARED = " Burro compared"
 NOISE = f"{AREA}/feature/noise_exposure"
 NAME = f"{AREA}/area/name"
 RENT = f"{AREA}/cost/rent.bed_1"
@@ -629,19 +631,27 @@ def test_no_template_names_a_city_or_passes_judgement():
         assert not set(words) & VERDICT_WORDS
         # No template prints a percentage of its own: a share is a slot of a fact.
         assert "%" not in text.replace("{pct}%", "")
-    # A comparison is with areas of this release, and says so whichever way it is put.
+    # A comparison is with the areas Burro compared, and says so whichever way it is put.
     assert all("{standing}" in TEMPLATES[t] for t in (TemplateId.FEATURE, TemplateId.FEATURE_CRIME))
-    assert all(" in this release" in text for text in STANDINGS.values())
+    assert all(COMPARED in text or "Burro has no other area" in text for text in STANDINGS.values())
+    # "In this release" said nothing to a person who has never seen Burro.
+    assert not any("release" in text for text in STANDINGS.values())
     # A vibe is a band, and its sentence holds no standing and no share.
     for template in (TemplateId.VIBE, TemplateId.VIBE_RANGE, TemplateId.VIBE_UNKNOWN):
         assert "{standing}" not in TEMPLATES[template] and "{pct}" not in TEMPLATES[template]
-        assert " in this release" in TEMPLATES[template] or "varies" in TEMPLATES[template]
+    # A band is a band among the areas Burro compared, and says so. A mixed area is a
+    # range within itself, and an area that was not placed is compared with none.
+    assert COMPARED in TEMPLATES[TemplateId.VIBE]
+    assert "varies" in TEMPLATES[TemplateId.VIBE_RANGE]
+    assert "could not work out" in TEMPLATES[TemplateId.VIBE_UNKNOWN]
     # What an explanation says of a vibe is the start of its full statement, and no other
     # fact has a short form. What it leaves out is the dates and the line about judgement.
     assert set(IN_SHORT) == {TemplateId.VIBE, TemplateId.VIBE_RANGE}
     for template, short in IN_SHORT.items():
-        assert TEMPLATES[template] == f"{short} Parts dated {{span}}. {{judgement}}"
-        assert " in this release" in short or "varies" in short
+        assert TEMPLATES[template] == (
+            f"{short} Its measurements are dated {{span}}. {{judgement}}"
+        )
+        assert COMPARED in short or "varies" in short
 
 
 def test_a_template_sentence_fails_when_it_is_cited_to_the_wrong_fact():

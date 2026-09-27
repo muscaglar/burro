@@ -107,8 +107,38 @@ from burro_core.spec import (
 # 1.13.0 had been served when they were joined. 1.15.0 says a flow of traffic whole
 # and with its separator, as it says metres and pounds, and reads the plain ways a
 # person asks for little traffic. It moves no arithmetic: a search is ranked as it
-# was on what a release held before.
-ENGINE_VERSION = "1.15.0"
+# was on what a release held before. 1.16.0 says what an explanation says in words
+# for a person who has never seen Burro. It moves no arithmetic and no result: every
+# figure, unit, date and source of a sentence is as it was, and so is which sentence
+# an explanation gives. In the same version a figure that a few areas among more than
+# a hundred are beyond says how many they are, where it said it was the same as none.
+# 1.17.0 knows a third kind of search, a visit, which holds no budget and no kind of home.
+# The reducer drops both where a search becomes one and turns away an edit that would give
+# it either, and what a home costs is no part of how its areas are ranked or of what is said
+# of them. It moves no arithmetic, and no result of a search to rent or to buy. In the same
+# version a sentence that says a visit makes the search one, what is typed of a home or of
+# money beside a visit is said and never set, and what a night costs is heard as what a
+# place charges and is no budget. 1.18.0 turns away from a visit an edit that would have
+# what homes sold for count, as it turns away a budget, and drops what a search weighed of
+# it where the search becomes a visit. It moves no arithmetic, and no result of a search to
+# rent or to buy. In the same version a figure that every area compared is beyond says that
+# it is beyond all of them, where it said 100% of them, no offer and no note says that a
+# vibe is a rough guide, and the reasons of an explanation are what the person asked for: a
+# usual setting is one only where what was asked for gives fewer than three. And the reader
+# reads a time wherever the words give it to a place, reads a visit beside what else is
+# wished, and offers no rule for an area where the words say that somebody else is there.
+# 1.19.0 says of recorded rents that Burro uses them to give a general idea of what a home
+# lets for, where it said "as a rough guide": the words stand in the fact of a rent, and a
+# page prints them. It moves no arithmetic and no result. In the same version what Burro
+# says it is for names the space requirements, where it named the settings, the reader
+# reads "at the very most" as a firm limit, as it reads "at most", and says what a visit
+# cannot hold of a wish to move the budget. No other plain prompt is read otherwise than
+# it was, but one that holds a part of more than forty words which is two things with no
+# word between them: it is not plain, since a part that long is looked through for none.
+# And in a prompt that is not plain, a journey to part of a name is asked about where its
+# part of the sentence is the whole of it, and the name of an area is no rule for the area
+# where the words before it expect a place to reach.
+ENGINE_VERSION = "1.19.0"
 
 FULL_UNTIL_MIN = 15  # a journey this short is as good as any shorter
 FULL_UNTIL_SHARE = 0.5  # unless that is more than half the cap
@@ -687,7 +717,9 @@ def _score(
     area_id = area.area_id
     if not area.rankable:
         return Unranked(area_id=area_id, reason=UnrankedReason.NOT_RANKABLE, missing=())
-    estimate = release.cost(area_id, spec.tenure, spec.budget.segment)
+    # A visit holds no budget, so the release is asked for no cost: no area of a visit is
+    # left out, or stands higher or lower, for what a home costs there.
+    estimate = None if spec.visiting else release.cost(area_id, spec.tenure, spec.budget.segment)
     legs = tuple(_leg(area_id, commute, spec, release) for commute in spec.commutes)
     caught, untested = _filter(area, spec, estimate, legs)
     if caught is not None:

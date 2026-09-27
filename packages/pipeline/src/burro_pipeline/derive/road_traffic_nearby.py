@@ -8,8 +8,8 @@ the vehicles that pass on an average day of that year. It is a figure about a
 road. It says nothing of who lives anywhere.
 
 **It is core's measure of traffic**, `road_traffic_nearby`, and a build
-carries it. Core names it "Traffic past the busiest count point within 500 m of
-home, in a straight line", and the row of the catalogue that is made here is
+carries it. Core names it "Traffic past the busiest counting point within 500 m
+of home, in a straight line", and the row of the catalogue that is made here is
 core's. A person may rank on it, and Quiet streets holds it.
 
 What is read of a row, and what is not:

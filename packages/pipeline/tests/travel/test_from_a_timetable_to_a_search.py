@@ -286,7 +286,7 @@ def test_a_place_the_release_does_not_hold_is_refused_and_not_repeated(served: S
     assert answer.status_code == 422
     assert answer.json()["error"] == {
         "code": "unknown_place",
-        "message": "The spec names a place this release does not have.",
+        "message": "This search names a place that Burro does not have.",
         "fields": [{"path": "spec.commutes[0].place_id", "problem": "unknown_place"}],
     }
     assert "syn-p9999" not in answer.text

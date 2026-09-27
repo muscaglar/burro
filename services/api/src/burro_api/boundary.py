@@ -37,6 +37,9 @@ UNMATCHED = "unmatched"
 REQUEST_ID = "burro.request_id"
 ERROR_CODE = "burro.error_code"
 NO_STORE = "no-store"
+# Said of every answer of a route of accounts: it is what it says it is, and no browser
+# is to take it for anything else.
+AS_IT_SAYS = "nosniff"
 JSON = "application/json"
 # What a page on an allowed origin may send, and which of our headers it may read.
 ALLOWED_METHODS = "GET, POST"
@@ -47,7 +50,9 @@ ASK_AGAIN_AFTER = "600"
 
 # A method is whatever the client wrote. Only these are logged as they are.
 _METHODS = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"})
-_WITH_BODY = frozenset({"POST", "PUT", "PATCH"})
+# A `DELETE` is among them for the routes of accounts, which name what is taken away in
+# a body and never in a path. No other route takes one.
+_WITH_BODY = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 
 def template_of(scope: Scope, routes: Sequence[BaseRoute]) -> tuple[str, bool]:
@@ -93,8 +98,13 @@ def _refusal(scope: Scope) -> ErrorCode | None:
     if media_type != JSON:
         return ErrorCode.UNSUPPORTED_MEDIA_TYPE
     length = headers.get("content-length", "")
-    if length.isdecimal() and int(length) > MAX_BODY_BYTES:
-        return ErrorCode.BODY_TOO_LARGE
+    if length.isdecimal():
+        # A length of more figures than the longest body has is longer than it. It is
+        # told by counting them: a number of thousands of figures is one that nothing
+        # reads, and to try is to fail.
+        figures = length.lstrip("0")
+        if len(figures) > len(str(MAX_BODY_BYTES)) or int(figures or "0") > MAX_BODY_BYTES:
+            return ErrorCode.BODY_TOO_LARGE
     return None
 
 
@@ -133,10 +143,19 @@ def _replay(body: bytes, receive: Receive) -> Receive:
 
 
 class Boundary:
-    def __init__(self, app: ASGIApp, context: Context, routes: Sequence[BaseRoute]) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        context: Context,
+        routes: Sequence[BaseRoute],
+        sealed: frozenset[str] = frozenset(),
+    ) -> None:
         self._app = app
         self._context = context
         self._routes = routes
+        # The routes of accounts, by their templates. Every answer of one, a refusal
+        # among them, is never kept and is never taken for what it does not say it is.
+        self._sealed = sealed
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -164,6 +183,9 @@ class Boundary:
                 headers["X-Request-Id"] = request_id
                 # Only a route that is a function of the release alone says otherwise.
                 headers.setdefault("Cache-Control", NO_STORE)
+                if route in self._sealed:
+                    headers["Cache-Control"] = NO_STORE
+                    headers["X-Content-Type-Options"] = AS_IT_SAYS
                 # Said of every response, allowed or not, so that a cache never
                 # hands the answer for one origin to a page on another.
                 headers.add_vary_header("Origin")

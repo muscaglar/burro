@@ -30,6 +30,8 @@ uv run pytest evals/reader                     # the scorer's own tests
 
 It exits 0 when the run passes, 1 when it fails, and 2 when a case cannot be scored as it is written.
 
+`make eval-reader` is the first of these. A test of `make ci` makes the same run and holds it to the same floor, so every change is held to the whole set by the rule-based reader, on a machine of one's own and on a hosted runner.
+
 A run fails if:
 
 1. **any case is reversed**, whatever the rest looks like, or
@@ -61,12 +63,12 @@ The scorer prints counts, case ids and sentences from the cases. It never prints
 
 ### What was offered
 
-Nothing a model reads is applied: it is offered, and the way Burro reads a thing is marked as its guess (contract, section 8.2). So a reader that marks a guess is judged a second time, by what a person would get who pressed every guess. The rules mark none, and their score is as it was. Since 2026-09-25 the service marks a guess on what the rules read plainly: what a person said of the home they look for, which is that they rent or buy, a budget with its amount, and a kind of home, and a journey to one place with one time. It is marked by the API and not by the rules, so the scorer of the rules does not see it. A test of the API holds it to every case of this set, by the scorer's own judgement: `test_to_press_every_guess_of_the_rules_does_the_opposite_of_no_case_that_is_held`.
+Nothing a model reads is applied: it is offered, and the way Burro reads a thing is marked as its guess (contract, section 8.2). So a reader that marks a guess is judged a second time, by what a person would get who pressed every guess. The rules mark none, and their score is as it was. Since 2026-09-25 the service marks a guess on what the rules read plainly: what a person said of the home they look for, which is that they rent or buy, a budget with its amount, and a kind of home, and a journey to one place with one time. It is marked by the API and not by the rules, so the scorer of the rules does not see it. A test of the API holds it to every case of this set, by the scorer's own judgement: `test_to_press_every_guess_of_the_rules_does_the_opposite_of_no_case_that_is_held`. **Since 2026-09-27 it marks the way the words give of a wish too**, a measure or a vibe, where the rules would apply the sentence it stands in, and it says what waits for a person. The website takes what is offered and asks nothing, so a second test holds what such a client makes of every case, as a ceiling on what is read backwards and a floor under what is right: `services/api/tests/test_what_a_client_that_asks_nothing_takes.py`. Of the 1,026 cases the set then held such a client read 87 backwards, and reads 31.
 
 | Outcome | What happened |
 |---|---|
 | **APPLIED WITH NO PRESS** | The reader applied an edit the rules did not make. No path may |
-| **NEVER TO BE OFFERED** | An offer holds what is never offered from a model: a vibe that counts recorded crime, recorded crime the words do not name, a firm limit that the words against its own number do not give, a number for a weight, a rule for an area as the guess, a journey to a place the person did not type, a number of minutes or an amount they did not type, a way of travelling no word names, and an offer of a model's that rests on a wish about who lives somewhere. It is judged from the offer and the sentence, and asks nothing of the reader. It does not know a word about wealth: core lists none yet |
+| **NEVER TO BE OFFERED** | An offer holds what is never offered from a model: a vibe that counts recorded crime, which is no fault in a guess of the rules' own where the words name an end of it, "somewhere gritty, I think", recorded crime the words do not name, a firm limit that the words against its own number do not give, a number for a weight, a rule for an area as the guess, a journey to a place the person did not type, a number of minutes or an amount they did not type, a way of travelling no word names, and an offer of a model's that rests on a wish about who lives somewhere. It is judged from the offer and the sentence, and asks nothing of the reader. It does not know a word about wealth: core lists none yet |
 | **BACKWARDS GUESS** | To press every guess does the opposite of what was said |
 | backwards, unmarked | A way a model added, which is no guess, would do the opposite if it were pressed. The rules' own ways are not counted: they are there whoever reads |
 | unasked guess | To press every guess makes an edit nobody asked for |
@@ -103,7 +105,7 @@ One case is one line of JSON.
 |---|---|
 | `id` | A name that never changes, so that two runs can be compared |
 | `text` | What the person typed, 1 to 600 characters |
-| `tenure` | `rent` or `buy`: where the toggle stands when they type |
+| `tenure` | `rent`, `buy` or `visit`: where the toggle stands when they type |
 | `expect` | What a correct reading is. Every key below is optional |
 | `why` | One line on what the case is for |
 | `held` | Optional. What the search already holds, for a follow-up: `journeys`, `areas`, `weights`, `tags`, `budget`. A vibe that is held towards the low end of a scale is given a weight below nothing |
@@ -134,7 +136,7 @@ Anything `expect` does not name must stay as it was. A reader that moves it has 
 
 **Areas**, under `areas`: `exclude`, `only`, `clear`, and `not_exclude`, `not_only`, `may_exclude`, `may_only`, which work as the keys for journeys do. The other rule for an area that was to be excluded is reversed.
 
-**Budget**, under `budget`: `amount` (a number, or a least and a most), `not_amount` (numbers the words turn down, or that are no budget at all, such as a salary), `segment`, `strictness`, `clear` (the amount must be taken off) and `may_set`. `"any"` works as it does for a journey.
+**Budget**, under `budget`: `amount` (a number, or a least and a most), `not_amount` (numbers the words turn down, or that are no budget at all, such as a salary or what a night in a hotel costs), `segment`, `strictness`, `clear` (the amount must be taken off) and `may_set`. `"any"` works as it does for a journey.
 
 **The rest.**
 
@@ -144,6 +146,7 @@ Anything `expect` does not name must stay as it was. A reader that moves it has 
 | `notice` | `none` by default, so a notice that is given without cause is a fault. `neutral_places` and `off_topic` must be given. `any` accepts either |
 | `unmet` | Categories the reader must report as unmet, such as `driving` |
 | `ask` | `no` by default: a question where none was open is a fault. `ok`: to ask is as good as to act. `must`: the reader must ask and must not guess |
+| `not_dropped` | Words of the sentence that are not to be dropped without a word, each as it stands in the text, once. Every word of each must be among what an edit rests on, what is offered, what is said to be missing or what is said to be unread. It is for what a person typed and Burro cannot hold: the bedrooms of a home to buy, the kind of house of a home to rent. A reader that applies the rest and says nothing of them has read the sentence in part |
 
 ### The groups
 
@@ -168,6 +171,7 @@ Anything `expect` does not name must stay as it was. A reader that moves it has 
 | `suggestions` | Prompts that are not plain, of which nothing may be applied. What they ask for must be offered |
 | `vibes` | Three sentences for each vibe of the committed release. The words of the way gritty is not built in it are held by core's own tests |
 | `whole_searches` | The whole of a search as a newcomer types it, and each part of one alone: hedged wishes, a word for a smart area or for character, a journey given as a range or to a place the release does not hold, and a home to rent or to buy. `whole-035` is the founder's own test sentence, word for word and by their consent. It is the one sentence of the set that is not made up, and it names a place the release does not hold |
+| `visits` | A search for somewhere to stay. Sentences that say a visit, plainly and not. The same words saying something else: whom the speaker visits, a holiday home, a hotel that is a workplace, somebody else's visit. What a night costs, which is no budget. A home and an amount typed beside a visit, which a visit does not hold, and a visit that becomes a search for a home |
 
 ## Add a case
 
@@ -285,7 +289,7 @@ The first line reads the key without showing or recording it. Close the shell af
 
 The rule-based reader costs nothing, and nor does the stand-in.
 
-For a model, `docs/design/models.md`, section 3, has what each provider charged on the day its page was read, for 1,000 searches of 3,000 tokens in and 300 out. For Gemini that was 1.65 US dollars, so one run of this set, 871 cases, is about 1.4 dollars and three runs about 4.
+For a model, `docs/design/models.md`, section 3, has what each provider charged on the day its page was read, for 1,000 searches of 3,000 tokens in and 300 out. For Gemini that was 1.65 US dollars, so one run of this set, which held 1,026 cases on 2026-09-27, is about 1.7 dollars and three runs about 5.
 
 | Part of one call | Size | Tokens, about |
 |---|---|---|

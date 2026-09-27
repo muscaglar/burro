@@ -14,6 +14,8 @@ from fastapi import FastAPI
 from pydantic import ValidationError
 
 from burro_api import logs
+from burro_api.accounts.settings import NotSet
+from burro_api.accounts.store import StoreError
 from burro_api.app import create_app, deps_from
 from burro_api.providers.choose import Choice, choose
 from burro_api.settings import Settings
@@ -48,6 +50,9 @@ def serve(settings: Settings, choice: Choice) -> int:
         model=deps.model_id,
         **reads,
     )
+    if deps.accounts is not None:
+        # That accounts are on, and nothing of how they are set.
+        logs.event("accounts_on")
     try:
         uvicorn.run(
             create_app(deps),
@@ -98,6 +103,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"wrote {args.out}")
     except ValidationError:
         print("error: a setting in the environment is not in the form it needs", file=sys.stderr)
+        return 2
+    except NotSet as error:
+        # The names of the settings, which are Burro's own. Never what one was set to.
+        named = ", ".join(error.names)
+        print(f"error: accounts are on, and need these settings: {named}", file=sys.stderr)
+        return 2
+    except StoreError as error:
+        print(f"error: the file of accounts could not be used [{error.rule}]", file=sys.stderr)
         return 2
     except ReleaseError as error:
         print(f"error: the release could not be loaded: {_refusal(folder, error)}", file=sys.stderr)

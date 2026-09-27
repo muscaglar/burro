@@ -14,6 +14,7 @@ from typing import Annotated
 
 from pydantic import AfterValidator, BeforeValidator, Field
 
+from burro_api.accounts.settings import AccountsSettings, accounts_from, held_to
 from burro_api.wire import Wire
 
 # The committed synthetic release, so that a fresh checkout runs with nothing set.
@@ -164,10 +165,13 @@ class Settings(Wire):
     # The origins a browser may call from. A call from any other is answered,
     # and the browser is given nothing that lets a page read the answer.
     allowed_origins: tuple[Origin, ...] = Field(min_length=1)
+    # What accounts are set to, or `None` where they are off. They are off unless they
+    # are turned on, and the service is then what it was before there were accounts.
+    accounts: AccountsSettings | None = None
 
     @classmethod
     def from_env(cls, env: Mapping[str, str]) -> "Settings":
-        return cls.model_validate(
+        settings = cls.model_validate(
             {
                 "release_dir": env.get("BURRO_RELEASE_DIR") or SYNTHETIC_FIXTURE,
                 "census_dir": _census_dir(env),
@@ -186,5 +190,9 @@ class Settings(Wire):
                 "allowed_origins": _origins(listed)
                 if (listed := env.get("BURRO_ALLOWED_ORIGINS", "").strip())
                 else DEFAULT_ORIGINS,
+                "accounts": accounts_from(env),
             }
         )
+        if settings.accounts is not None:
+            held_to(settings.accounts, settings.host, settings.allowed_origins)
+        return settings

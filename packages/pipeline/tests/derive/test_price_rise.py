@@ -69,7 +69,12 @@ def test_a_rise_is_a_figure_of_what_was_paid_for_homes_that_a_person_may_weigh(
     feature_id: FeatureId,
 ):
     feature = FEATURES[feature_id]
-    assert feature.label.startswith("Median price paid for a home, for each £100 of the median ")
+    assert feature.label.startswith(
+        "The middle price paid for a home in the latest year, for each £100 of the middle price "
+    )
+    assert feature.label.endswith(" years before")
+    # The figure is of a year that has ended, so its name never says that it is of now.
+    assert "now" not in feature.label.split() and "today" not in feature.label.split()
     assert feature.short_label.startswith("Price rise over ")
     assert (feature.unit, feature.polarity) == ("£", Polarity.EITHER)
     assert (feature.higher, feature.lower) == ("a steeper rise", "a smaller rise")

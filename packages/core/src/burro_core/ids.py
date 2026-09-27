@@ -8,7 +8,9 @@ Census 2021 counted them (ADR 0006, as amended on 2026-09-24). Nothing else
 about who lives somewhere can be asked for: there is no id for it.
 """
 
+from collections.abc import Mapping
 from enum import StrEnum
+from types import MappingProxyType
 from typing import Annotated
 
 from pydantic import Field
@@ -320,8 +322,15 @@ class City(StrEnum):
 
 
 class Tenure(StrEnum):
+    """What a search is for: a home to rent, a home to buy, or somewhere to stay on a visit.
+
+    A visit is a kind of search of its own. It holds no budget, no number of bedrooms and
+    no kind of home, and what homes cost is no part of how its areas are ranked.
+    """
+
     RENT = "rent"
     BUY = "buy"
+    VISIT = "visit"
 
 
 class Segment(StrEnum):
@@ -517,6 +526,7 @@ class Choice(StrEnum):
 class TenureChoice(StrEnum):
     RENT = "rent"
     BUY = "buy"
+    VISIT = "visit"
     UNCHANGED = "unchanged"
 
 
@@ -769,8 +779,15 @@ RENT_SEGMENTS = (
 BUY_SEGMENTS = (Segment.FLAT, Segment.TERRACED, Segment.SEMI_DETACHED, Segment.DETACHED)
 
 
+# A visit has no kind of home: nobody who is choosing where to stay names one.
+_SEGMENTS: Mapping[Tenure, tuple[Segment, ...]] = MappingProxyType(
+    {Tenure.RENT: RENT_SEGMENTS, Tenure.BUY: BUY_SEGMENTS, Tenure.VISIT: ()}
+)
+
+
 def segments_for(tenure: Tenure) -> tuple[Segment, ...]:
-    return RENT_SEGMENTS if tenure is Tenure.RENT else BUY_SEGMENTS
+    """The kinds of home a search of this kind may hold. A visit may hold none."""
+    return _SEGMENTS[tenure]
 
 
 def component_for_feature(feature_id: FeatureId) -> str:

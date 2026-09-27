@@ -161,6 +161,30 @@ def test_it_is_said_to_be_a_mean_of_the_area_and_never_what_a_household_has():
         assert any("no change over time" in note or "shows none" in note for note in words.notes)
 
 
+def test_the_notes_say_what_they_said_in_sentences_that_are_joined():
+    """The words round the figure were written for ADR 0028. Each note says what it said."""
+    for words in (ONS, MADE_UP):
+        # A mean of the whole area, and what no household or person has.
+        assert words.notes[0] == (
+            "This is an average for the whole area: a mean, and not a median. It is not what "
+            "any one household or person here has."
+        )
+        # Of one year, with no change over time shown.
+        assert words.notes[2].startswith("This figure is for one year")
+        # Nothing beside it, and nothing said of what it means.
+        assert words.notes[3] == (
+            "Burro shows this figure by itself, with no other area and no figure for the "
+            "whole city beside it, and does not say what it means."
+        )
+    assert ONS.notes[2] == (
+        "This figure is for one year. The statistics office asks for caution in reading any "
+        "change over time, and Burro shows none."
+    )
+    # It gives the office's caution and what Burro shows, and makes neither the reason
+    # for the other.
+    assert "because" not in ONS.notes[2] and "which is why" not in ONS.notes[2]
+
+
 def test_nothing_else_stands_beside_the_figure():
     """No other area, no figure of the city, no rank, no share and no band."""
     assert set(IncomeShown.model_fields) == {

@@ -10,7 +10,7 @@ import dataclasses
 import re
 
 import pytest
-from burro_core.catalogue import FEATURES, band_of
+from burro_core.catalogue import FEATURES, JUDGEMENT, band_of
 from burro_core.explain import render
 from burro_core.facts import Fact, facts_for
 from burro_core.ids import (
@@ -326,36 +326,42 @@ def test_a_journey_and_a_rent_alone_do_not_rank_an_area_of_which_little_else_is_
     assert first_names(result, 1) == ["Cindermoor"]
 
 
+# What joins a figure to where it stands among the areas.
+WHICH_IS = "which is "
 BEYOND = re.compile(
-    r"(?P<word>[a-z ]+?)(?: than)? (?P<pct>\d+)% of the (?P<compared>\d+) areas compared in "
-    r"this release(?:, and the same as (?P<level>\d+) others?)?\.(?: Recorded crime .*)?"
+    r"(?P<word>[a-z ]+?)(?: than)? (?P<pct>\d+)% of the (?P<compared>\d+) areas Burro "
+    r"compared(?:, and the same as (?P<level>\d+) others?)?\.(?: Recorded crime .*)?"
 )
 LEVEL = re.compile(
-    r"the same as (?:(?P<level>\d+) of the |all )(?P<others>\d+) other areas compared in this "
-    r"release\.(?: Recorded crime .*)?"
+    r"the same as (?:(?P<level>\d+) of the |all )(?P<others>\d+) other areas Burro "
+    r"compared\.(?: Recorded crime .*)?"
 )
-NONE = re.compile(
-    r"(?P<word>[a-z ]+?)(?: than)? none of the (?P<others>\d+) other areas compared in this "
-    r"release\.(?: Recorded crime .*)?"
+# Every other area is beyond it on the side of the word, and none is level with it. An
+# area that is not ranked is none of the areas compared, so they are no "other" areas to it.
+ALL = re.compile(
+    r"(?P<word>[a-z ]+?)(?: than)? all (?P<others>\d+)(?P<other> other)? areas Burro "
+    r"compared\.(?: Recorded crime .*)?"
 )
-# What a band says where it rests on part of its recipe, and nowhere else.
+# What a band says where it rests on some of the measurements of its vibe, and nowhere else.
 PARTLY = (
-    r"(?:Worked out from (?P<known>\d+) of its (?P<parts>\d+) parts, "
-    r"(?P<share>\d+) of 100 by weight\. )?"
+    r"(?:Burro has a figure for (?P<known>\d+) of the (?P<parts>\d+) measurements that go "
+    r"into this vibe, and they count for (?P<share>\d+) of 100 in it\. )?"
 )
+# What ends the full statement of every vibe: its dates, and whose choice it is.
+DATED = rf"Its measurements are dated (?P<span>[0-9 to]+)\. {re.escape(JUDGEMENT)}"
 VIBE = re.compile(
-    r"band (?P<band>[1-5]) of 5, counted from (?P<low>[A-Za-z ]+) to (?P<high>[A-Za-z ]+), among "
-    rf"the (?P<compared>\d+) areas compared in this release\. {PARTLY}"
-    r"Parts dated (?P<span>[0-9 to]+)\. The recipe is Burro's own\. The weights are a judgement\."
+    r"band (?P<band>[1-5]) of 5 among the (?P<compared>\d+) areas Burro compared, where the "
+    rf"bands run from (?P<low>[A-Za-z ]+) to (?P<high>[A-Za-z ]+)\. {PARTLY}{DATED}"
 )
 VIBE_RANGE = re.compile(
-    r"varies within this area, from band (?P<low_band>[1-5]) to band (?P<high_band>[1-5]) of 5, "
-    rf"counted from (?P<low>[A-Za-z ]+) to (?P<high>[A-Za-z ]+)\. {PARTLY}"
-    r"Parts dated (?P<span>[0-9 to]+)\. The recipe is Burro's own\. The weights are a judgement\."
+    r"this varies within the area, from band (?P<low_band>[1-5]) to band "
+    r"(?P<high_band>[1-5]) of 5, where the bands run from (?P<low>[A-Za-z ]+) to "
+    rf"(?P<high>[A-Za-z ]+)\. {PARTLY}{DATED}"
 )
 VIBE_UNKNOWN = re.compile(
-    r"Burro cannot place (?P<what>.+)\. Parts with a figure in this release: "
-    r"(?P<known>\d+) of (?P<parts>\d+)\."
+    r"Burro could not work out (?P<what>.+)\. It has a figure for (?P<known>\d+) of the "
+    r"(?P<parts>\d+) measurements that go into this vibe, and it leaves a vibe blank rather "
+    r"than guess at it\."
 )
 
 
@@ -412,7 +418,7 @@ def vibe_is_true(text: str, fact: Fact, area: Neighbourhood) -> bool:
         )
 
     if (said := VIBE_UNKNOWN.fullmatch(text)) is not None:
-        named = said["what"] == f"{area.name} on {vibe.label}"
+        named = said["what"] == f"{vibe.label} for {area.name}"
         return (
             named
             and mine.raw is None
@@ -450,6 +456,9 @@ def true_of_the_release(text: str, fact: Fact, area: Neighbourhood) -> bool:
     higher = sum(1 for figure in population if figure > mine)
     level = sum(1 for figure in population if figure == mine) - area.rankable
     claim = text.split(": ", 1)[1].split(", ", 1)[1]
+    if not claim.startswith(WHICH_IS):
+        return False
+    claim = claim.removeprefix(WHICH_IS)
     others = lower + higher + level
     if (said := LEVEL.fullmatch(claim)) is not None:
         # It is said from one side, where no area is beyond this one.
@@ -458,9 +467,17 @@ def true_of_the_release(text: str, fact: Fact, area: Neighbourhood) -> bool:
             level,
             others,
         )
-    if (said := NONE.fullmatch(claim)) is not None:
-        beyond = lower if said["word"] == above else higher
-        return said["word"] in (above, below) and (beyond, level) == (0, 0)
+    if (said := ALL.fullmatch(claim)) is not None:
+        # It has more than every other area, or less than every one of them: each of the
+        # others is strictly on the far side of it, and the sentence counts them all.
+        beaten = lower if said["word"] == above else higher
+        return (
+            said["word"] in (above, below)
+            and level == 0
+            and beaten == others == int(said["others"])
+            # It is one of the areas compared, and they are the others, or it is not.
+            and bool(said["other"]) == area.rankable
+        )
     said = BEYOND.fullmatch(claim)
     if said is None or said["word"] not in (above, below):
         return False
@@ -529,7 +546,7 @@ def scored_on(fact: Fact) -> float:
 def test_a_share_worked_out_from_the_mid_rank_percentile_is_not_true_where_areas_tie():
     # What the sentences said before: the percentile an area is scored on,
     # which counts half of the areas level with it as beaten.
-    of = "areas compared in this release."
+    of = "areas Burro compared."
     untrue: list[str] = []
     for area, fact in comparisons():
         if fact.kind is FactKind.TAG or "compared" not in fact.slots:
@@ -540,12 +557,12 @@ def test_a_share_worked_out_from_the_mid_rank_percentile_is_not_true_where_areas
         higher = percentile >= 50
         pct = round(percentile) if higher else 100 - round(percentile)
         word = above if higher else below
-        old = f"{fact.label}: 0, {word} than {pct}% of the {compared} {of}"
+        old = f"{fact.label}: 0, which is {word} than {pct}% of the {compared} {of}"
         if not true_of_the_release(old, fact, area):
             untrue.append(old)
     assert len(untrue) > 600
     # An area with no water at all was said to have less than 70% of areas.
-    assert f"{WATER}: 0, less than 70% of the 22 {of}" in untrue
+    assert f"{WATER}: 0, which is less than 70% of the 22 {of}" in untrue
 
 
 REASON, TRADE_OFF = SentenceRole.REASON, SentenceRole.TRADE_OFF
@@ -556,7 +573,7 @@ TIED = [
         "Thrushcombe",
         "feature/water_access",
         TRADE_OFF,
-        f"{WATER}: 0%, less than 40% of the 22 areas compared in this release, and the same "
+        f"{WATER}: 0%, which is less than 40% of the 22 areas Burro compared, and the same "
         "as 12 others.",
     ),
     # From the better side no area has less, so it says only which are level.
@@ -564,36 +581,37 @@ TIED = [
         "Thrushcombe",
         "feature/water_access",
         REASON,
-        f"{WATER}: 0%, the same as 12 of the 21 other areas compared in this release.",
+        f"{WATER}: 0%, which is the same as 12 of the 21 other areas Burro compared.",
     ),
     # An area on one line, as twelve are. Seven have none.
     (
         "Wickerford",
         "feature/station_lines",
         REASON,
-        "Lines within a 10-minute walk: 1, more than 31% of the 22 areas compared in this "
-        "release, and the same as 11 others.",
+        "Lines within a 10-minute walk: 1, which is more than 31% of the 22 areas Burro "
+        "compared, and the same as 11 others.",
     ),
     (
         "Thrushcombe",
         "feature/school_primary_nearby",
         REASON,
-        "State primary schools within 800 m in a straight line: 4, more than 54% of the 22 "
-        "areas compared in this release, and the same as 6 others.",
+        "State primary schools within 800 m in a straight line: 4, which is more than 54% "
+        "of the 22 areas Burro compared, and the same as 6 others.",
     ),
     # A vibe is said in bands, whichever role it has.
     (
         "Foxholt",
         "tag/pace",
         TRADE_OFF,
-        "Going out: varies within this area, from band 3 to band 5 of 5, counted from Calm to "
-        "Buzzy. Parts dated 2025. The recipe is Burro's own. The weights are a judgement.",
+        "Going out: this varies within the area, from band 3 to band 5 of 5, where the bands "
+        f"run from Calm to Buzzy. Its measurements are dated 2025. {JUDGEMENT}",
     ),
     (
         "Otterby Fields",
         "tag/leafy",
         REASON,
-        "Burro cannot place Otterby Fields on Leafy. Parts with a figure in this release: 1 of 3.",
+        "Burro could not work out Leafy for Otterby Fields. It has a figure for 1 of the 3 "
+        "measurements that go into this vibe, and it leaves a vibe blank rather than guess at it.",
     ),
 ]
 

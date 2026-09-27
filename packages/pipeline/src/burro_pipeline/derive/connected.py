@@ -249,7 +249,7 @@ def is_a_bus_stop(stop: Stop) -> bool:
 MEASURES: Mapping[FeatureId, Of] = {
     UNDERGROUND: Of(
         UNDERGROUND,
-        "Straight-line distance to the nearest Underground or DLR station",
+        "Distance to the nearest Underground or DLR station, in a straight line",
         NEAREST,
         False,
         _TO_A_POINT.replace("{what}", "a station of the Underground or the DLR").replace(
@@ -267,7 +267,7 @@ MEASURES: Mapping[FeatureId, Of] = {
     ),
     OVERGROUND: Of(
         OVERGROUND,
-        "Straight-line distance to the nearest Overground or Elizabeth line station",
+        "Distance to the nearest Overground or Elizabeth line station, in a straight line",
         NEAREST,
         True,
         _TO_A_POINT.replace(
@@ -277,7 +277,7 @@ MEASURES: Mapping[FeatureId, Of] = {
     ),
     RAIL: Of(
         RAIL,
-        "Straight-line distance to the nearest National Rail station or tram stop",
+        "Distance to the nearest National Rail station or tram stop, in a straight line",
         NEAREST,
         True,
         _TO_A_POINT.replace(

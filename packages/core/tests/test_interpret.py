@@ -204,9 +204,10 @@ def test_request_to_avoid_a_group_gets_the_neutral_notice_and_the_rest_is_served
     assert result.status is InterpretStatus.POLICY_REDIRECT
     assert result.notice is Notice.NEUTRAL_PLACES
     assert NOTICES[result.notice] == (
-        "Burro ranks places by what is there. Of who lives in a place it counts only their "
-        "age and their households, at the census of 2021, and you cannot ask for fewer of "
-        "anyone. The rest of your search has been applied."
+        "Burro ranks places by what is there. The only things it counts about the people who "
+        "live in a place are their age and the kind of household they live in, as the census "
+        "of 2021 recorded them, and you cannot ask for fewer of any group of people. The rest "
+        "of your search has been applied."
     )
     # No edit for that part, and every other edit is made.
     assert edits(result) == {
@@ -390,7 +391,8 @@ def test_a_phrase_for_who_is_counted_is_offered_towards_more_and_never_applied(t
 
 def test_what_is_said_where_who_lives_somewhere_is_offered():
     assert COUNTED_AT_THE_CENSUS == (
-        "Burro counts who was living there at the census of 2021. It measures places first."
+        "Burro measures places first. When it counts people, it counts who was living there "
+        "at the census of 2021."
     )
     # A person's own age is not known, so the words are answered with a question.
     (young, old) = read("people my age").suggestions
@@ -1861,7 +1863,9 @@ def test_a_home_is_offered_whether_or_not_the_search_already_holds_it():
         "Set a terraced house, to buy",
         "Leave it out",
     ]
-    assert found.note == "Burro holds rents by the number of bedrooms, and not by kind of home."
+    assert found.note == (
+        "Burro knows what homes rent for by the number of bedrooms, and not by kind of home."
+    )
     assert [text[s.start : s.end] for s in read(text).unread] == ["I have never lived there"]
 
 
@@ -1976,23 +1980,23 @@ def test_crime_is_weighted_only_when_it_is_asked_for_in_so_many_words():
 
 
 CANNOT_SAY_SAFE = (
-    "Burro cannot say how safe a place is. It can count recorded crime. "
+    "Burro cannot tell you how safe a place is. What it can do is count recorded crime. "
     "Recorded crime depends on what is reported, and locations are approximate."
 )
 NO_POOLS = (
     "Burro cannot tell a swimming pool or a leisure centre from any other place to train. "
-    "The nearest it can count is gyms and fitness studios."
+    "The nearest thing it can count is gyms and fitness studios."
 )
-# What is nearest is Village feel, which is a rough guide, and its offer says so.
+# What is nearest is Village feel, which is a rough guide. Its offer said so, until the
+# founder asked that no person is told (2026-09-26).
 NO_NEIGHBOURS = (
-    "Burro cannot measure whether neighbours know each other. The nearest it can count is "
-    "a village feel: a high street in a conservation area, homes that stand apart and "
-    "period homes. Rough guide. Of the areas it puts highest, about half read as villages "
-    "to people, and it takes some busy main roads and some grand inner streets for villages."
+    "Burro has no way of measuring whether neighbours know each other. The nearest thing it "
+    "can count is a village feel: a high street in a conservation area, homes that stand "
+    "apart and period homes."
 )
 NOT_ONE_HOME = (
-    "Burro cannot see whether one home has a garden. "
-    "It can count how much of an area is residential garden."
+    "Burro cannot see whether one home has a garden, but it can count how much of an area "
+    "is residential garden."
 )
 # The first words a newcomer reaches for, what is offered for each, and what is said.
 NEWCOMER = [
@@ -2865,7 +2869,7 @@ def test_a_smart_area_is_offered_as_of_the_place_in_a_sentence_that_is_not_plain
         "Leave it out",
     ]
     assert smart.note.startswith(
-        "Burro reads this of the place, and not of the people who live there."
+        "Burro takes this to be about the place, and not about the people who live there."
     )
     unread = [text[span.start : span.end] for span in result.unread]
     assert not any(word in words for words in unread)

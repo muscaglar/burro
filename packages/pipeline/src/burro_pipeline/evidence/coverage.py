@@ -392,7 +392,8 @@ def essentials(coverage: Coverage, area_id: str) -> tuple[str, ...]:
         "name": has(f"{FactKind.AREA}/{NAME}"),
         "boundary": has(f"{FactKind.AREA}/{BOUNDARY}"),
         "journeys": all(has(f"{FactKind.TRAVEL}/{mode}") for mode in Mode),
-        "cost": all(any_of(tenure) for tenure in Tenure),
+        # Of each kind of search that holds a home. A visit holds none, so it asks for no cost.
+        "cost": all(any_of(tenure) for tenure in Tenure if segments_for(tenure)),
         "enough to rank": bool(carried) and _values(carried) >= ENOUGH_TO_RANK * len(carried),
     }
     return tuple(name for name in ESSENTIALS if not present[name])

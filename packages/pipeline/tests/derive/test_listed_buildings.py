@@ -294,7 +294,7 @@ def test_the_row_of_the_catalogue_is_what_core_says_the_measure_is(town: Listed)
     core = FEATURES[FeatureId.LISTED_BUILDINGS]
     assert says_what_core_says(town.metric)
     assert town.metric.label == core.label == "Listed buildings"
-    assert (town.metric.unit, town.metric.polarity) == ("per km²", Polarity.MORE)
+    assert (town.metric.unit, town.metric.polarity) == ("per square kilometre", Polarity.MORE)
     assert town.metric.native_resolution is NativeResolution.POINT
     assert town.geography is Geography.POINT
 

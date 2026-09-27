@@ -24,6 +24,7 @@ from burro_core.ids import (
     InterpretStatus,
     ModeChoice,
     Notice,
+    OpsGroup,
     SegmentChoice,
     Step,
     StrictnessChoice,
@@ -39,6 +40,7 @@ from burro_core.interpret import (
     Choice,
     InterpretRequest,
     InterpretResult,
+    RestsOn,
     Span,
     Suggestion,
 )
@@ -198,6 +200,15 @@ def test_a_reader_that_raises_whatever_is_named_is_caught_reversing():
     assert "My ex works at Pellam Infirmary so I'd rather be elsewhere" in reversed_
 
 
+def test_the_rules_are_held_to_every_case_as_make_eval_reader_holds_them(
+    capsys: pytest.CaptureFixture[str],
+):
+    """The score is the one check that fails where the rules read a sentence backwards.
+    `make eval-reader` is this run, with its report. Here every change is held to it."""
+    passed = score.main([]) == 0
+    assert passed, capsys.readouterr().out.rpartition("\n\n")[2]
+
+
 def test_a_reader_that_offers_what_was_asked_for_and_moves_nothing_has_suggested():
     text = "I don't want pubs nearby"
     both = offer("Pubs and bars", more=PUBS_UP, less=PUBS_FEWER)
@@ -351,6 +362,44 @@ def test_a_notice_that_was_called_for_and_not_given_is_missed():
 
 def test_a_notice_nobody_called_for_is_not_correct():
     assert outcome("an English garden", answer(notice=Notice.NEUTRAL_PLACES)) == "partial"
+
+
+NOT_HELD = "I want to buy a 2 bed flat for 400k"
+A_FLAT_FOR_400K = edits(
+    budget_ops=(
+        BudgetEdit(
+            action=BudgetAction.SET,
+            tenure=TenureChoice.BUY,
+            amount=400_000,
+            segment=SegmentChoice.FLAT,
+            strictness=StrictnessChoice.UNCHANGED,
+            step=Step.NONE,
+            provenance=STATED,
+        ),
+    )
+)
+
+
+def test_words_that_were_not_to_be_dropped_and_are_in_no_list_are_read_in_part():
+    """The reader applied what the search can hold, and said nothing of the bedrooms."""
+    at = NOT_HELD.index("2 bed")
+    applied = answer(A_FLAT_FOR_400K)
+    told = Suggestion(
+        target="budget",
+        label="A 2-bedroom home",
+        spans=(Span(start=at - 2, end=at + 5),),
+        choices=(IGNORE,),
+        note="said in Burro's own words",
+    )
+
+    assert outcome(NOT_HELD, applied) == "partial"
+    # In any list: what an edit rests on, what is offered, or what is said to be unread.
+    assert outcome(NOT_HELD, applied.replace(suggestions=(told,))) == "correct"
+    assert outcome(NOT_HELD, applied.replace(unread=(Span(start=at, end=at + 5),))) == "correct"
+    rests = RestsOn(group=OpsGroup.BUDGET, index=0, start=at, end=at + 5)
+    assert outcome(NOT_HELD, applied.replace(rests_on=(rests,))) == "correct"
+    # Part of the words is not the words.
+    assert outcome(NOT_HELD, applied.replace(unread=(Span(start=at, end=at + 1),))) == "partial"
 
 
 def test_of_a_reader_that_raises_only_the_class_is_kept():
@@ -619,6 +668,32 @@ def test_what_is_never_to_be_offered_is_found_whatever_else_was_offered(
     assert score.offers_gate([scored])[0].startswith("never to be offered is 1")
 
 
+def test_the_rules_own_guess_at_a_vibe_whose_end_the_words_name_is_no_fault():
+    # The service marks the way the rules would apply of a sentence as the guess. "Gritty"
+    # is the name of an end of the scale that holds recorded crime, and to type it is to
+    # ask for it (ADR 0013). No model pointed at the way, and the rules offered it.
+    gritty = edits(tag_ops=(tag(TagId.STREET_CHARACTER),))
+    polished = edits(tag_ops=(tag(TagId.STREET_CHARACTER, TowardChoice.LOW),))
+    named, unnamed = BY_TEXT["Somewhere gritty, I think"], BY_TEXT["somewhere posh"]
+    own = offering(way("more", gritty, guess=True, ruled=True), target="tag:street_character")
+    pointed = offering(
+        way("more", gritty, guess=True, meant=True, ruled=True), target="tag:street_character"
+    )
+    unasked = offering(way("less", polished, guess=True, ruled=True), target="tag:street_character")
+
+    assert score.offer_of(named, answer(suggestions=(own,)), RELEASE, NAMES)[0] is (
+        score.Offered.RIGHT
+    )
+    # It is the rules' own where a model reads too, and no model pointed at it.
+    assert score.offer_of(named, by_a_model(own), RELEASE, NAMES)[0] is score.Offered.RIGHT
+    # A model is never to offer it, whatever the words are.
+    assert score.offer_of(named, by_a_model(pointed), RELEASE, NAMES)[0] is score.Offered.NEVER
+    # And where the words name no end of it, the guess is a fault whoever marked it.
+    assert score.offer_of(unnamed, answer(suggestions=(unasked,)), RELEASE, NAMES)[0] is (
+        score.Offered.NEVER
+    )
+
+
 BOTH = "under 1500 and no more than 40 minutes to Pellam Exchange"
 
 
@@ -672,6 +747,40 @@ def test_what_the_person_did_not_type_is_never_to_be_offered(sent: Operations, w
 
     assert scored.offer is score.Offered.NEVER
     assert what in [finding.what for finding in scored.findings]
+
+
+IN_HOURS = "an hour and a quarter to Pellam Exchange is fine by me"
+WITHIN_AN_HOUR = "Need to be within an hour of Scrimshaw Airfield"
+
+
+def to(place: str, minutes: int, strictness: str = "unchanged") -> Suggestion:
+    """A journey that is offered with a guess marked on it."""
+    sent = edits(commute_ops=(journey(place, minutes, strictness),))
+    return offering(way("more", sent, guess=True, meant=True), target="commute")
+
+
+def test_a_time_in_hours_is_a_number_of_minutes_that_the_person_typed():
+    whole = offered(IN_HOURS, by_a_model(to("Pellam Exchange", 75)))
+
+    assert whole.offer is score.Offered.RIGHT
+    # Its hours by themselves and its minutes by themselves are numbers nobody typed.
+    for part in (60, 15):
+        scored = offered(IN_HOURS, by_a_model(to("Pellam Exchange", part)))
+        assert scored.offer is score.Offered.NEVER
+        assert "a number of minutes the person did not type" in [
+            finding.what for finding in scored.findings
+        ]
+
+
+def test_a_time_in_hours_is_firm_only_by_the_words_that_stand_against_the_whole_of_it():
+    given = offered(WITHIN_AN_HOUR, by_a_model(to("Scrimshaw Airfield", 60, "hard")))
+    not_given = offered(IN_HOURS, by_a_model(to("Pellam Exchange", 75, "hard")))
+
+    assert given.offer is score.Offered.RIGHT
+    assert not_given.offer is score.Offered.NEVER
+    assert "a firm limit the words do not give, as the guess" in [
+        finding.what for finding in not_given.findings
+    ]
 
 
 PEOPLE = "Somewhere leafy with lots of students like me"

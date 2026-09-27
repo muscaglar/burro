@@ -495,7 +495,7 @@ BROKEN: list[tuple[str, str, Break]] = [
     ("values_are_in_range", "features.json", figure_of("%", 140.0)),
     ("values_are_in_range", "features.json", figure_of("%", -0.1)),
     ("values_are_in_range", "features.json", figure_of("µg/m³", -5.0)),
-    ("values_are_in_range", "features.json", figure_of("per ha", -1.0)),
+    ("values_are_in_range", "features.json", figure_of("per hectare", -1.0)),
     ("values_are_in_range", "features.json", figure_of("m", -1.0)),
     ("null_means_null", "features.json", set_in("features.json", 1, percentile=None)),
     ("null_means_null", "features.json", set_in("features.json", 0, percentile=50.0)),
@@ -823,7 +823,7 @@ def test_a_release_is_held_to_itself_and_to_no_place_on_the_map():
 def test_a_figure_at_either_end_of_what_its_unit_allows_is_a_figure():
     whole = documents()
     at_its_end("%", 100.0, highest=True)(whole)
-    at_its_end("per ha", 0.0, highest=False)(whole)
+    at_its_end("per hectare", 0.0, highest=False)(whole)
     # Each stands where it stood among the others: only the range is looked at here.
     assert parse_release(whole).manifest.synthetic is True
 

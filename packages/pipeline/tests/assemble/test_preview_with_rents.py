@@ -475,9 +475,9 @@ def test_what_is_said_of_a_rent_names_the_place_the_months_and_the_count(build: 
     rented = facts[f"{THREE}/cost/rent.bed_1"]
     assert rented.template is TemplateId.COST_RENT_RECORDED
     assert render(rented).text == (
-        "Rent for a 1-bedroom home: £1,150 to £1,400 a month, middle £1,275. This is of "
-        "postcode district QT2, and not of Tallowgate 001 alone. It rests on about 60 rents "
-        "recorded there from April 2025 to March 2026."
+        "A 1-bedroom home rents for £1,150 to £1,400 a month, and the middle rent is £1,275. "
+        "These rents are for postcode district QT2, and not for Tallowgate 001 alone. The "
+        "range rests on about 60 rents recorded there from April 2025 to March 2026."
     )
     assert rented.slots["caution"] == RENT_CAUTION
     over = facts[f"{THREE}/budget_fit/rent.bed_1"]

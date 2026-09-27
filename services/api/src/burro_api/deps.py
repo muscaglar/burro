@@ -7,9 +7,11 @@ adds what is worked out from the release once, when the app is made, so that
 no request works it out again.
 """
 
+import json
 import secrets
 import time
 import uuid
+import zlib
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -25,6 +27,7 @@ from burro_core.rank import ENGINE_VERSION
 from burro_core.release import Release
 from fastapi import Depends, Request
 
+from burro_api.accounts.service import Accounts
 from burro_api.calls import TIMESTAMP_FORMAT, CallLog
 from burro_api.providers.choose import Told
 from burro_api.settings import DEFAULT_ORIGINS, DEFAULT_TIMEOUT_S
@@ -97,6 +100,9 @@ class Deps:
     model_timeout_s: float = DEFAULT_TIMEOUT_S
     # The origins a browser may call from, and no other.
     allowed_origins: tuple[str, ...] = DEFAULT_ORIGINS
+    # Accounts, or `None` where they are off, which they are unless they are turned on.
+    # With none, no route of accounts is served and no file of accounts is opened.
+    accounts: Accounts | None = None
 
     def __post_init__(self) -> None:
         by_rules = self.interpreter.name is InterpreterName.RULE
@@ -115,6 +121,8 @@ class Context:
     meta: Meta
     names: Names
     area_id_for_slug: Mapping[str, str]
+    # Eight characters that change with what makes an answer: `made_of`.
+    made: str
 
     @property
     def release(self) -> Release:
@@ -124,7 +132,22 @@ class Context:
         return self.deps.clock.now().astimezone(UTC).strftime(TIMESTAMP_FORMAT)
 
 
-def context_for(deps: Deps) -> Context:
+def made_of(release: Release, contract: str) -> str:
+    """Eight characters that change when what makes an answer of a release changes.
+
+    A checksum of the manifest of the release as it was loaded, which holds
+    the hash of every file of it and the version of its catalogue, of the
+    version of the engine, and of the version of the contract. The id of a
+    release is not enough to say that an answer stands: the made-up city keeps
+    its id however often it is built again, and whatever engine reads it. It
+    is of nothing a person sent.
+    """
+    said = [release.manifest.model_dump(mode="json"), ENGINE_VERSION, contract]
+    return f"{zlib.crc32(json.dumps(said, sort_keys=True).encode()):08x}"
+
+
+def context_for(deps: Deps, contract: str) -> Context:
+    """What is worked out once of what the service depends on. `contract` is its version."""
     manifest = deps.release.manifest
     return Context(
         deps=deps,
@@ -136,6 +159,7 @@ def context_for(deps: Deps) -> Context:
         ),
         names=Names(deps.release),
         area_id_for_slug={area.slug: area.area_id for area in deps.release.neighbourhoods},
+        made=made_of(deps.release, contract),
     )
 
 

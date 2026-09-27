@@ -302,7 +302,7 @@ def test_the_name_says_a_straight_line_and_core_says_the_same_so_a_build_carries
     """
     feature = FEATURES[FeatureId.PLAY_SPACE_PROXIMITY]
     assert town.metric.label == (
-        "Straight-line distance to the nearest marked way into a play space"
+        "Distance to the nearest marked entrance to a play space, in a straight line"
     )
     assert feature.label == town.metric.label and "walk" not in town.metric.label.lower()
     assert says_what_core_says(town.metric)

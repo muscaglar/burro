@@ -11,7 +11,17 @@ from typing import Any, cast
 
 import pytest
 from burro_api.cli import openapi_document
-from burro_api.routes import areas, census, income, interpret, meta, places, rank, shares
+from burro_api.routes import (
+    accounts,
+    areas,
+    census,
+    income,
+    interpret,
+    meta,
+    places,
+    rank,
+    shares,
+)
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 
@@ -35,6 +45,29 @@ ROUTES = {
     ("GET", "/v1/meta"),
     ("GET", "/healthz"),
 }
+# The routes of accounts. The contract lists them whether or not they are served.
+OF_ACCOUNTS = {
+    ("POST", "/v1/auth/link"),
+    ("POST", "/v1/auth/link/whose"),
+    ("POST", "/v1/auth/session"),
+    ("GET", "/v1/auth/session"),
+    ("DELETE", "/v1/auth/session"),
+    ("GET", "/v1/me"),
+    ("DELETE", "/v1/me"),
+    ("POST", "/v1/me/searches"),
+    ("GET", "/v1/me/searches"),
+    ("DELETE", "/v1/me/searches"),
+    ("POST", "/v1/me/recent"),
+    ("GET", "/v1/me/recent"),
+    ("DELETE", "/v1/me/recent"),
+    ("PUT", "/v1/me/preferences"),
+    ("GET", "/v1/me/sessions"),
+    ("DELETE", "/v1/me/sessions"),
+    ("GET", "/v1/me/export"),
+}
+# What a route answers where all went well. Asking for a link is answered that the
+# link is on its way, which is the same answer whatever the address.
+WENT_WELL = {("POST", "/v1/auth/link"): "202"}
 
 
 @pytest.fixture(scope="module")
@@ -75,22 +108,42 @@ def test_committed_openapi_document_is_up_to_date(app: FastAPI):
 def test_the_routes_are_the_routes_of_the_contract(document: dict[str, Any]):
     found = {(method, path) for method, path, _ in operations(document)}
 
-    assert found == ROUTES
+    assert found == ROUTES | OF_ACCOUNTS
     # Each is named for what a generated client will call it.
     names = [operation["operationId"] for *_, operation in operations(document)]
-    assert len(set(names)) == len(ROUTES)
+    assert len(set(names)) == len(ROUTES | OF_ACCOUNTS)
     assert all(name.isidentifier() and name == name.lower() for name in names)
+
+
+def test_the_routes_of_accounts_are_marked_and_no_other_is(document: dict[str, Any]):
+    # A browser asks them of the website, and never of the service. A client that is
+    # made from the contract tells them by their mark, and not by a list of its own.
+    marked = {
+        (method, path)
+        for method, path, operation in operations(document)
+        if operation.get("tags") == ["accounts"]
+    }
+
+    assert marked == OF_ACCOUNTS
+    of_the_search = [
+        each for method, path, each in operations(document) if (method, path) in ROUTES
+    ]
+    assert len(of_the_search) == len(ROUTES)
+    assert not [each for each in of_the_search if "tags" in each]
 
 
 def test_an_operation_is_named_for_its_route(document: dict[str, Any]):
     # The routes as they were declared, whatever the framework nests them in.
-    groups = (interpret, rank, areas, census, income, places, shares, meta)
+    groups = (interpret, rank, areas, census, income, places, shares, meta, accounts)
     declared = [route for group in groups for route in group.router.routes]
     routes = [route for route in (*declared, *meta.health.routes) if isinstance(route, APIRoute)]
-    named = {route.path: route.name for route in routes}
-    assert len(named) == len(ROUTES)
+    # A path of accounts takes more than one method, so a route is a method and a path.
+    named = {(method, route.path): route.name for route in routes for method in route.methods or ()}
+    assert len(named) == len(ROUTES | OF_ACCOUNTS)
 
-    assert {path: operation["operationId"] for _, path, operation in operations(document)} == named
+    assert {
+        (method, path): operation["operationId"] for method, path, operation in operations(document)
+    } == named
     # A route is named for its function, but for the one whose function
     # stands beside core's `rank` and so cannot have its name.
     functions = {route.name: route.endpoint.__name__ for route in routes}
@@ -113,20 +166,26 @@ def test_no_route_takes_typed_text_in_a_path_or_query(document: dict[str, Any]):
         ("/v1/shares/{share_id}", "path", "share_id"),
     }
     # What a person types is sent in a body, so every route that reads it is a POST.
+    # A route of accounts that changes something names what it changes in a body
+    # too, and never in its path: so no id of a search or of a session is in a URL.
     for method, path, operation in operations(document):
-        assert ("requestBody" in operation) == (method == "POST"), path
+        if (method, path) in ROUTES:
+            assert ("requestBody" in operation) == (method == "POST"), path
+        else:
+            assert method != "GET" or "requestBody" not in operation, path
+            assert method not in ("POST", "PUT") or "requestBody" in operation, path
 
 
 def test_every_error_is_documented_as_the_one_envelope(document: dict[str, Any]):
     envelope = {"$ref": "#/components/schemas/ErrorEnvelope"}
     unchanged: set[str] = set()
-    for _, path, operation in operations(document):
+    for method, path, operation in operations(document):
         for status, response in operation["responses"].items():
             if status == "304":
                 # Not an error, and it has no body to hold an envelope.
                 assert "content" not in response, path
                 unchanged.add(path)
-            elif status != "200":
+            elif status != WENT_WELL.get((method, path), "200"):
                 assert response["content"]["application/json"]["schema"] == envelope, path
     # Only what is a function of the release alone can be said to stand.
     assert unchanged == {"/v1/areas", "/v1/areas/geometry", "/v1/areas/{id_or_slug}", "/v1/meta"}
@@ -140,10 +199,11 @@ def test_every_error_is_documented_as_the_one_envelope(document: dict[str, Any])
 def test_every_response_is_documented_with_the_two_flags_of_the_release(
     document: dict[str, Any],
 ):
-    for _, path, operation in operations(document):
+    for method, path, operation in operations(document):
         if path == "/healthz":
             continue
-        reference = operation["responses"]["200"]["content"]["application/json"]["schema"]
+        answered = operation["responses"][WENT_WELL.get((method, path), "200")]
+        reference = answered["content"]["application/json"]["schema"]
         name = reference["$ref"].rsplit("/", 1)[-1]
         schema = document["components"]["schemas"][name]
         assert set(schema["required"]) == {"meta", "data"}, path
@@ -184,12 +244,21 @@ def test_what_is_offered_holds_all_that_core_offers_and_the_four_parts_of_an_off
     assert not {"alone", "whole_sentence", "unsaid"} & set(wire.Suggestion.model_fields)
 
 
-def test_the_document_is_of_the_second_version_of_the_contract(document: dict[str, Any]):
-    assert document["info"]["version"] == "2"
+def test_the_document_is_of_the_third_version_of_the_contract(document: dict[str, Any]):
+    """Version 3 is version 2 with a third kind of search, a visit.
+
+    What a visit starts from is required of route 11, so a record changed its
+    shape, which is what moves the version. Everything version 2 required is
+    required still.
+    """
+    assert document["info"]["version"] == "3"
     schemas = document["components"]["schemas"]
+    assert schemas["Tenure"]["enum"] == ["rent", "buy", "visit"]
+    assert schemas["TenureChoice"]["enum"] == ["rent", "buy", "visit", "unchanged"]
     # An edit to a vibe must say which end, and what is served says all of this.
     assert "toward" in schemas["TagEdit"]["required"]
     required = {
+        "Defaults": {"rent", "buy", "visit"},
         "InterpretData": {"suggestions", "unread", "places"},
         "RankData": {"places"},
         "ShareCreated": {"places"},

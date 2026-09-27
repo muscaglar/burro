@@ -255,13 +255,16 @@ TROUBLES: frozenset[str] = frozenset(
 CAPS: frozenset[str] = frozenset(
     {"up to", "under", "within", "below", "max", "maximum", "less than", "around", "about"}
 )
-# The same, said so that the number is a limit and not a wish.
+# The same, said so that the number is a limit and not a wish. "At the very most" is "at
+# most" said with more force: it was no word of the reader's, so a prompt that held it was
+# not plain and its number was offered as a guide, which is less than the words say.
 CAPS_FIRMLY: frozenset[str] = frozenset(
     {
         "no more than",
         "not more than",
         "at most",
         "at the most",
+        "at the very most",
         "absolute max",
         "absolute maximum",
         "cannot go over",
@@ -278,6 +281,27 @@ CAPS_FIRMLY: frozenset[str] = frozenset(
 # budget: each is held to the list it was decided for.
 FIRM_OF_MONEY: frozenset[str] = CAPS_FIRMLY | {"max", "up to"}
 FIRM_OF_MINUTES: frozenset[str] = CAPS_FIRMLY | {"max", "within"}
+# What says, straight after a number of minutes, that it is the most a journey may take:
+# "40 minutes max", "40 minutes or less". The reader reads none of these by this list: the
+# grammar holds the words it places after a number. It is written down for whoever reads a
+# time beside a place that is noticed, in a prompt that is not plain, and for whoever asks
+# what puts a number in doubt: what caps a number is no doubt about it. Which of them make
+# the number a limit is `FIRM_OF_MINUTES`, and no other list.
+THE_MOST_AFTER: frozenset[str] = CAPS_FIRMLY | {
+    *("max", "maximum", "tops", "or less", "or under"),
+}
+# What may be said of a time, straight after it, that leaves its number as it is: how exact
+# it is, and that it is of the whole of the journey one way. "There and back" is twice the
+# journey and "and a bit" is more than was read, so neither is here: after either the
+# reader says that it could not take the time. It is for the same reader, and no word of it
+# is a word of the grammar.
+LEAVES_A_TIME_AS_IT_IS: frozenset[str] = frozenset(
+    {
+        *("or so", "or thereabouts", "ish", "exactly", "roughly", "approximately"),
+        *("each way", "one way", "door to door", "in all", "in total", "all in", "all told"),
+        "total",
+    }
+)
 # A thing is wanted, and not very much. Each stands before a thing, or inside
 # the speaker's own wish, "I would quite like", where it says how much and
 # never whether: none can turn a wish round. Under a word that turns, "not
@@ -396,6 +420,13 @@ _DREADED = (
 )
 _DREADED_IN_A_PHRASE = frozenset({"heaven forbid", "god forbid", "god no", "perish the thought"})
 DREADS: frozenset[str] = frozenset((_DREADED + _CANNOT_BEAR).split()) | _DREADED_IN_A_PHRASE
+# What a person cannot bear, or asks to be kept from. A sentence that holds one and names
+# nothing may head a list of things that are not wanted, with no colon to say so: "Things
+# I hate", "What I want to avoid". A word that turns and says no more of what, "not",
+# "no", is not among them: "Not sure where to begin" heads nothing.
+CANNOT_BEAR: frozenset[str] = frozenset(_CANNOT_BEAR.split()) | frozenset(
+    {"cant stand", "avoid", "avoiding", "dont want", "do not want", "dont like", "do not like"}
+)
 # Whose wish it is, where the words say it is not the speaker's. A thing that stands
 # with one is offered, and which way it runs is for the person to say: "my mum is after
 # a park" may be why a park is wanted, and may be nothing of the person's at all. The
@@ -520,6 +551,11 @@ PHRASES_OF_DOUBT: frozenset[str] = frozenset(
     | _DREADED_IN_A_PHRASE
 )
 WORDS_THAT_TURN_AWAY: frozenset[str] = frozenset(_AWAY.split()) | CONTRACTIONS
+# What carries a turn on, and is no second turn beside the word it follows: "neither parks
+# nor pubs" turns both away once, and "further than" is one word for far. It is for whoever
+# counts the words that turn before a thing: two may turn a wish round twice, which is to
+# wish for the thing, "I can't live without a park", and these two never do.
+CARRIES_A_TURN: frozenset[str] = frozenset({"nor", "than"})
 
 # --- A place that is no place to reach -------------------------------------------------
 #
@@ -584,4 +620,87 @@ LIVES_THERE: frozenset[str] = frozenset(
 LEFT_BEHIND: frozenset[str] = frozenset({"moved from", "moving from", "move from"})
 WORDS_OF_DOUBT: frozenset[str] = (
     frozenset((_DOUBT + " " + _DREADED + _AT_LARGE).split()) | WORDS_THAT_TURN_AWAY
+)
+
+# --- What is said of one's own words, and of no wish ----------------------------------
+#
+# What a person says of their own words: that they mean them, that it is what they think,
+# that it is how they would have it. The reader reads none of these, and none is a word of
+# the grammar: a prompt that holds one is not plain, and nothing of it is applied. They are
+# written down for whoever marks which way the words give of a thing that was noticed. Set
+# apart by a mark, in a part of its sentence that holds nothing else, one of these says
+# nothing of which way a thing is wanted, so the rest of the sentence gives the way it would
+# give without it: "honestly, somewhere calm" is Going out towards Calm, as "somewhere
+# calm" is. Anywhere else in a sentence it is a word the reader does not know.
+#
+# The list is closed, and is held to what it may never hold: a word that turns, takes off,
+# compares or asks, a past tense, and anybody but the speaker. "Maybe", "perhaps" and
+# "probably" are not here. Each may stand for a wish that is not: "a station, maybe not".
+ASIDES: frozenset[str] = frozenset(
+    {
+        # That the words are meant.
+        *("honestly", "to be honest", "frankly", "truthfully", "really", "basically"),
+        # That it is what the speaker thinks.
+        *("i think", "i guess", "i suppose", "i reckon", "i feel", "personally"),
+        # That it is how the speaker would have it.
+        *("ideally", "if possible", "preferably", "hopefully"),
+    }
+)
+
+# What heads a list of things that are wanted, before a colon: "Must haves: a park, a
+# station". The reader reads none of these: a colon joins nothing, so a sentence that holds
+# one is not plain. They are written down for whoever holds what is offered of a thing to
+# the words it stands in. What stands before a colon is said of all that is listed after
+# it, and as often says that none of it is wanted: "Dealbreakers: pubs, a station". No list
+# of such words is ever whole, so it is the headings that say a thing is wanted that are
+# listed, and a heading of any other words leaves what stands under it to the person.
+HEADS_WHAT_IS_WANTED: frozenset[str] = frozenset(
+    {
+        *("wants", "needs", "likes", "musts", "must have", "must haves", "essentials"),
+        *("priority", "priorities", "top priority", "top priorities", "requirements"),
+        *("criteria", "preferences", "wish list", "wishlist", "pros", "nice to have"),
+        *("nice to haves", "main thing", "main things", "key things", "ideally"),
+        *("positives", "in order", "in order of importance"),
+    }
+)
+
+# --- An amount that is said by no month ------------------------------------------------
+#
+# The reader reads none of these either, and none is a word of the grammar: a prompt that
+# holds one is not plain, and nothing of it is applied. A rent is held by the month, so an
+# amount that is said by any other period is no amount the search can hold at the figure
+# that was typed. They are written down for whoever offers an amount: "£350 a week" was
+# offered as a budget of £350 a month. Since 2026-09-26 an amount by the week is offered
+# as what it comes to by the month, and says that it was worked out and from what. An
+# amount by any other period is not read, since no rule says what it comes to.
+BY_THE_WEEK: frozenset[str] = frozenset(
+    {"a week", "per week", "each week", "every week", "weekly", "pw", "a wk", "per wk"}
+)
+BY_ANOTHER_PERIOD: frozenset[str] = frozenset(
+    {
+        *("a day", "per day", "daily", "a night", "per night", "nightly"),
+        *("a fortnight", "per fortnight", "fortnightly"),
+        *("a quarter", "per quarter", "quarterly", "a term", "per term"),
+        *("a year", "per year", "yearly", "annually", "per annum", "pa"),
+    }
+)
+# Every word that names a period an amount may be paid by, but the month. The two lists
+# above hold the ways of saying a period that the reader knows what to make of. No such
+# list is ever complete: "£350 this week", "£350 per person per week", "£700 every two
+# weeks", "£18,000 each year" and "annual rent of £18,000" were each offered as an amount
+# by the month at the figure that was typed. So where one of these words stands beside an
+# amount in any other way, the amount is by no month and is not read: nobody can say what
+# it comes to. None is a word of the grammar, and the month itself is none of them: "a
+# month", "monthly" and "pcm" say that an amount is by the month. Add a word for a period here.
+OF_A_PERIOD: frozenset[str] = frozenset(
+    {
+        *("week", "weeks", "weekly", "wk", "wks", "wkly", "pw", "ppw", "pppw"),
+        *("weekend", "weekends", "fortnight", "fortnights", "fortnightly"),
+        *("biweekly", "bi-weekly"),
+        *("day", "days", "daily", "night", "nights", "nightly"),
+        *("quarter", "quarters", "quarterly", "term", "terms", "termly"),
+        *("year", "years", "yearly", "yr", "yrs", "annual", "annually", "annum", "pa"),
+        # More months than one, which is no month: "£9,000 for 6 months".
+        *("months", "mths", "bimonthly", "bi-monthly"),
+    }
 )

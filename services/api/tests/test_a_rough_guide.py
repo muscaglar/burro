@@ -2,10 +2,14 @@
 
 The founder decided on 2026-09-25 that Village feel is served though it did
 not reach the bar they had set, and that it says it is less sure than the
-other vibes (ADR 0013, as amended). Route 11 says which vibe is one, with the
-label and the sentence that every surface draws. It is never taken without a
-press of its own: the rules apply it from no word, one press that adds what
-needs no choice never takes it, and a model's guess of it is no guess.
+other vibes (ADR 0013, as amended). It is never taken without a press of its
+own: the rules apply it from no word, one press that adds what needs no
+choice never takes it, and a model's guess of it is no guess.
+
+On 2026-09-26 the founder asked that no person who uses Burro is told that a
+vibe is one. Route 11 says which vibe it is by an id, `sureness`, and serves
+no word of it: `test_no_word_of_a_rough_guide.py` holds that. What is here is
+how the vibe is handled, which is as it was.
 
 Every area here is made up.
 """
@@ -15,7 +19,7 @@ from typing import Any
 import pytest
 from burro_api.guard import DOUBTS, Check
 from burro_api.offers import MORE, SKIP, Offer, Way, in_add_all, ways_of
-from burro_core.catalogue import ROUGH_GUIDES, TAGS, says_rough
+from burro_core.catalogue import ROUGH_GUIDES, TAGS
 from burro_core.ids import InterpreterName, TagId
 from burro_core.interpret import Span
 from fastapi.testclient import TestClient
@@ -36,10 +40,8 @@ from .support import (
 )
 
 VILLAGE = "tag:village_feel"
-SAID = (
-    "Rough guide. Of the areas it puts highest, about half read as villages to people, and it "
-    "takes some busy main roads and some grand inner streets for villages."
-)
+# What an offer of it says of how sure it is: nothing. It said "Rough guide.", and why.
+SAID = ""
 
 
 @pytest.fixture
@@ -70,24 +72,15 @@ def asking_for(client: TestClient, *tag_ids: str) -> dict[str, Any]:
 # What route 11 says
 
 
-def test_route_11_says_which_vibe_is_a_rough_guide_with_its_label_and_its_sentence(
+def test_route_11_says_which_vibe_is_a_rough_guide_by_an_id_and_in_no_words(
     client: TestClient,
 ):
     found = data(client.get("/v1/meta"))
-    assert found["rough_guides"] == [
-        {
-            "tag_id": "village_feel",
-            "label": "Rough guide",
-            "why": (
-                "Of the areas it puts highest, about half read as villages to people, and it "
-                "takes some busy main roads and some grand inner streets for villages."
-            ),
-        }
-    ]
+    # The list is served, so that the shape of the answer is as it was, and holds nothing.
+    assert found["rough_guides"] == []
     said = {tag["tag_id"]: tag["sureness"] for tag in found["tags"]}
     assert said.pop("village_feel") == "rough_guide"
     assert set(said.values()) == {"as_the_rest"} and len(said) == 13
-    assert says_rough(TagId.VILLAGE_FEEL) == SAID
 
 
 def test_the_recipe_is_the_one_the_founder_chose_and_the_vibe_is_placed(client: TestClient):
@@ -109,7 +102,7 @@ def test_the_recipe_is_the_one_the_founder_chose_and_the_vibe_is_placed(client: 
 
 
 @pytest.mark.parametrize("text", ["villagey", "a village feel", "I like villages"])
-def test_the_rules_apply_it_from_no_word_and_offer_it_with_its_label_and_its_sentence(
+def test_the_rules_apply_it_from_no_word_and_offer_it_by_a_press_of_its_own(
     client: TestClient, text: str
 ):
     found = data(client.post("/v1/interpret", json={"text": text}))
@@ -164,7 +157,7 @@ def test_one_press_takes_no_rough_guide_whatever_else_is_said_of_its_offer():
     (add, _) = ways_of(TagId.VILLAGE_FEEL)
     assert in_add_all(_offer((add,))) is None
     assert in_add_all(_offer((add.replace(guess=True),))) is None
-    assert in_add_all(_offer((add.replace(ruled=True),), note=SAID)) is None
+    assert in_add_all(_offer((add.replace(ruled=True),), note="What else is said.")) is None
     assert in_add_all(_offer((add.replace(guess=True),), read_by=InterpreterName.MODEL)) is None
     # A vibe that is as sure as the rest is taken as it was.
     (leafy, _) = ways_of(TagId.LEAFY)
@@ -210,7 +203,7 @@ def test_a_model_that_would_set_it_above_all_makes_no_guess_either():
     assert offers(result)[VILLAGE].note == SAID
 
 
-def test_as_the_route_serves_it_the_offer_of_a_model_holds_the_label_and_the_sentence():
+def test_as_the_route_serves_it_the_offer_of_a_model_is_one_of_its_own_with_no_guess():
     answer = model_output(tag_ops=[model_tag("village_feel", words="a small-town feel")])
     found = through_the_route(answer, "a small-town feel, honestly")
     offer = offer_of(found)
@@ -226,8 +219,7 @@ def test_as_the_route_serves_it_the_offer_of_a_model_holds_the_label_and_the_sen
 
 def test_a_model_that_reads_it_in_the_words_of_another_thing_makes_an_offer_of_its_own():
     """Two things a model reads in the same words are one offer with both as choices. A
-    rough guide is never a choice of another thing's offer: it has an offer of its own,
-    which says what it is."""
+    rough guide is never a choice of another thing's offer: it has an offer of its own."""
     text = "near a park, I suppose"
     answer = model_output(
         weight_ops=[model_weight("park_proximity", words="near a park")],
@@ -243,7 +235,7 @@ def test_a_model_that_reads_it_in_the_words_of_another_thing_makes_an_offer_of_i
 
 
 def test_where_the_rules_offer_it_a_model_adds_nothing_to_the_offer():
-    """The rules offer it with what it says of itself, so the thing is theirs to offer."""
+    """The rules offer it, so the thing is theirs to offer, and it carries no guess."""
     text = "villagey, I suppose"
     answer = model_output(tag_ops=[model_tag("village_feel", words="villagey")])
     result, _ = asked(answer, text=text)

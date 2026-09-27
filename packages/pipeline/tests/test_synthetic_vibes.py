@@ -75,7 +75,7 @@ def names(release: InMemoryRelease, area_ids: list[str]) -> list[str]:
 def test_the_committed_release_carries_gritty_and_is_what_the_generator_builds():
     committed = read_release(FIXTURE)
     assert committed.manifest.gritty_variant is GrittyVariant.B
-    assert (committed.manifest.schema_version, committed.manifest.catalogue_version) == (2, 15)
+    assert (committed.manifest.schema_version, committed.manifest.catalogue_version) == (2, 17)
     assert committed.vibes == tags_of(GrittyVariant.B)
     assert committed.features == built().features
     assert committed.tags == built().tags

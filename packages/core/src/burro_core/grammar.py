@@ -13,7 +13,9 @@ a budget. It is all or nothing, because no single word is ever the fault:
     item      = want | unwant | home | journey | rule | people | no-measure
     want      = [ near ] { degree | good | article } thing [ place ] [ nearby ] [ counts ]
     unwant    = turn { article | good } thing [ place ] [ nearby ] | thing after-turn
-    home      = { tenure | size | budget | cheaper }
+    home      = { tenure | visit | size | budget | cheaper }
+    visit     = visits [ stay ] | stays ( stay | ( "in" | "at" ) [ article ] lodging )
+    stay      = "overnight" | [ "for" ] ( "the" "weekend" | ( article | number ) nights )
     journey   = cue place [ mode ] | time to place [ mode ] | reach place [ time ] [ mode ]
               | near place | "to get there" time [ mode ]
     rule      = ( not-in | only-in ) the whole name of an area
@@ -53,7 +55,9 @@ from burro_core.lexicon import (
 )
 from burro_core.places import MAX_OPTIONS, Match, Names
 from burro_core.reading import (
+    BEDS,
     COUNTED,
+    HOUR_OR_ITS_LETTER,
     JOINING_MARKS,
     MINUTES,
     Is,
@@ -156,6 +160,10 @@ EXPECTS_A_NAME = frozenset(
 )
 CYCLED = frozenset({"cycle", "cycling", "bike", "biking", "bicycle", "by bike", "by bicycle"})
 WALKED = frozenset({"walk", "walking", "on foot"})
+# The words for near that say how the place is reached: "walking distance to", "a short
+# walk to", "can walk to". Before a thing each says that it is wanted near. Before the
+# name of a place each makes the journey to it one on foot.
+_ON_FOOT = frozenset({"walk", "walking"})
 BY_TRANSPORT = frozenset(
     {
         *(f"by {what}" for what in ("tube", "train", "bus", "tram", "public transport")),
@@ -163,6 +171,19 @@ BY_TRANSPORT = frozenset(
     }
 )
 MODES = CYCLED | WALKED | BY_TRANSPORT
+# A journey by public transport as it is said with "on", and as it is named by what it is
+# on: "35 minutes on the tube to", "a 20 minute bus ride to". None is a phrase of the
+# grammar, since "the tube" is a phrase of the lexicon and is read before a word is. Each is
+# read beside a place that is noticed, in a prompt that is not plain, where the words say
+# how the journey to it is made.
+_CARRIES = ("tube", "train", "bus", "tram", "underground", "overground")
+ON_TRANSPORT = frozenset(
+    {
+        *(f"on {the}{what}" for the in ("the ", "a ") for what in _CARRIES),
+        *(f"{what} {called}" for what in _CARRIES for called in ("ride", "journey", "trip")),
+        "on public transport",
+    }
+)
 # A journey that is said with how it is made: "I cycle to", "a 20 minute walk to".
 GOES: Mapping[str, ModeChoice] = {
     **dict.fromkeys(("cycle", "cycling", "bike", "bike ride", "ride"), ModeChoice.CYCLE),
@@ -178,14 +199,6 @@ REACHES = frozenset({"get to", "reach", "to get to", "to reach", "be in", "to be
 GETS_THERE = frozenset({"to get there", "get there", "to be there", "be there"})
 TO_A_PLACE = frozenset({"to", "from", "of"})
 A_JOURNEY = frozenset({"commute", "journey"})
-# A length of time in words, in minutes.
-HOURS: Mapping[str, int] = {
-    "half an hour": 30,
-    "an hour": 60,
-    "one hour": 60,
-    "1 hour": 60,
-    "an hour and a half": 90,
-}
 # What says a number is the most, after it: "30 minutes max", "20 minutes tops".
 _AT_MOST = frozenset({"max", "maximum", "tops"})
 # What may stand between a word that caps and its number: "within about 30
@@ -200,7 +213,80 @@ BUYS = frozenset(
 )
 _NOT_TO_RENT = frozenset(f"not {word}" for word in RENTS)
 _NOT_TO_BUY = frozenset(f"not {word}" for word in BUYS)
-BEDROOMS = frozenset({"bed", "beds", "bedroom", "bedrooms", "bedroomed"})
+# A search may be for somewhere to stay on a visit, and for no home to rent or to buy
+# (contract, section 8.2; decided on 2026-09-26). These are the words that say so, and each
+# says it only where the grammar places it and nothing beside it says something else:
+# `visit_at` reads them, and `says_no_visit` what stands after them. They are a closed list,
+# as the words for renting and buying are, so a wrong reading is the wrong kind of search
+# and never a wish turned round.
+#
+# Where a visitor stays is one of them: whoever looks for a hotel is visiting.
+LODGINGS = frozenset(
+    {
+        *("hotel", "hotels", "hotel room", "hotel rooms", "hostel", "hostels"),
+        *("guest house", "guesthouse", "bed and breakfast", "b&b", "airbnb"),
+    }
+)
+VISITS = LODGINGS | frozenset(
+    {
+        # To visit, of the speaker: "I'm visiting", "we are visiting", "I want to visit".
+        *("visiting", "am visiting", "are visiting", "visit"),
+        # A visit, by what it is called. A trip is a journey too, "a 20 minute trip to", so it
+        # is a visit only with its article, which no number of minutes stands before.
+        *("a visit", "a short visit", "my visit", "our visit"),
+        *("a trip", "a short trip", "my trip", "our trip"),
+        *("a city break", "city break", "a short break"),
+        *("holiday", "a holiday", "on holiday"),
+        # A stay, by what it is called. "A stay" alone is as often in a hospital, and "a
+        # long stay" is as often a home for a while.
+        *("a short stay", "short stay"),
+        # Who a visitor is, of the speaker: "I'm a tourist", "tourist, 3 nights". More than
+        # one are who else is there, "popular with tourists", and are no word of the list.
+        *("tourist", "a tourist"),
+        # Somewhere to stay. Each is read whole: "somewhere" alone opens any wish.
+        *("somewhere to stay", "a place to stay", "places to stay", "an area to stay in"),
+    }
+)
+# Somewhere to stay, as it is asked for: "where to stay in London". "Where" asks, and is a
+# word the reader must never know by itself. So the phrase is no phrase of the vocabulary:
+# it is read here, whole, as a visit that is called by how long it is, and "where" is a
+# word the reader does not know anywhere else.
+_ASKS_WHERE_TO_STAY = frozenset({"where to stay"})
+# To stay, which is as often to remain: "I want to stay near my job". It is a visit only
+# with how long the stay is, or with where a visitor stays: "staying for a weekend",
+# "staying in a hotel".
+STAYS = frozenset({"stay", "staying", "am staying", "are staying"})
+# How long a stay is. Each is a word for a period that an amount may be paid by, and no
+# word for a period is a word of the grammar (`OF_A_PERIOD` in `vocabulary.py`). So none of
+# these is one: each is read as part of the visit it is said of, side by side with it, as a
+# word for hours is read as part of its number, and is a word the reader does not know
+# anywhere else. "£350 a week" is no more plain than it was, and an amount beside a stay is
+# an amount of no period, which a visit does not hold.
+NIGHTS = frozenset({"night", "nights", "day", "days", "week", "weeks", "weekend", "fortnight"})
+_OVERNIGHT = frozenset({"overnight"})
+# A visit that is called by how long it is: "a weekend trip", "a day trip", "a weekend
+# break", with its article or with none. The word for how long is a word for a period, and
+# is read here and nowhere else.
+_A_VISIT_OF = frozenset({"weekend", "day"})
+_IS_CALLED = frozenset({"trip", "visit", "break", "stay"})
+_ITS_ARTICLE = frozenset({"a", "my", "our"})
+# A time away is a visit too: "a weekend away", "a night away". "Away" is a word for far
+# anywhere else, so it is read here only, straight after one of these, and never where
+# "from" follows it: "a weekend away from my mother" says whom the speaker leaves. "A day
+# away" is as often how far off a thing is, and is none.
+_A_TIME_AWAY = frozenset({"weekend", "night"})
+_AWAY = frozenset({"away"})
+_AWAY_FROM = frozenset({"from"})
+# The city itself, as what is visited: "visiting London", "a trip to London", "a hotel in
+# the city". It is read after a word for a visit and nowhere else, and its name is no word
+# of the grammar: a place a person names may begin with it, "I work at London Zoo", and is
+# asked about as any place the release does not hold.
+_THE_CITY = frozenset({"london", "the city", "the capital"})
+_LEADS_TO_THE_CITY = frozenset({"to", "in"})
+_THE_WEEKEND = frozenset({"the weekend"})
+_HOW_MANY = frozenset({"a", "an", "one"})
+_AT_A_LODGING = frozenset({"in", "at"})
+BEDROOMS = BEDS
 MONTHLY = frozenset({"pcm", "pm", "per month", "a month", "monthly", "per calendar month"})
 IN_MONEY = frozenset({"pounds", "quid"})
 # A thousand pounds, after a number: "2 grand".
@@ -321,6 +407,8 @@ VOCABULARY: frozenset[str] = frozenset(
         *MODES,
         *RENTS,
         *BUYS,
+        *VISITS,
+        *STAYS,
         *_NOT_TO_RENT,
         *_NOT_TO_BUY,
         *PAYS,
@@ -333,7 +421,6 @@ VOCABULARY: frozenset[str] = frozenset(
         *_WOULD_BE,
         *WEIGHT_ON,
         *_THING_IS,
-        *HOURS,
         *_AT_MOST,
         *THOUSANDS,
         *_IT_IS,
@@ -415,6 +502,12 @@ class Home:
 
     rents: list[Span] = field(default_factory=list[Span])
     buys: list[Span] = field(default_factory=list[Span])
+    # Where the words say a visit, each with how long the stay is where that was said.
+    visits: list[Span] = field(default_factory=list[Span])
+    # Where the words say how long a stay is, in a part of the sentence of their own: "a
+    # hotel, 3 nights". They are said of the visit that the prompt names, and say nothing
+    # where it names none.
+    stays: list[Span] = field(default_factory=list[Span])
     monthly: list[Span] = field(default_factory=list[Span])
     # The amount, whether it is a limit, and where it stands.
     amounts: list[tuple[int, bool, Span]] = field(default_factory=list[tuple[int, bool, Span]])
@@ -436,26 +529,30 @@ class Home:
 
     @property
     def said(self) -> bool:
-        return bool(self.amounts or self.of_a_home)
+        return bool(self.amounts or self.of_a_home or self.stays)
 
     @property
     def of_a_home(self) -> bool:
         """Whether it says something of a home that is no amount: to rent or buy, a size, a kind."""
-        tenure = self.rents or self.buys or self.not_rents or self.not_buys
+        tenure = self.rents or self.buys or self.visits or self.not_rents or self.not_buys
         return bool(tenure or self.steps or self.bedrooms or self.segments)
 
     @property
     def agrees(self) -> bool:
-        """Whether what it says of renting and buying can all be true at once."""
+        """Whether what it says of renting, buying and visiting can all be true at once."""
         rent = bool(self.rents or self.not_buys)
         buy = bool(self.buys or self.not_rents)
-        # A tenure that is only turned away says nothing of what is wanted.
+        # A tenure that is only turned away says nothing of what is wanted. Nor does how
+        # long a stay is, where nothing says a visit.
         alone = (self.not_rents and not self.buys) or (self.not_buys and not self.rents)
-        return not (rent and buy) and not alone
+        alone = alone or (self.stays and not self.visits)
+        return rent + buy + bool(self.visits) < 2 and not alone
 
     def add(self, other: "Home") -> None:
-        for name in ("rents", "buys", "monthly", "amounts", "bedrooms", "segments", "steps"):
+        for name in ("rents", "buys", "visits", "monthly", "amounts", "bedrooms", "segments"):
             getattr(self, name).extend(getattr(other, name))
+        self.stays.extend(other.stays)
+        self.steps.extend(other.steps)
         self.by_an_m.extend(other.by_an_m)
         self.not_rents.extend(other.not_rents)
         self.not_buys.extend(other.not_buys)
@@ -530,6 +627,15 @@ class Wish:
 
 class NotPlain(Exception):
     """A prompt, or a part of one, that the grammar does not make."""
+
+
+# The most words of a part of a sentence that is looked through for two things with no word
+# between them: "2 bed within 30 minutes of the works". A name and a phrase of the lexicon
+# are each counted as one. To look is to read the part over again at each word it may be
+# cut at, and the service is open to anybody: a part of three hundred words held its
+# processor for seconds. The longest part that is two things, of every sentence the reader
+# is held to, has seventeen words.
+LONGEST_OF_TWO = 40
 
 
 class Time(NamedTuple):
@@ -656,6 +762,9 @@ class _Segment:
             self.take_all(STRENGTHENS.words)
         if self.take(TO_DO.words) is None and self.phrase({"to"}) and self._to_something():
             self.at += 1
+        if self.phrase(VISITS) is not None:
+            # "Somewhere to stay" is read whole, as the visit it says.
+            return own
         if self.take(SOMEWHERE.words) is not None or self._a_good_place():
             self.take(SOMEWHERE_THAT.words)
         return own
@@ -675,7 +784,7 @@ class _Segment:
         return any(
             self.phrase(group, after) is not None
             for group in (NOT_IN, ONLY_IN, REACHES, RENTS, BUYS, EXPECTS_A_NAME, GOES_TO)
-        )
+        ) or bool(visit_at(self.items, after))
 
     # A thing, wanted or turned away.
 
@@ -827,6 +936,15 @@ class _Segment:
                 found.rents.append(_span(words))
             elif (words := self.take(BUYS)) is not None:
                 found.buys.append(_span(words))
+            elif words := visit_at(self.items, self.at):
+                self.at += len(words)
+                # Where it is wanted near, with nothing said of what it is near: "a hotel
+                # nearby". It says no more than the visit does.
+                near = self.take(NEARBY.words) or []
+                found.visits.append(_span([*words, *near]))
+            elif self.at == start and (words := stay_alone(self.items, self.at)):
+                found.stays.append(_span(words))
+                self.at += len(words)
             elif self._cheaper(found) or self._size(found) or self._money(found, led):
                 pass
             elif self.take(PAYS) is not None:
@@ -866,7 +984,8 @@ class _Segment:
         start = self.at
         self.take(ARTICLE.words & {"a", "an", "the"})
         number = self.take_a(Is.NUMBER)
-        if number is not None and not number.money and not number.low:
+        counted = number is not None and not number.money and not number.low
+        if number is not None and counted and number.unit in ("", "bed"):
             last = number if number.unit == "bed" else None
             if last is None and (beds := self.take(BEDROOMS)) is not None:
                 last = beds[-1]
@@ -895,7 +1014,8 @@ class _Segment:
         if caps is not None:
             self.take(_OR_SO)
         number = self.take_a(Is.NUMBER)
-        if number is None or number.unit in ("min", "bed") or number.low:
+        # An amount by the week is no amount the search holds: a rent is held by the month.
+        if number is None or number.unit in ("min", "bed", "week") or number.low:
             self.at = start
             return False
         after = self.peek()
@@ -951,31 +1071,27 @@ class _Segment:
         the two, which leaves out nothing the person would take. It says which
         the shorter was, so that whoever reads it can say a range was given. A
         range is a limit at its longer end: whoever gives one has said how long
-        is too long.
+        is too long. A time in hours is a number of minutes as it is read, "an
+        hour and a quarter", and is no part of a range.
         """
         start = self.at
         caps = self.take(CAPS_FIRMLY) or self.take(CAPS)
         if caps is not None:
             self.take(_OR_SO)
-        hours = self.take(frozenset(HOURS))
-        at_least = 0
-        if hours is not None:
-            minutes = HOURS[_said(hours)]
+        self.take(ARTICLE.words & {"a", "an"})
+        number = self.take_a(Is.NUMBER)
+        if number is None or number.money:
+            self.at = start
+            return None
+        longer = None if number.low or number.unit else self._to_a_longer(number)
+        if longer is not None:
+            at_least, number = number.value, longer
         else:
-            self.take(ARTICLE.words & {"a", "an"})
-            number = self.take_a(Is.NUMBER)
-            if number is None or number.money:
-                self.at = start
-                return None
-            longer = None if number.low or number.unit else self._to_a_longer(number)
-            if longer is not None:
-                at_least, number = number.value, longer
-            else:
-                at_least = number.low
-            if number.unit != "min" and (number.unit or self.take(MINUTES) is None):
-                self.at = start
-                return None
-            minutes = number.value
+            at_least = number.low
+        if number.unit != "min" and (number.unit or self.take(MINUTES) is None):
+            self.at = start
+            return None
+        minutes = number.value
         firmly = self.take(CAPS_FIRMLY)
         softly = None if firmly else self.take(_AT_MOST)
         # Before the minutes or after them: "within 40 minutes", "40 minutes max".
@@ -990,23 +1106,35 @@ class _Segment:
         if self.take({"to"}) is not None:
             longer = self.take_a(Is.NUMBER)
             plain = longer is not None and not longer.money and not longer.low
+            # "1 to 2 hours" is no range of one minute to 120.
+            plain = plain and longer is not None and not longer.hours
             if longer is not None and plain and longer.value > shorter.value:
                 return longer
         self.at = start
         return None
 
     def _mode(self, found: Wish) -> None:
+        """How a journey is travelled, said after its place or its minutes: "on foot".
+
+        Where the journey holds another way already, "I cycle to Pellam Cross
+        on foot", "walking distance to Pellam Cross by bike", nobody can say
+        which is meant, and the prompt is not plain. Until 2026-09-26 the way
+        that was said second was taken, whatever the first said.
+        """
         words = self.take(MODES)
         if words is None:
             return
         said = _said(words)
-        found.mode = (
+        mode = (
             ModeChoice.CYCLE
             if said in CYCLED
             else ModeChoice.WALK
             if said in WALKED
             else ModeChoice.PT
         )
+        if found.mode not in (ModeChoice.UNCHANGED, mode):
+            raise NotPlain
+        found.mode = mode
 
     def _place(self, found: Wish, asks: bool) -> bool:
         """The place a journey is to: the whole of a name, or words that are the name of none."""
@@ -1048,6 +1176,10 @@ class _Segment:
             at_work = near is not None and self.take(AT_WORK) is not None
             if near is None or not self._place(found, asks=at_work):
                 return None
+            if says_a_walk(near):
+                # "Walking distance to" a place is a walk to it, and no journey by
+                # public transport.
+                found.mode = ModeChoice.WALK
             self._mode(found)
             return found
         if not self._place(found, asks=True):
@@ -1173,7 +1305,8 @@ class _Segment:
         journey or a wish with no word between them, "2 bed within 30
         minutes of the works", "broadband near a park". The wish must have
         a word of its own, so that a bare name is never read out of words
-        that were said of something else.
+        that were said of something else. A part of more words than
+        `LONGEST_OF_TWO` is looked through for no two things.
         """
         start = self.at
         for read in (self.rule, self.journey, self.home, self.wish, self.people, self.no_measure):
@@ -1181,6 +1314,8 @@ class _Segment:
             if found is not None and self.done:
                 return [found]
             self.at = start
+        if len(self.items) - start > LONGEST_OF_TWO:
+            raise NotPlain
         for cut in range(start + 1, len(self.items)):
             before = _Segment(self.items[:cut], self.reader)
             after = _Segment(self.items[cut:], self.reader)
@@ -1210,6 +1345,172 @@ def _said(words: Sequence[Item]) -> str:
     return " ".join(word.bare if "-" in word.text else word.text for word in words)
 
 
+def _spelt_at(items: Sequence[Item], at: int, phrases: frozenset[str]) -> list[Item]:
+    """The longest of some phrases that the words spell from `at`, side by side."""
+    first = items[at] if 0 <= at < len(items) else None
+    if first is None or first.what not in (Is.WORD, Is.NUMBER) or not first.text:
+        return []
+    if "-" in first.text:
+        # Written with a hyphen, it is a phrase only as a whole: "guest-house".
+        return [first] if first.bare in phrases else []
+    for words in _by_first(phrases).get(first.text, ()):
+        run = items[at : at + len(words)]
+        if (
+            len(run) == len(words)
+            and not any(found.apart for found in run[1:])
+            and all(
+                found.what in (Is.WORD, Is.NUMBER) and found.text == word
+                for found, word in zip(run, words, strict=True)
+            )
+        ):
+            return list(run)
+    return []
+
+
+def stay_alone(items: Sequence[Item], at: int) -> list[Item]:
+    """How long a stay is, where the words say so from `at` and are a part of their own.
+
+    "A hotel, 3 nights", "visiting, for a weekend, near a park". They say
+    nothing but beside a visit, which is for whoever reads the prompt to
+    find: "3 nights" alone makes no search a visit.
+    """
+    if at >= len(items) or (at > 0 and not items[at].apart):
+        return []
+    said = _stay_at(items, at, opens=True)
+    after = at + len(said)
+    return said if said and (after == len(items) or items[after].apart) else []
+
+
+def _stay_at(items: Sequence[Item], at: int, opens: bool = False) -> list[Item]:
+    """How long a stay is, where the words say so from `at`: "for a weekend", "3 nights".
+
+    "Overnight", "for the weekend", and a number of nights, days or weeks, with
+    "for" before it or not. The number is one of something that is counted,
+    and never an amount of money or a length of time: "for £150 a night" is
+    what a night costs, and no length of a stay. It stands side by side with
+    what is before it, but where it `opens` a part of the sentence.
+    """
+
+    def beside(on: int) -> Item | None:
+        here = on < len(items) and (not items[on].apart or (opens and on == at))
+        return items[on] if here else None
+
+    led = beside(at)
+    first = at + 1 if led is not None and led.what is Is.WORD and led.text == "for" else at
+    for phrases in (_OVERNIGHT, _THE_WEEKEND):
+        said = _spelt_at(items, first, phrases) if beside(first) is not None else []
+        if said:
+            return list(items[at : first + len(said)])
+    many, period = beside(first), beside(first + 1)
+    if many is None or period is None or period.what is not Is.WORD or period.text not in NIGHTS:
+        return []
+    counted = many.what is Is.NUMBER and not (many.money or many.unit or many.low or many.hours)
+    article = many.what is Is.WORD and many.text in _HOW_MANY
+    return list(items[at : first + 2]) if counted or article else []
+
+
+def says_no_visit(items: Sequence[Item], after: int) -> bool:
+    """Whether what stands straight after a word for a visit makes it a word for something else.
+
+    "A holiday home" is a home, and "a hotel flat" no visit the grammar knows.
+    It is asked of the item after the last word of the visit, side by side
+    with it.
+    """
+    following = items[after] if after < len(items) and not items[after].apart else None
+    return following is not None and following.what is Is.WORD and following.text in A_HOME
+
+
+def _called_by_how_long(items: Sequence[Item], at: int) -> list[Item]:
+    """A visit that is called by how long it is, from `at`: "a weekend trip", "a night away".
+
+    With its article or with none: "weekend trip, near museums".
+    """
+    first = items[at] if at < len(items) else None
+    led = first is not None and first.what is Is.WORD and first.text in _ITS_ARTICLE
+    run = list(items[at : at + (3 if led else 2)])
+    if len(run) < (3 if led else 2) or any(found.apart for found in run[1:]):
+        return []
+    if any(found.what is not Is.WORD for found in run):
+        return []
+    how_long, called = (found.text for found in run[-2:])
+    if how_long in _A_VISIT_OF and called in _IS_CALLED:
+        return run
+    after = at + len(run)
+    following = items[after] if after < len(items) and not items[after].apart else None
+    leaves = following is not None and following.what is Is.WORD and following.text in _AWAY_FROM
+    return run if how_long in _A_TIME_AWAY and called in _AWAY and not leaves else []
+
+
+def _city_at(items: Sequence[Item], at: int) -> list[Item]:
+    """The city as what is visited, from `at`: "London", "to London", "in the city"."""
+    led = items[at] if at < len(items) and not items[at].apart else None
+    leads = led is not None and led.what is Is.WORD and led.text in _LEADS_TO_THE_CITY
+    first = at + 1 if leads else at
+    beside = first < len(items) and not items[first].apart
+    named = _spelt_at(items, first, _THE_CITY) if beside else []
+    return list(items[at : first + len(named)]) if named else []
+
+
+def _where_and_how_long(items: Sequence[Item], at: int) -> list[Item]:
+    """What may be said of a visit after its name: that it is to the city, and how long.
+
+    In either order, and each once: "visiting London for a weekend", "a trip
+    for a weekend to London".
+    """
+    where = _city_at(items, at)
+    how_long = _stay_at(items, at + len(where))
+    after = [] if where else _city_at(items, at + len(how_long))
+    return [*where, *how_long, *after]
+
+
+def visit_at(items: Sequence[Item], at: int) -> list[Item]:
+    """The words that say a visit from `at`, with how long the stay is. Nothing where none do.
+
+    A word for a visit, "visiting", "a trip", "a hotel", "somewhere to stay",
+    with how long the stay is after it where that is said, and that it is to
+    the city: "visiting for a weekend", "a trip to London". And a word for
+    staying, which says a visit only with how long or with where a visitor
+    stays: "staying for two nights", "staying in a hotel". "Staying" alone is
+    as often to remain, and so is "staying in London": neither is a visit.
+
+    It says what the words are, and nothing of what stands beside them but
+    that a home does not: whether somebody else is visiting, or a wish is
+    turned away, is for whoever reads the sentence to say.
+    """
+    said = _spelt_at(items, at, VISITS | _ASKS_WHERE_TO_STAY) or _called_by_how_long(items, at)
+    if said:
+        found = [*said, *_where_and_how_long(items, at + len(said))]
+        return [] if says_no_visit(items, at + len(found)) else found
+    stays = _spelt_at(items, at, STAYS)
+    if not stays:
+        return []
+    after = at + len(stays)
+    said_of_it = _where_and_how_long(items, after)
+    if any(found.what is Is.WORD and found.text in NIGHTS | _OVERNIGHT for found in said_of_it):
+        return [*stays, *said_of_it]
+    where = items[after] if after < len(items) and not items[after].apart else None
+    if where is None or where.what is not Is.WORD or where.text not in _AT_A_LODGING:
+        return []
+    on = after + 1
+    while on < len(items) and not items[on].apart and _is_an_article(items[on]):
+        on += 1
+    lodging = _spelt_at(items, on, LODGINGS) if on < len(items) and not items[on].apart else []
+    if not lodging:
+        return []
+    found = [*items[at:on], *lodging]
+    found += _stay_at(items, at + len(found))
+    return [] if says_no_visit(items, at + len(found)) else found
+
+
+def _is_an_article(item: Item) -> bool:
+    return item.what is Is.WORD and item.text in ("a", "an", "the")
+
+
+def says_a_walk(near: Sequence[Item]) -> bool:
+    """Whether some words that say near say that the place is reached on foot."""
+    return any(word in _ON_FOOT for word in _said(near).split())
+
+
 # The phrases of the grammar that hold a word that joins: "anywhere but". Within
 # one, the word joins nothing.
 _HOLDS_A_JOIN = frozenset(
@@ -1236,6 +1537,30 @@ _ADDS_NOTHING = frozenset({"with", "also"})
 _ADDED_TO = frozenset({"and", "but"})
 
 
+# What opens a wish straight after the words of a visit, as it does after a mark: "a hotel
+# somewhere lively". Any other word there may be said of the visit, and is read with it or
+# not at all.
+_OPENS_A_WISH = frozenset({"somewhere"})
+
+
+def _after_a_visit(items: Sequence[Item]) -> set[int]:
+    """Where a word that opens a wish stands straight after the words of a visit.
+
+    A part of the sentence begins there, as it does after a mark. "Somewhere
+    to stay" is a visit itself, and begins none.
+    """
+    found: set[int] = set()
+    at = 0
+    while at < len(items):
+        said = visit_at(items, at)
+        at += len(said) or 1
+        opens = items[at] if said and at < len(items) and not items[at].apart else None
+        wish = opens is not None and opens.what is Is.WORD and opens.text in _OPENS_A_WISH
+        if wish and not visit_at(items, at):
+            found.add(at)
+    return found
+
+
 def _segments(items: Sequence[Item]) -> list[tuple[Join, list[Item]]]:
     """The parts of a sentence, and how each is joined to the one before."""
     found: list[tuple[Join, list[Item]]] = []
@@ -1244,11 +1569,12 @@ def _segments(items: Sequence[Item]) -> list[tuple[Join, list[Item]]]:
     # The words that join, since the last part ended.
     joined_by: list[str] = []
     held = _inside_a_phrase(items)
+    opened = _after_a_visit(items)
     for at, item in enumerate(items):
         joins = item.what is Is.WORD and item.text in _JOIN_OF and at not in held
         if item.apart and not set(item.marks) <= JOINING_MARKS:
             raise NotPlain  # a colon, a dash, a bracket or a quote joins nothing
-        if (item.apart or joins) and current:
+        if (item.apart or joins or at in opened) and current:
             found.append((join, current))
             current, join, joined_by = [], Join.MARK, []
         if not joins:
@@ -1311,6 +1637,104 @@ def _closed_near(found: Sequence[Wish], at: int) -> bool:
     return False
 
 
+# What says, straight after a number, that it is one of bedrooms or an amount of money.
+_NOT_OF_TIME = BEDROOMS | MONTHLY | IN_MONEY | THOUSANDS
+
+
+def _is_followed_by(items: Sequence[Item], at: int, phrases: Collection[str]) -> bool:
+    """Whether the words straight after an item spell one of some phrases, side by side."""
+    words: list[str] = []
+    for item in items[at + 1 : at + 4]:
+        if item.what is not Is.WORD or item.apart:
+            break
+        words.append(item.text)
+        if " ".join(words) in phrases:
+            return True
+    return False
+
+
+# What a time may be the length of, before "of": "a commute of an hour", "a walk of half an
+# hour", "a maximum of an hour". After any other word and "of" a time in hours is part of
+# what that word says: "a third of an hour", "the best part of an hour".
+_A_LENGTH_OF = frozenset(GOES) | A_JOURNEY | _AT_MOST
+
+
+def _part_of_what_stands_before(items: Sequence[Item], at: int) -> bool:
+    """Whether a time in hours stands straight after "of", and is no length of a journey.
+
+    "Three quarters of an hour" is read whole, as the one number it is. "A
+    third of an hour", "most of an hour" and "three-quarters of an hour" are
+    not read, and the hour of each, read by itself, is an hour that nobody
+    said: it was offered as the time of a journey, and one press took it.
+    """
+    number, of = items[at], items[at - 1]
+    if not number.hours or number.apart or of.what is not Is.WORD or of.text != "of":
+        return False
+    led = items[at - 2] if at > 1 and not of.apart else None
+    return led is None or led.what is not Is.WORD or led.text not in _A_LENGTH_OF
+
+
+# What joins the minutes of a second time to a longer time before them: "1 hour 15 or 20".
+_JOINS_TWO_TIMES = frozenset({"or", "to", "and"})
+
+
+def _joined_to_a_longer_time(items: Sequence[Item], at: int) -> bool:
+    """Whether a number stands after a longer time in hours and a word that joins the two.
+
+    "1 hour 15 or 20" is 75 minutes or 80, and the hours of the second were
+    not said again. Read by itself the 20 was a journey of 20 minutes, which
+    one press took. A number that is more than the time before it stands by
+    itself, and is the longer end of the two: "half an hour or 40 minutes".
+    So does a time that says its own hours: "1 hour 15 or 1 hour 20".
+    """
+    number, joins = items[at], items[at - 1]
+    if at < 2 or number.hours or number.apart or joins.apart:
+        return False
+    if joins.what is not Is.WORD or joins.text not in _JOINS_TWO_TIMES:
+        return False
+    longer = items[at - 2]
+    return longer.what is Is.NUMBER and longer.hours and number.value < longer.value
+
+
+def part_of_a_longer_time(items: Sequence[Item], at: int) -> bool:
+    """Whether a number stands where the minutes of a longer time stand, and is not read with it.
+
+    A time in hours is read whole where its minutes stand side by side with
+    it, "1 hour 15", and is one number. Where a mark parts the two, "1 hour,
+    15 minutes", or the minutes are more than an hour holds, "1 hour 75", the
+    number after the hours is part of a time that was not read whole. So is
+    a number straight after a word for hours, "a few hours 15", and one
+    straight after another number that may be the hours of it: "1 15". Read
+    by itself such a number would be the minutes and never the hours, which
+    is a shorter journey than was said. So no sentence that holds one is
+    plain, and no journey is offered with it as its minutes.
+
+    A number of bedrooms and an amount of money are no part of a time, before
+    it or after: "2 bed 30 minutes to", "1500 30 minutes to", "1 hour 2 bed".
+
+    A time in hours that stands straight after "of" is part of a longer
+    time too, where what stands before "of" is nothing it may be the length
+    of: "a third of an hour". And so is a number that a word joins to a
+    longer time in hours before it: "1 hour 15 or 20".
+    """
+    number = items[at]
+    if at == 0 or number.what is not Is.NUMBER or number.money or number.unit not in ("", "min"):
+        return False
+    if _is_followed_by(items, at, _NOT_OF_TIME):
+        return False
+    if _part_of_what_stands_before(items, at) or _joined_to_a_longer_time(items, at):
+        return True
+    before = items[at - 1]
+    if before.what is Is.NUMBER and before.hours:
+        return True
+    if number.apart:
+        return False
+    if before.what is Is.WORD:
+        return before.text in HOUR_OR_ITS_LETTER
+    of_time = before.unit == "min" or (not before.unit and before.value < LEAST_MONEY)
+    return before.what is Is.NUMBER and not before.money and of_time
+
+
 def about_a_campus(target: Target) -> bool:
     return FeatureId.UNIVERSITY_PROXIMITY in target.features
 
@@ -1358,6 +1782,31 @@ class Grammar:
         """Whether some items open with what says near after a thing: "nearby", "in 10 minutes"."""
         return _Segment(items, self).nearby() is not None
 
+    def asks_which_place(self, items: Sequence[Item]) -> list[Wish]:
+        """The journeys of a sentence that ask which place is meant, each a part of its own.
+
+        It is for a sentence the grammar does not make. A part of it that is
+        the whole of a journey is read as it is in a plain list: a cue or a
+        time, and words that are the whole name of no place and part of the
+        name of one or more. A journey to words that no place bears a part of
+        is none of them, and nor is a place that is commuted from.
+        """
+        try:
+            parts = _segments(items)
+        except NotPlain:
+            return []
+        found: list[Wish] = []
+        for _, part in parts:
+            segment = _Segment(part, self)
+            try:
+                segment.opening()
+                wish = None if segment.done else segment.journey()
+            except NotPlain:
+                continue
+            if wish is not None and wish.options and not wish.offered:
+                found.append(wish)
+        return found
+
     def sentence(self, line: Line, items: Sequence[Item]) -> list[Wish]:
         """The items of one sentence. Raises `NotPlain` if the grammar does not make it."""
         if line.asked or any(item.what is Is.ODD for item in items):
@@ -1366,6 +1815,8 @@ class Grammar:
             raise NotPlain  # it ends on a colon or a dash, as a heading does
         if items and items[0].apart:
             raise NotPlain
+        if any(part_of_a_longer_time(items, at) for at in range(len(items))):
+            raise NotPlain  # "1 hour, 15 minutes": the minutes of a time that was not read whole
         found: list[Wish] = []
         parts = _segments(items)
         spoken = False

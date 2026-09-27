@@ -158,7 +158,7 @@ def test_a_measure_says_how_many_areas_changed_and_by_how_much(found: dict[str, 
     (air,) = found["measures"]["moved"]
     assert {key: air[key] for key in air if key != "moved_most"} == {
         "id": "air_no2",
-        "label": "Modelled annual mean nitrogen dioxide",
+        "label": "Nitrogen dioxide in the air, as a modelled average over a year",
         "unit": "µg/m³",
         "dated": {"was": "2024", "now": "2024"},
         "areas": 3,
@@ -439,9 +439,9 @@ def test_what_it_writes_names_each_area_and_is_what_it_found(
     assert page.startswith(f"# What moved between {BEFORE} and {AFTER}\n")
     assert "| Quillhaven 002, Quillhaven (lon-ne02999002) | 10 | 17.3 |" in page
     assert (
-        "| Modelled annual mean nitrogen dioxide | µg/m³ | 2 of 3 | 2 | 0 | 0 | 0 | 1.2 | 7.3 |"
-        in (page)
-    )
+        "| Nitrogen dioxide in the air, as a modelled average over a year | µg/m³ | 2 of 3 | 2 "
+        "| 0 | 0 | 0 | 1.2 | 7.3 |"
+    ) in page
     assert "| Quiet streets | 0 of 3 | 0 | 0 | 0 | 3 |  |  |" in page
     assert "### Files that changed: 1" in page and "### Files that went: 1" in page
     assert "| 1 | Quillhaven 002, Quillhaven (lon-ne02999002) | " in page

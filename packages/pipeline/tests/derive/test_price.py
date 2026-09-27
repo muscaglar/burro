@@ -370,11 +370,11 @@ def test_the_method_is_the_publishers_own_figure_and_is_marked_as_measured():
 def test_the_name_says_what_was_paid_and_for_which_kind_of_home(tmp_path: Path):
     found = built(tmp_path)
     assert {key: one.named.label for key, one in found.of.items()} == {
-        "price_median": "Median price paid for a home",
-        "price_median_detached": "Median price paid for a detached house",
-        "price_median_semi_detached": "Median price paid for a semi-detached house",
-        "price_median_terraced": "Median price paid for a terraced house",
-        "price_median_flat": "Median price paid for a flat or a maisonette",
+        "price_median": "The middle price paid for a home",
+        "price_median_detached": "The middle price paid for a detached house",
+        "price_median_semi_detached": "The middle price paid for a semi-detached house",
+        "price_median_terraced": "The middle price paid for a terraced house",
+        "price_median_flat": "The middle price paid for a flat or a maisonette",
     }
 
 
@@ -505,7 +505,7 @@ def test_the_measure_is_the_publishers_own_figure_for_a_home_of_any_kind(tmp_pat
         (metric.label, metric.unit)
         == (core.label, core.unit)
         == (
-            "Median price paid for a home",
+            "The middle price paid for a home",
             "£",
         )
     )

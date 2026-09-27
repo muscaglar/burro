@@ -12,8 +12,8 @@ area stands beside a road of the file's two highest classes. It is not a
 measure of traffic, of noise or of air: the file holds none of those.
 
 **It is core's measure of main roads**, `road_major_exposure`, and a build
-carries it. Core names it "Share of homes within 100 m of a main road", and
-the row of the catalogue that is made here is core's. The sentence of the
+carries it. Core names it "Homes within 100 m of a main road, as a share of
+all homes", and the row of the catalogue that is made here is core's. The sentence of the
 measure says what the name leaves out: which roads are main, that the
 distance is a straight line, and that it is to the line the file draws along
 the road and not to its kerb.

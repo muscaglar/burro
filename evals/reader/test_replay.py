@@ -118,12 +118,15 @@ def test_what_the_guard_makes_of_the_answers_on_disk():
     # taken up. Two sentences that ask for a village feel were right while the rules
     # applied it. It is a rough guide since 2026-09-25: it is offered with no guess, so
     # to press every guess takes the rest of each and leaves it for a press of its own.
+    # One more is right since the way the rules read of a sentence is marked as the
+    # guess, whatever a model read: "with some culture around it", where the model in
+    # its one look named no culture.
     assert replay.counted(first()) == {
         "answers": 112,
         "calls the reader made": 79,
         "answered by the rules, with no call or in a model's place": 33,
-        "right": 82,
-        "in part": 13,
+        "right": 83,
+        "in part": 12,
         "not read": 14,
         "a guess nobody asked for": 3,
         "backwards, offered with no guess marked": 0,

@@ -358,7 +358,7 @@ def test_a_build_with_no_file_of_places_leaves_the_measure_out(tmp_path: Path):
 def test_the_row_says_a_straight_line_in_metres_and_names_every_source(town: Nearest):
     metric = town.metric
     assert metric.feature_id is FeatureId.GROCERY_WALK
-    assert metric.label == "Straight-line distance to the nearest food shop"
+    assert metric.label == "Distance to the nearest food shop, in a straight line"
     assert (metric.unit, metric.polarity) == ("m", Polarity.LESS)
     assert metric.native_resolution is NativeResolution.POINT
     assert metric.vintage == DAY

@@ -40,8 +40,9 @@ OF_A_RENT = (
     "About half of the rents recorded in a place were under its middle rent."
 )
 A_TERRACED_HOUSE = (
-    "You named no kind of house, so Burro has taken a terraced house, the least dear kind "
-    "in most areas. Semi-detached and detached are one press away."
+    "You did not say what kind of house, so Burro has assumed a terraced house, which is the "
+    "kind of house that costs the least in most areas. You can choose a semi-detached or a "
+    "detached house instead."
 )
 
 
