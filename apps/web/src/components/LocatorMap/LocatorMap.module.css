@@ -1,5 +1,15 @@
-/* Two small pictures, side by side: the city with a mark, and the area drawn close. */
+/*
+ * Two small pictures, side by side: the city with a mark, and the area drawn close. Each is
+ * a small picture of the map: land on blue water, in a plain edge of ink.
+ *
+ * The water has the grain of its tile, which the style sheet draws under the picture with
+ * a pixel as large as a pixel of the map: a glint is one corner of a tile, filled, and the
+ * tile is set where the glint is to stand. The land is plain.
+ */
 .locator {
+  --px-map: var(--px-ground);
+  --glint: conic-gradient(from 270deg at calc(var(--px-map) * 3) var(--px-map), var(--map-glint) 90deg, transparent 0);
+
   display: flex;
   flex-wrap: wrap;
   align-items: end;
@@ -19,12 +29,15 @@
   display: block;
   max-width: 100%;
   height: auto;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-
-.water {
-  fill: var(--map-water);
+  border: var(--edge) solid var(--border);
+  background-color: var(--map-water);
+  background-image: var(--glint), var(--glint), var(--glint), var(--glint);
+  background-position:
+    calc(var(--px-map) * 2) calc(var(--px-map) * 2),
+    calc(var(--px-map) * 10) calc(var(--px-map) * 5),
+    calc(var(--px-map) * 4) calc(var(--px-map) * 9),
+    calc(var(--px-map) * 12) calc(var(--px-map) * 12);
+  background-size: calc(var(--px-map) * 16) calc(var(--px-map) * 16);
 }
 
 /* The city is one shape. It has no edge of its own, so that the areas inside it draw no lines. */
@@ -34,15 +47,22 @@
   stroke-width: 0.6;
 }
 
-/* Where the area stands in the city: a ring, and a spot in the middle of it. */
+/*
+ * Where the area stands in the city: a square about the place, whole, and a spot in the
+ * middle of it. Each is drawn to the whole pixel, with a hard edge and a corner that is
+ * not rounded.
+ */
 .ring {
   fill: none;
   stroke: var(--map-line);
-  stroke-width: 1.5;
+  stroke-width: 2;
+  stroke-linejoin: miter;
+  shape-rendering: crispEdges;
 }
 
 .spot {
   fill: var(--map-line);
+  shape-rendering: crispEdges;
 }
 
 .area {
@@ -52,8 +72,9 @@
   vector-effect: non-scaling-stroke;
 }
 
+/* The area itself is the one in hand: it is amber, and has the heaviest outline. */
 .here {
-  fill: var(--map-5);
+  fill: var(--chosen);
   stroke: var(--map-line);
   stroke-width: 2.5;
   stroke-linejoin: round;
@@ -61,9 +82,13 @@
 }
 
 @media (forced-colors: active) {
-  .water,
-  .area,
-  .land {
+  .city,
+  .close {
+    border-color: CanvasText;
+    background: Canvas;
+  }
+
+  .area {
     fill: Canvas;
   }
 

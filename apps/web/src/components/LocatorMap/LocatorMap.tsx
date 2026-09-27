@@ -36,11 +36,23 @@ interface Props {
   readonly name: string;
 }
 
+/** How far from the place each side of its mark stands, in pixels. */
+const MARK = { out: 6 } as const;
+
+/**
+ * The mark: one square about the middle of the picture it is drawn in, drawn in one piece
+ * and closed. It was four corners with a gap between each and the next, as the pointer of
+ * a map in a game is drawn: an edge in pieces, which a person who walked the website did
+ * not understand.
+ */
+const SQUARE = `M${-MARK.out} ${-MARK.out}H${MARK.out}V${MARK.out}H${-MARK.out}Z`;
+
 /**
  * Two small pictures of where one area is. The first is the whole city as one
- * shape, with a ring about the place the area stands. The second is the area
- * drawn close, among the areas around it, and told from them by its heavy
- * outline as well as its colour.
+ * shape, with a square about the place the area stands and a spot in the
+ * middle of it. The second is the area drawn close, among the
+ * areas around it, and told from them by its heavy outline as well as its
+ * colour, which is that of the thing in hand.
  *
  * It was one picture of every area, 120 px wide, and on a release of a
  * thousand areas the area could not be found in it.
@@ -51,7 +63,8 @@ interface Props {
 export function LocatorMap({ geometry, areaId, name }: Props) {
   const found = geometry === null ? null : locate(geometry, areaId);
   if (found === null) return null;
-  const [x, y] = found.at;
+  // The mark is drawn to the whole pixel, so that its sides have a hard edge.
+  const [x, y] = [Math.round(found.at[0]), Math.round(found.at[1])];
   return (
     <div className={styles.locator} role="img" aria-label={LOCATOR.title(name)}>
       <figure className={styles.picture}>
@@ -62,10 +75,12 @@ export function LocatorMap({ geometry, areaId, name }: Props) {
           height={CITY_FRAME.height}
           aria-hidden="true"
         >
-          <rect className={styles.water} width={CITY_FRAME.width} height={CITY_FRAME.height} />
+          {/* The water is under the picture, and is the style sheet's to draw. */}
           <path className={styles.land} d={found.city} />
-          <circle className={styles.ring} cx={x} cy={y} r="5" />
-          <circle className={styles.spot} cx={x} cy={y} r="1.5" />
+          <g data-mark="" transform={`translate(${x} ${y})`}>
+            <path className={styles.ring} d={SQUARE} />
+            <rect className={styles.spot} x="-1" y="-1" width="2" height="2" />
+          </g>
         </svg>
         <figcaption>{LOCATOR.city}</figcaption>
       </figure>
@@ -77,7 +92,6 @@ export function LocatorMap({ geometry, areaId, name }: Props) {
           height={CLOSE_FRAME.height}
           aria-hidden="true"
         >
-          <rect className={styles.water} width={CLOSE_FRAME.width} height={CLOSE_FRAME.height} />
           {found.around.map((outline) => (
             <path key={outline.areaId} className={styles.area} d={outline.path} />
           ))}

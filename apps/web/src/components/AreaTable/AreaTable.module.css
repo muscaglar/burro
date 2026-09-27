@@ -1,6 +1,12 @@
 /*
- * The table is laid out by the width of its own box, and not by that of the screen: beside
- * the list on a desk its box is as narrow as a phone is.
+ * The table of every area. It stands in the box of the map, so it has no box of its own: a
+ * table is many small things, and a frame round each would be noise.
+ *
+ * It is laid out by the width of its own box, and not by that of the screen: beside the
+ * list on a desk its box is as narrow as a phone is.
+ *
+ * What is small in it is drawn with the pixel of a phone, `--px-small`, on every screen:
+ * it is as large as a pixel of the map, in whose box the table stands.
  */
 .whole {
   display: grid;
@@ -11,6 +17,19 @@
 
 .table {
   margin: 0;
+}
+
+/* What a column is of is a short label, and is set in the face of names. */
+.head th {
+  color: var(--muted);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+}
+
+/* Every row keeps room at its head for the mark of the row that is chosen, whether or not it is. */
+.table th:first-child,
+.table td:first-child {
+  padding-inline-start: var(--space-3);
 }
 
 /* Under the fit and smaller: how much of what counts the fit rests on. */
@@ -33,40 +52,91 @@
   white-space: nowrap;
 }
 
-/* The chosen area is marked by a heavy edge, and says so to a screen reader. */
+/*
+ * The chosen area is marked by a heavy edge and by a band of amber at its head, and says
+ * so to a screen reader. Both are drawn inside the row, which is as it was.
+ */
 .table tr[aria-current="true"] {
-  outline: 3px solid var(--map-line);
-  outline-offset: -3px;
+  outline: var(--focus-ring) solid var(--map-line);
+  outline-offset: calc(-1 * var(--focus-ring));
+  box-shadow: inset calc(var(--px-small) * 4) 0 0 var(--chosen);
 }
 
-.show {
-  min-height: var(--target-min);
-  padding: 0 var(--space-2);
-  font-size: var(--size-small);
-}
-
-.show[aria-pressed="true"] {
-  font-weight: 700;
-  border-width: 2px;
-}
-
-@media (forced-colors: active) {
-  .table tr[aria-current="true"] {
-    outline-color: Highlight;
-  }
-}
-
+/*
+ * The name of an area is set in the face of names, and is the way to its page. It is drawn
+ * as a result draws the name of its area: as the name is, in ink, with a hard line under it.
+ */
 .link {
   display: inline-flex;
   align-items: center;
+  color: inherit;
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  text-decoration-thickness: var(--px);
+  text-underline-offset: 0.12em;
+}
+
+/*
+ * The small button of a row, as Town Map draws a button: lit from the top left, with a hard
+ * shadow at its foot. The button is what takes the press, and nothing moves it or changes
+ * its size. Its face is inside it, and is what is drawn: a picture cut in nine, which gives
+ * way under a press to the picture of the button pressed, of the same size and cut alike.
+ * The button of the area that is chosen is amber, and says that it is pressed.
+ */
+.show {
+  display: inline-flex;
+  align-items: stretch;
+  min-height: var(--target-min);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+}
+
+.face {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0 calc(var(--px-small) * 3);
+  border-style: solid;
+  border-width: calc(var(--px-small) * 3) calc(var(--px-small) * 3) calc(var(--px-small) * 4);
+  border-color: var(--ink);
+  border-image: var(--art) 3 3 4 3 fill / calc(var(--px-small) * 3) calc(var(--px-small) * 3) calc(var(--px-small) * 4)
+    repeat;
+  background-color: var(--page);
+  background-clip: padding-box;
+  image-rendering: pixelated;
+}
+
+.show[aria-pressed="true"] > .face {
+  background-color: var(--chosen);
+}
+
+.says {
+  display: block;
+}
+
+.show:active > .face {
+  border-image-source: var(--art-down);
+}
+
+/* Where movement is welcome the words step with the face, in the one step the face takes. */
+@media (prefers-reduced-motion: no-preference) {
+  .show:active > .face > .says {
+    transform: translate(var(--px-ground), var(--px-ground));
+  }
 }
 
 /* What a cell is of. Shown only where the rows are stacked, and the headings are not drawn. */
 .cellLabel {
   display: none;
   color: var(--muted);
-  font-size: var(--size-small);
-  font-weight: 400;
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
 }
 
 /*
@@ -86,9 +156,9 @@
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0 var(--space-2);
-    padding: var(--space-2) 0;
-    border-block-end: 1px solid var(--border);
+    gap: var(--space-1) var(--space-2);
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+    border-block-end: var(--edge) solid var(--sand);
   }
 
   .head {
@@ -106,6 +176,12 @@
     grid-column: 1 / -1;
     padding: 0;
     border: 0;
+  }
+
+  /* The room at the head of a row is the row's own here. */
+  .table th:first-child,
+  .table td:first-child {
+    padding-inline-start: 0;
   }
 
   /* The first line of an area: its rank, its name, and the way to show it on the map. */
@@ -143,5 +219,26 @@
 @media (forced-colors: active) {
   .table tr {
     border-block-end-color: CanvasText;
+  }
+
+  .table tr[aria-current="true"] {
+    outline-color: Highlight;
+    box-shadow: none;
+  }
+
+  /* The system's colours carry the button, and no picture is drawn over them. */
+  .face {
+    border-image-source: none;
+    border-color: ButtonText;
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+
+  .show[aria-pressed="true"] > .face {
+    border-color: Highlight;
+  }
+
+  .show:active > .face {
+    border-image-source: none;
   }
 }

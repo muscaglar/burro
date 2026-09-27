@@ -58,8 +58,8 @@ export function SharedOutlines({ outlines, id }: { readonly outlines: readonly O
 
 /**
  * The city coloured by one vibe, in the five bands the API gives: the lighter
- * the nearer the low end. An area the vibe cannot place is drawn with dots,
- * and never in the middle band. It is a picture and no more: it takes no key
+ * the nearer the low end, green on blue water. An area the vibe cannot place
+ * is drawn with dots, and never in the middle band. It is a picture and no more: it takes no key
  * and no pointer, its title says what it shows, and the areas at each end are
  * named in words beside it, because one band is too like the next to read a
  * band from.
@@ -83,12 +83,14 @@ export function VibeMap({ outlines, marks, title, shared }: Props) {
     >
       {title === undefined ? null : <title id={`${id}-title`}>{title}</title>}
       <defs>
+        {/* Dots, each a square, as the map of the search page draws them: two to a tile, corner to corner. */}
         <pattern id={`${id}-dots`} width="4" height="4" patternUnits="userSpaceOnUse">
           <rect className={styles.land} width="4" height="4" />
-          <circle className={styles.dot} cx="2" cy="2" r="0.7" />
+          <rect className={styles.dot} x="0.5" y="0.5" width="1" height="1" />
+          <rect className={styles.dot} x="2.5" y="2.5" width="1" height="1" />
         </pattern>
       </defs>
-      <rect className={styles.water} width={width} height={height} />
+      {/* The water is under the picture, and is the style sheet's to draw. */}
       {outlines.map((outline, at) => {
         const band = fills.get(outline.areaId)?.band ?? 0;
         if (shared !== undefined) {

@@ -2,8 +2,10 @@ import { LEGEND } from "@/content/map";
 import { BANDS } from "@/lib/map/fill";
 import { endsOf, type Lens } from "@/lib/vibes";
 
-import { RoughNote } from "../RoughGuide/RoughGuide";
+import { Ends } from "../kit/Ends/Ends";
+import { Thing } from "../kit/Thing/Thing";
 import styles from "./MapView.module.css";
+import { pinDrawn } from "./pin";
 
 interface Props {
   /** True once there is a ranking to colour the map by. */
@@ -26,6 +28,16 @@ interface Props {
  * words. A band is a range of fit, or one of the five bands of a vibe, with
  * its two ends named. It is not enough to read a figure from, and nothing
  * asks anyone to: the figure is in words wherever it is shown.
+ *
+ * Each is drawn beside its words as the map draws it: a band as a piece of
+ * land of its colour with its grain, a pattern as it lies on the land, and the
+ * pin as the drawing it is.
+ *
+ * Where the map is coloured by one vibe the legend is the gauge of that vibe:
+ * the small drawing of the vibe with its name, and under it the five shades in
+ * a row, from the palest to the darkest, with the one picture of each end of
+ * the vibe at either side and the name of the end under its picture. Neither
+ * end is the better one. The pictures are chosen by the id of the vibe.
  */
 export function MapLegend({
   searched,
@@ -35,31 +47,33 @@ export function MapLegend({
   unranked = true,
 }: Props) {
   if (lens !== null) {
-    const [low, high] = endsOf(lens.tag);
-    const last = BANDS.length;
+    const { tag } = lens;
+    const [low, high] = endsOf(tag);
     return (
-      <section className={styles.legend} aria-label={LEGEND.title}>
-        <p className={styles.legendTitle}>{LEGEND.vibe(lens.tag.label)}</p>
-        {/* A vibe that is a rough guide says so wherever the map is coloured by it. */}
-        <RoughNote told={lens.rough ?? null} />
-        <ul>
-          {BANDS.map(({ band }) => (
-            <li key={band}>
-              <span className={styles.swatch} data-band={band} aria-hidden="true" />
-              {band === 1
-                ? LEGEND.vibeEnd(band, low)
-                : band === last
-                  ? LEGEND.vibeEnd(band, high)
-                  : LEGEND.vibeBand(band)}
-            </li>
-          ))}
-          {lens.marks.some((mark) => mark.band === null) ? (
+      <section className={styles.legend} aria-label={LEGEND.title} data-of="vibe">
+        <p className={styles.legendTitle}>
+          {/* The drawing of the vibe is dress, and says nothing: its name is in the line beside it. */}
+          <Thing kind="tag" id={tag.tag_id} family={tag.family} />
+          {LEGEND.vibe(tag.label)}
+        </p>
+        {/* One picture, whose name says what it shows. What is drawn in it is for the eye. */}
+        <p className={styles.gauge} role="img" aria-label={LEGEND.vibeRuns(low, high)}>
+          <Ends id={tag.tag_id} low={tag.low_end} high={tag.high_end}>
+            <span className={styles.shades}>
+              {BANDS.map(({ band }) => (
+                <span key={band} className={styles.swatch} data-band={band} />
+              ))}
+            </span>
+          </Ends>
+        </p>
+        {lens.marks.some((mark) => mark.band === null) ? (
+          <ul>
             <li>
               <span className={styles.swatch} data-pattern="unranked" aria-hidden="true" />
               {LEGEND.notPlaced}
             </li>
-          ) : null}
-        </ul>
+          </ul>
+        ) : null}
       </section>
     );
   }
@@ -94,8 +108,8 @@ export function MapLegend({
               </li>
             ) : null}
             <li>
-              <span className={styles.pinSwatch} aria-hidden="true">
-                1
+              <span className={styles.pinSwatch} style={pinDrawn()} aria-hidden="true">
+                <span className={styles.figure}>1</span>
               </span>
               {LEGEND.pin}
             </li>

@@ -23,9 +23,6 @@ export interface Fill {
   readonly pattern: Pattern;
 }
 
-/** How wide a band is, in points of fit. */
-export const BAND_WIDTH = 20;
-
 /** The five bands, low to high, each with the range of fit it stands for. */
 export const BANDS: readonly { readonly band: Exclude<Band, 0>; readonly from: number; readonly to: number }[] = [
   { band: 1, from: 0, to: 19 },

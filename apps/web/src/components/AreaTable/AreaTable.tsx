@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useLayoutEffect, useRef, type CSSProperties } from "react";
 
 import { TABLE } from "@/content/map";
 import { BREAKDOWN, FILTERED, RESULTS, UNRANKED } from "@/content/search";
@@ -8,10 +9,12 @@ import type { AreaSummary, Filtered, MetaData, Score, Unranked } from "@/lib/api
 import { fitOf } from "@/lib/map/fill";
 import { paths } from "@/lib/paths";
 import { basedOn } from "@/lib/search/card";
+import { keepInPlace } from "@/lib/sight";
 import { placedOn, type Lens } from "@/lib/vibes";
 
 import { BesideName } from "../BesideName/BesideName";
-import { RoughLabel } from "../RoughGuide/RoughGuide";
+import { pictureOf } from "../kit/drawings";
+import { picturesOf } from "../kit/Press/kinds";
 import styles from "./AreaTable.module.css";
 
 interface Props {
@@ -108,6 +111,15 @@ export function rowsOf({
 }
 
 /**
+ * The pictures of the small button of a row: a plain button of the look, and the amber one
+ * where its area is the one chosen. Each has its picture pressed, on the same canvas.
+ */
+function drawnAs(chosen: boolean): CSSProperties {
+  const { up, down } = picturesOf("plain", chosen);
+  return { "--art": `url("${pictureOf(up)}")`, "--art-down": `url("${pictureOf(down)}")` } as CSSProperties;
+}
+
+/**
  * What a cell is of, for the eye. On a narrow screen each area is a block and
  * the headings of the columns are not drawn, so each cell says its own. The
  * heading says it to a screen reader, so this is kept from one.
@@ -122,7 +134,8 @@ function CellLabel({ children }: { readonly children: string }) {
 
 /**
  * The table that says everything the map does. It is one press away from
- * the map, and it is what there is where the map cannot be drawn.
+ * the map, and it is what there is where the map cannot be drawn. It stands in
+ * the box of the map, on the colour that is read on.
  *
  * On a narrow screen each area is a block: its rank, its name and the way to
  * show it, and under them its borough, its fit and its status, each under its
@@ -130,10 +143,25 @@ function CellLabel({ children }: { readonly children: string }) {
  * the fit was cut off at the edge of the screen. It is one table either way,
  * and every part says its role again, so that a browser which forgets a table
  * when it is laid out as blocks is told.
+ *
+ * What is pressed in it stays under the hand. The card of the area that is chosen opens
+ * by the map, over the table and in the same box, and the table went down by as much as
+ * the card is high. Seen at 390 by 844: a button was pressed at 340 and stood at 645, and
+ * a second press aimed where the first was chose another area. So what the table is seen
+ * through goes by as much, before anything is drawn.
  */
 export function AreaTable(props: Props) {
   const { selectedId, onSelect, onHover, searched, lens = null } = props;
   const rows = rowsOf(props);
+  // What was pressed, and where it stood as the press landed. Kept of a press that chooses an area anew, and of no other.
+  const pressed = useRef<{ readonly part: HTMLElement; readonly top: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const held = pressed.current;
+    pressed.current = null;
+    if (held?.part.isConnected === true) keepInPlace(held.part, held.top);
+  }, [selectedId]);
+
   return (
     <div className={styles.whole}>
       <div className="scroll-x">
@@ -154,7 +182,6 @@ export function AreaTable(props: Props) {
               {lens !== null ? (
                 <th role="columnheader" scope="col">
                   {lens.tag.label}
-                  <RoughLabel told={lens.rough ?? null} />
                 </th>
               ) : null}
               <th role="columnheader" scope="col">
@@ -219,14 +246,21 @@ export function AreaTable(props: Props) {
                 </td>
                 {/* eslint-disable-next-line jsx-a11y/no-interactive-element-to-noninteractive-role */}
                 <td role="cell" className={styles.act}>
+                  {/* The button takes the press and never moves. What is drawn is its face, inside it. */}
                   <button
                     type="button"
                     className={`${styles.show} target-min`}
+                    style={drawnAs(selectedId === area.area_id)}
                     aria-label={TABLE.select(area.name)}
                     aria-pressed={selectedId === area.area_id}
-                    onClick={() => onSelect(area.area_id)}
+                    onClick={({ currentTarget: part }) => {
+                      if (selectedId !== area.area_id) pressed.current = { part, top: part.getBoundingClientRect().top };
+                      onSelect(area.area_id);
+                    }}
                   >
-                    {TABLE.show}
+                    <span className={styles.face}>
+                      <span className={styles.says}>{TABLE.show}</span>
+                    </span>
                   </button>
                 </td>
               </tr>

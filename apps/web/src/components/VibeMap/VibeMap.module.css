@@ -1,14 +1,31 @@
 /*
  * The city coloured by one vibe. Every colour is a token of the map, the same as the map of
  * the search page takes, so that a band is one colour wherever it is drawn.
+ *
+ * It is a small picture of that map: green land on blue water, in a plain edge of ink. The
+ * water has the grain of its tile, which the style sheet draws under the picture with a
+ * pixel as large as a pixel of the map, however large the picture is drawn: a glint is one
+ * corner of a tile, filled, and the tile is set where the glint is to stand. The land is
+ * plain. An area of a thousand is a few pixels across here, and a grain on it would be
+ * taken for a mark.
  */
 .map {
+  --px-map: var(--px-ground);
+  --glint: conic-gradient(from 270deg at calc(var(--px-map) * 3) var(--px-map), var(--map-glint) 90deg, transparent 0);
+
   display: block;
   width: 100%;
   max-width: 100%;
   height: auto;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: var(--edge) solid var(--border);
+  background-color: var(--map-water);
+  background-image: var(--glint), var(--glint), var(--glint), var(--glint);
+  background-position:
+    calc(var(--px-map) * 2) calc(var(--px-map) * 2),
+    calc(var(--px-map) * 10) calc(var(--px-map) * 5),
+    calc(var(--px-map) * 4) calc(var(--px-map) * 9),
+    calc(var(--px-map) * 12) calc(var(--px-map) * 12);
+  background-size: calc(var(--px-map) * 16) calc(var(--px-map) * 16);
 }
 
 /* The outlines a page draws once for all its maps. They take no room, and draw nothing themselves. */
@@ -17,10 +34,6 @@
   width: 0;
   height: 0;
   overflow: hidden;
-}
-
-.water {
-  fill: var(--map-water);
 }
 
 .land {
@@ -73,7 +86,11 @@
 
 /* With forced colours the bands fall away. The areas at each end are named in words beside the map. */
 @media (forced-colors: active) {
-  .water,
+  .map {
+    border-color: CanvasText;
+    background: Canvas;
+  }
+
   .land,
   .area[data-band],
   .map > use[data-band] {

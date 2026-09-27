@@ -9,8 +9,14 @@
  * both numbers to be read.
  */
 
-/** How far apart the middles of two pins must be, in pixels: the width of a pin. */
-export const PIN_ROOM = 26;
+/**
+ * How far apart the points of two pins must be, in pixels. A pin is 26 wide, and its head,
+ * which bears its number, is 24 high: so no head stands on another, whichever way the other
+ * lies. Under the head is the point of the pin, which may stand before the head of the pin
+ * below it. Were the whole height of a pin kept clear, two areas one above the other would
+ * have one of their pins moved off its area on a map as small as a phone draws.
+ */
+export const PIN_ROOM = 28;
 
 export interface PinPoint {
   readonly id: string;

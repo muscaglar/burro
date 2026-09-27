@@ -1,8 +1,28 @@
-.view,
+/*
+ * The map, as the map of a gentle game: green land on blue water, each with the grain of
+ * its tile, pins drawn in pixels, and the whole in a box.
+ *
+ * The box holds the map and everything that is said of it: what moves it, what explains
+ * it, the area that is chosen on it and the way to the table. So nothing of it is read on
+ * the grass. The box is the frame's to draw. What is here is how it is laid out.
+ *
+ * A pixel of the map is as large as a pixel of the meadow the page stands on, on every
+ * screen: the grain of the land is the grass of the page, and a pin is of a size with it.
+ */
+.view {
+  --px-map: var(--px-ground);
+
+  display: grid;
+  /* One column, as wide as the box and no wider: what the map asks for in height asks nothing of its width. */
+  grid-template-columns: minmax(0, 1fr);
+  /* The box says how wide it is, so that its window can be as high as that width allows. */
+  container-type: inline-size;
+}
+
 .without {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
-  min-width: 0;
 }
 
 .without p {
@@ -10,28 +30,58 @@
 }
 
 /*
- * The frame has its size before the map is drawn in it, so nothing moves when it is. On a
- * narrow screen it is a strip, 240 px high, which stands after the first result: the
- * answer comes first. It was 176 px while it stood above the list, and ten pins lay over
- * one another in it. The whole map is one press away.
+ * What shows the whole of the map, on a screen of one column, where the map is a strip. It
+ * stands over the map and not under it, so that it stays where it was pressed as the map
+ * grows under it: under the map, it went down the page by as much as the map grew. It lies
+ * against the inner rule of the box, and the window of the map under it.
  */
-.frame {
-  position: relative;
-  height: 240px;
-  width: 100%;
-  background: var(--map-water);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  overflow: hidden;
-}
-
-.view[data-taller="true"] .frame {
-  height: 70vh;
+.whole {
+  display: flex;
+  padding: var(--space-2) var(--space-3);
 }
 
 /*
- * Under the map: the button that shows the whole of it, and the table that says
- * everything the map does. What the table opens to goes under both, as wide as the map.
+ * The window the map is seen through. It has its size before the map is drawn in it, so
+ * nothing moves when it is. On a screen of one column it is as wide as the page, and the
+ * whole of the map is one press away.
+ *
+ * Once a search is open it stands after the first result, since the answer comes first,
+ * and is 300 px high. The founder: "Map should be larger on the search result". It was 240,
+ * and 176 while it stood above the list, where ten pins lay over one another in it.
+ *
+ * Before a search it stands over the two ways in, so that it is in sight whichever is
+ * chosen, and is a low strip, so that the box is on the first screen with it. Measured at
+ * 390 by 844: 120 px high, under what shows the whole of it, it leaves the box from 770 to
+ * 841. It is higher on a wider screen, where it would be a ribbon, and lower in a window
+ * that is not high, where the two tabs would stand under the first screen.
+ *
+ * It lies against the inner rule of the box on three sides, which is its edge there, and
+ * has a rule of its own at its foot. The rule of a box has one pixel of the page inside
+ * it, and the window is laid over that. Where what shows the whole of it stands over it,
+ * it has a rule of its own at its head too.
+ */
+.window {
+  position: relative;
+  /* As wide as the box, whatever height it is given: a thing of a set shape is otherwise as wide as its height makes it. */
+  justify-self: stretch;
+  height: 300px;
+  margin: calc(var(--px) * -1) calc(var(--px) * -1) 0;
+  background: var(--map-water);
+  border-block-end: var(--edge) solid var(--border);
+  overflow: hidden;
+}
+
+/* Under the map, on the page of the box: each part under the one before it. */
+.below {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-3);
+}
+
+/*
+ * The button that shows the whole of the map, and the table that says everything the map
+ * does. What the table opens to goes under both, as wide as the box.
  */
 .more {
   display: flex;
@@ -44,13 +94,6 @@
   display: contents;
 }
 
-/* In a row of their own, above the answer, the buttons are no higher than they need be. */
-.more > button,
-.table > button {
-  min-height: 2.25rem;
-  padding-block: var(--space-1);
-}
-
 .table > div {
   order: 1;
   flex-basis: 100%;
@@ -59,39 +102,95 @@
 
 /*
  * While the map is a strip, what moves it and what explains it wait with the whole map:
- * a strip is for a glance. A pin is as small as a thing that is pressed may be, so that
- * ten of them stand apart.
+ * a strip is for a glance. Over the two ways in, where it is low, the table waits with
+ * them, and all that is said under the map: the box of the map is then what shows the
+ * whole of it and the strip, and the two ways in are on the first screen under it.
  */
 @media (max-width: 59.99rem) {
+  .view .window {
+    margin-block-start: 0;
+    border-block-start: var(--edge) solid var(--border);
+  }
+
+  .view[data-low="true"] .window {
+    height: max(120px, 20vw);
+  }
+
+  /*
+   * The whole of it, whichever it was: it weighs more than either. It is as high as it is
+   * wide, which holds a city that is wider than it is high with room to spare, and no
+   * higher than seven parts in ten of the window: at 70vh alone it was 587 px high on a
+   * phone, of which the city took 232, and its foot stood under the first screen.
+   */
+  .view[data-taller="true"][data-low] .window {
+    height: min(70vh, 100vw);
+  }
+
   .view[data-taller="false"] .under,
   .view[data-taller="false"] .legend {
     display: none;
   }
 
-  .view .pin {
-    width: 24px;
-    height: 24px;
-    font-size: 0.75rem;
+  /*
+   * All but the card of an area that is chosen on the strip, which opens under it as it
+   * does under any map: a press on the map says what it was a press on.
+   */
+  .view[data-taller="false"][data-low="true"] .below > :not([data-kind="box-on"]),
+  .view[data-taller="false"][data-low="true"] .below:not(:has(> [data-kind="box-on"])) {
+    display: none;
   }
 
-  .view .pin[aria-current="true"] {
-    width: 32px;
-    height: 32px;
-    font-size: var(--size-small);
+  /* The strip is then the foot of the box, and has no rule of its own there. */
+  .view[data-taller="false"][data-low="true"]:not(:has(.below > [data-kind="box-on"])) .window {
+    margin-block-end: calc(var(--px) * -1);
+    border-block-end: 0;
+  }
+}
+
+/*
+ * A window that is not high, as that of a small phone is. Measured at 360 by 640: under a
+ * strip 120 px high the two tabs began at 613, and 27 px of them were on the first screen.
+ */
+@media (max-width: 59.99rem) and (max-height: 44rem) {
+  .view[data-taller="false"][data-low="true"] .window {
+    height: 88px;
   }
 }
 
 @media (min-width: 60rem) {
-  .view .frame {
+  /*
+   * The window of the map is as high as the screen has left for it, so that the box of the
+   * map ends within the screen as a page of results opens. Measured at 1440 by 900 with
+   * areas left out: the box stood from 165, and under its window stood 358 px of it, the
+   * ways to move the map, the legend and the way to the table. With a window 389 high the
+   * foot of the box was 22 px under the screen. What stands over and under the window is
+   * words, so what is kept for it is asked in the measure of words. On a screen too low
+   * for the whole of the box the window is as high as it is at the least.
+   */
+  .view .window {
     height: auto;
     aspect-ratio: 4 / 3;
     min-height: 18rem;
-    max-height: 60vh;
+    max-height: min(60vh, calc(100vh - 33.75rem));
   }
 
-  /* Beside the list the map is whole already. */
-  .taller {
+  /* Beside the list the map is whole already, and nothing is there to show the whole of it. */
+  .view .whole {
     display: none;
+  }
+
+  /*
+   * Beside the answer and the settings the map stands in a column as narrow as a phone,
+   * and its box has the height of the window and no more. Measured at 1440 by 900: 868 px,
+   * where the box held 906 after a search, so that it scrolled in itself and its foot was
+   * cut off. A window 18rem high was higher than its box is wide. So in a box that narrow
+   * it is 15rem at the least: what it gives up is water, since the city is as wide as the
+   * window.
+   */
+  @container (max-width: 20rem) {
+    .view .window {
+      min-height: 15rem;
+    }
   }
 }
 
@@ -100,11 +199,12 @@
  * `position: relative` and is loaded later. With one class the library wins, the map has
  * no height, and everything in it is cut off.
  */
-.frame > .map {
+.window > .map {
   position: absolute;
   inset: 0;
 }
 
+/* Said on a plate of the page with an edge, as every sentence is that is laid over the map. */
 .loading {
   position: absolute;
   inset-block-end: var(--space-2);
@@ -112,7 +212,7 @@
   margin: 0;
   padding: var(--space-1) var(--space-2);
   background: var(--bg);
-  border-radius: var(--radius);
+  border: var(--px-map) solid var(--border);
   font-size: var(--size-small);
 }
 
@@ -123,22 +223,25 @@
   box-shadow: inset 0 0 0 var(--focus-band) var(--bg);
 }
 
-/* A pin: a disc that holds the rank. The number says the rank, not the colour. */
+/*
+ * A pin: a drawing, shown at its own size, which stands on its place by its point. It is
+ * the button itself, and nothing moves it or changes its size: not the pointer, not the
+ * focus, and not being chosen. The number says the rank, not the colour.
+ */
+.pin,
+.pinSwatch {
+  width: calc(var(--px-map) * var(--w));
+  height: calc(var(--px-map) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px-map) * var(--w)) calc(var(--px-map) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+}
+
 .pin {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
+  display: block;
   min-height: 0;
   padding: 0;
-  border: 2px solid var(--bg);
-  border-radius: 50%;
-  background: var(--map-line);
-  color: var(--bg);
-  font-size: var(--size-small);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
+  border: 0;
+  border-radius: 0;
   cursor: pointer;
 }
 
@@ -148,31 +251,106 @@
 }
 
 /*
+ * The number is a figure, and it is read: it is set in the reading face, heavy, on the face
+ * the drawing leaves bare for it. It is sized as the drawing is, and not by the type of the
+ * browser, so that larger type does not push it off its pin: the rank is said in words to
+ * whoever hears the page, and in the list and the table in type that does grow.
+ *
+ * A heavy figure of the reading face is 0.634 of its size wide, measured in a browser, and
+ * is given 0.64. A rank of one figure is set as a rank of two is, so that the pin of the
+ * first is the pin of the tenth.
+ */
+.figure {
+  position: absolute;
+  inset-block-start: calc(var(--px-map) * var(--top));
+  inset-inline-start: calc(var(--px-map) * var(--left));
+  display: grid;
+  place-items: center;
+  width: calc(var(--px-map) * var(--wide));
+  height: calc(var(--px-map) * var(--high));
+  color: var(--ink);
+  font: 700 calc(var(--px-map) * min(var(--high), var(--wide) / 1.28)) / 1 var(--font-say);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/*
+ * The chosen pin is amber where it bore the colour of the page, and says so to a screen
+ * reader. It is drawn over the pins about it, and is of the size it was. What is amber is
+ * the head of the pin, laid over the drawing in three pieces: the face, and the rows and
+ * the columns of the head that stand out past it.
+ */
+.pin[aria-current="true"] {
+  z-index: 1;
+}
+
+.pin[aria-current="true"]::before {
+  content: "";
+  position: absolute;
+  inset-block-start: calc(var(--px-map) * (var(--top) - 1));
+  inset-inline-start: calc(var(--px-map) * (var(--left) - 1));
+  width: calc(var(--px-map) * (var(--wide) + 2));
+  height: calc(var(--px-map) * (var(--high) + 1));
+  background:
+    linear-gradient(var(--chosen), var(--chosen)) calc(var(--px-map) * 2) 0 / calc(var(--px-map) * (var(--wide) - 2))
+      var(--px-map) no-repeat,
+    linear-gradient(var(--chosen), var(--chosen)) var(--px-map) var(--px-map) / calc(var(--px-map) * var(--wide))
+      calc(var(--px-map) * var(--high)) no-repeat,
+    linear-gradient(var(--chosen), var(--chosen)) 0 calc(var(--px-map) * 2) / calc(var(--px-map) * (var(--wide) + 2))
+      calc(var(--px-map) * (var(--high) - 2)) no-repeat;
+}
+
+/*
  * The name of an area, drawn over it where it has room for the whole of it. It takes no
- * press: the pointer goes through it to the area under it. It is drawn on the colour of
- * the page, so that it reads the same on every band and on every pattern.
+ * press: the pointer goes through it to the area under it. It is set in the face of names
+ * on a plate of the colour that is read on, with an edge, so that it reads the same on
+ * every band and on every pattern: nothing is read on the land itself.
  */
 .label {
   display: grid;
   justify-items: center;
   padding: 0 var(--space-1);
   background: var(--bg);
-  border-radius: 2px;
+  border: var(--px-map) solid var(--border);
   color: var(--text);
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1.25;
+  font: 400 var(--name-1) / 0.8 var(--font-name);
+  font-synthesis: none;
   text-align: center;
   white-space: nowrap;
   pointer-events: none;
 }
 
-/* The chosen pin is larger, and says so to a screen reader. */
-.pin[aria-current="true"] {
-  width: 36px;
-  height: 36px;
-  font-size: var(--size-body);
-  z-index: 1;
+/*
+ * While the map is moved a name that comes to the edge of its window is not drawn, and is
+ * never drawn cut. It keeps its place. It is named by what it is as well, so that it weighs
+ * more than what is said of every name, and of whatever the map library is handed.
+ */
+.label[data-cut] {
+  visibility: hidden;
+}
+
+/*
+ * The other way to draw a name, as Town Map drew the names of its towns: on the land
+ * itself, with the colour that is read on about every letter, a pixel of the map each
+ * way. The map says which way its names are drawn, in one place.
+ */
+.view[data-names="halo"] .label {
+  --halo: var(--bg);
+  --out: var(--px-map);
+  --back: calc(var(--px-map) * -1);
+
+  padding: 0;
+  background: none;
+  border: 0;
+  text-shadow:
+    var(--out) 0 0 var(--halo),
+    var(--back) 0 0 var(--halo),
+    0 var(--out) 0 var(--halo),
+    0 var(--back) 0 var(--halo),
+    var(--out) var(--out) 0 var(--halo),
+    var(--back) var(--out) 0 var(--halo),
+    var(--out) var(--back) 0 var(--halo),
+    var(--back) var(--back) 0 var(--halo);
 }
 
 /*
@@ -193,6 +371,27 @@
   gap: var(--target-gap);
 }
 
+/*
+ * The sign of the button that draws the map nearer, and of the one that draws it further:
+ * a plus and a minus, eight pixels of a drawing square, each stroke two of them wide. It is
+ * drawn by the style sheet in the colour of the words of its button, with a pixel as large
+ * as the button's own.
+ */
+.sign {
+  --bar: linear-gradient(currentColor, currentColor);
+
+  display: block;
+  width: calc(var(--px) * 8);
+  height: calc(var(--px) * 8);
+  background: var(--bar) 0 calc(var(--px) * 3) / calc(var(--px) * 8) calc(var(--px) * 2) no-repeat;
+}
+
+.sign[data-sign="more"] {
+  background:
+    var(--bar) 0 calc(var(--px) * 3) / calc(var(--px) * 8) calc(var(--px) * 2) no-repeat,
+    var(--bar) calc(var(--px) * 3) 0 / calc(var(--px) * 2) calc(var(--px) * 8) no-repeat;
+}
+
 .keys {
   margin: 0;
   color: var(--muted);
@@ -209,39 +408,31 @@
   }
 }
 
-.control:global(.target-min) {
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0 var(--space-2);
-  background: var(--bg);
-  font-size: var(--size-lead);
-  line-height: 1;
-}
-
-.control + .control {
-  margin-inline-start: 0;
-}
-
-.whole {
-  font-size: var(--size-small);
-}
-
+/* The card of the area that is chosen: the box in hand, which the frame draws. */
 .card {
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
 }
 
 .card p {
   margin: 0;
 }
 
+/* The name of the area, in the face of names. It is the way to the page of the area. */
 .cardName {
-  font-size: var(--size-lead);
-  font-weight: 650;
+  font: 400 var(--name-2) / 1.1 var(--font-name);
+  font-synthesis: none;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * It is drawn as a result draws the name of its area, beside which it stands: as the name
+ * is, in ink, with a hard line under it.
+ */
+.cardName > a {
+  color: inherit;
+  text-decoration-thickness: var(--px);
+  text-underline-offset: 0.12em;
 }
 
 .cardBorough,
@@ -256,16 +447,46 @@
   gap: var(--space-2);
 }
 
+/*
+ * What the map is coloured by, with the small drawing of the vibe before it. The drawing
+ * is laid at the pixel of the map, as everything the legend draws is.
+ */
 .legendTitle {
-  margin: 0 0 var(--space-1);
+  --px: var(--px-map);
+
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: 0 0 var(--space-2);
   font-size: var(--size-small);
-  font-weight: 600;
+  font-weight: 700;
+}
+
+/*
+ * The gauge of the vibe the map is coloured by: the picture of its low end, the five
+ * shades from the palest to the darkest, and the picture of its high end, each end with
+ * its name under its picture. It is laid at the pixel of the map.
+ */
+.gauge {
+  --px: var(--px-map);
+
+  margin: 0 0 var(--space-2);
+  font-size: var(--size-small);
+}
+
+/* The five shades, side by side with nothing between them, as five steps of one scale. */
+.shades {
+  display: flex;
+}
+
+.shades > .swatch + .swatch {
+  margin-inline-start: calc(var(--px-map) * -1);
 }
 
 .legend ul {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
+  gap: var(--space-2) var(--space-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -279,70 +500,126 @@
   max-width: none;
 }
 
+/*
+ * What stands beside the words of a band or of a pattern: a piece of the map, twelve of
+ * its pixels square with its edge, drawn as the map draws it. Land has the colour of its
+ * band and one tuft of its grain, in the colour the map draws the grain of that band in.
+ * It is drawn by the style sheet, a square of a gradient for each pixel.
+ */
 .swatch {
+  --grain: var(--map-3);
+  --tuft: linear-gradient(var(--grain), var(--grain));
+
   flex: none;
-  width: 1.25rem;
-  height: 1.25rem;
-  background: var(--map-land);
-  border: 1px solid var(--map-line);
+  width: calc(var(--px-map) * 12);
+  height: calc(var(--px-map) * 12);
+  border: var(--px-map) solid var(--map-line);
+  background-color: var(--map-land);
+  background-image: var(--tuft), var(--tuft), var(--tuft);
+  background-position:
+    calc(var(--px-map) * 3) calc(var(--px-map) * 4),
+    calc(var(--px-map) * 5) calc(var(--px-map) * 4),
+    calc(var(--px-map) * 4) calc(var(--px-map) * 5);
+  background-size: var(--px-map) var(--px-map);
+  background-repeat: no-repeat;
 }
 
 .swatch[data-band="1"] {
-  background: var(--map-1);
+  --grain: var(--map-2);
+
+  background-color: var(--map-1);
 }
 
 .swatch[data-band="2"] {
-  background: var(--map-2);
+  --grain: var(--map-3);
+
+  background-color: var(--map-2);
 }
 
 .swatch[data-band="3"] {
-  background: var(--map-3);
+  --grain: var(--map-4);
+
+  background-color: var(--map-3);
 }
 
 .swatch[data-band="4"] {
-  background: var(--map-4);
+  --grain: var(--map-5);
+
+  background-color: var(--map-4);
 }
 
 .swatch[data-band="5"] {
-  background: var(--map-5);
+  --grain: var(--map-4);
+
+  background-color: var(--map-5);
 }
 
+/*
+ * A pattern, as it lies on land that has no fit. It is laid again and again in tiles, as
+ * the map lays it: a pixel of it is one corner of a tile, filled, and the tile is set
+ * where the pixel is to stand.
+ */
+.swatch[data-pattern] {
+  --dot: conic-gradient(from 270deg at var(--px-map) var(--px-map), var(--map-line) 90deg, transparent 0);
+
+  background-repeat: repeat;
+}
+
+/* Lines that run up to the right, in tiles of eight pixels of the map each way. */
 .swatch[data-pattern="filtered"] {
-  background: repeating-linear-gradient(
-    135deg,
-    var(--map-land) 0 3px,
-    var(--map-line) 3px 4px
-  );
+  background-image: var(--dot), var(--dot), var(--dot), var(--dot), var(--dot), var(--dot), var(--dot), var(--dot);
+  background-position:
+    0 0,
+    calc(var(--px-map) * 7) var(--px-map),
+    calc(var(--px-map) * 6) calc(var(--px-map) * 2),
+    calc(var(--px-map) * 5) calc(var(--px-map) * 3),
+    calc(var(--px-map) * 4) calc(var(--px-map) * 4),
+    calc(var(--px-map) * 3) calc(var(--px-map) * 5),
+    calc(var(--px-map) * 2) calc(var(--px-map) * 6),
+    var(--px-map) calc(var(--px-map) * 7);
+  background-size: calc(var(--px-map) * 8) calc(var(--px-map) * 8);
 }
 
+/* Dots, in tiles of six. */
 .swatch[data-pattern="unranked"] {
-  background:
-    radial-gradient(circle, var(--map-line) 1px, transparent 1.5px) 0 0 / 5px 5px,
-    var(--map-land);
+  background-image: var(--dot), var(--dot);
+  background-position:
+    var(--px-map) var(--px-map),
+    calc(var(--px-map) * 4) calc(var(--px-map) * 4);
+  background-size: calc(var(--px-map) * 6) calc(var(--px-map) * 6);
 }
 
+/* The pin, as it is drawn on the map, with the number of the first on it. */
 .pinSwatch {
-  display: inline-grid;
-  place-items: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 50%;
-  background: var(--map-line);
-  color: var(--bg);
-  font-size: 0.75rem;
-  font-weight: 700;
+  position: relative;
+  flex: none;
 }
 
 @media (forced-colors: active) {
-  .label {
+  .window {
+    border-block-end-color: CanvasText;
+  }
+
+  .label,
+  .loading {
     background: Canvas;
+    border-color: CanvasText;
     color: CanvasText;
   }
 
+  .view[data-names="halo"] .label {
+    background: Canvas;
+    text-shadow: none;
+  }
+
+  /* The drawing is taken away, and the system's colours carry the pin: its edge, its ground and its number. */
   .pin,
   .pinSwatch {
-    border: 2px solid ButtonText;
     background: ButtonFace;
+    border: var(--px-map) solid ButtonText;
+  }
+
+  .figure {
     color: ButtonText;
   }
 
@@ -350,7 +627,22 @@
     border-color: Highlight;
   }
 
+  .pin[aria-current="true"]::before {
+    background: none;
+  }
+
   .swatch {
+    forced-color-adjust: none;
+  }
+
+  /*
+   * A sign is drawn, and what is drawn by a style sheet is taken away where the system
+   * draws in colours of its own. So it is left as it is drawn, in the colour the system
+   * gives the words of a button.
+   */
+  .sign {
+    --bar: linear-gradient(ButtonText, ButtonText);
+
     forced-color-adjust: none;
   }
 }

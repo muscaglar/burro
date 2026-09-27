@@ -6,13 +6,14 @@ import userEvent from "@testing-library/user-event";
 
 import { NAMED } from "@/content/area";
 import { TABLE } from "@/content/map";
-import { COMPLETENESS, FILTERED, UNRANKED } from "@/content/search";
+import { COMPLETENESS, FILTERED, STRIP, UNRANKED } from "@/content/search";
 import { recordedAnswer } from "@/lib/api/recorded";
 import type { RankData } from "@/lib/api/schema";
 
 import { faultsIn } from "../../../test/support/axe";
 import { isFor, rulesOf } from "../../../test/support/css";
-import type { Lens } from "@/lib/vibes";
+import { ROUGH } from "../../../test/support/rough";
+import { inWords, type Lens } from "@/lib/vibes";
 
 import { AreaTable, rowsOf } from "./AreaTable";
 
@@ -169,16 +170,61 @@ describe("the table of every area", () => {
     show(null, null, { tag, marks });
     const rowOf = (name: string) =>
       screen.getAllByRole("row").find((row) => within(row).queryByRole("link", { name })) as HTMLElement;
+    /** What the row of an area says under the name of the vibe: the cell after its rank and its borough. */
+    const under = (name: string) => said(within(rowOf(name)).getAllByRole("cell")[2] as HTMLElement);
 
     expect(screen.getByRole("columnheader", { name: "Going out" })).toBeInTheDocument();
-    for (const mark of marks) {
-      const said = rowOf(nameOf(mark.area_id)).textContent ?? "";
-      // An area the vibe cannot place is said to be so, and is never put in the middle.
-      expect(said.includes(mark.band === null ? TABLE.notPlaced : `band`)).toBe(true);
+    expect(marks).toHaveLength(areas.length);
+    for (const { area_id: areaId, band, spread_low: low, spread_high: high } of marks) {
+      // An area the vibe cannot place is said to be so, and is never put in the middle. Every
+      // other says its band, in the words every part of the website says a band in.
+      const placed = band === null || low === null || high === null ? TABLE.notPlaced : inWords({ band, spread_low: low, spread_high: high });
+      expect([nameOf(areaId), under(nameOf(areaId))]).toEqual([nameOf(areaId), placed]);
     }
     expect(marks.some((mark) => mark.band === null)).toBe(true);
-    // A mixed area is said to vary, as its mark on the map cannot say.
-    expect(rowOf("Foxholt").textContent).toContain("varies within this area, from band 3 to band 5 of 5");
+    expect(under(nameOf(marks.find((mark) => mark.band === null)?.area_id ?? ""))).toBe(TABLE.notPlaced);
+    expect(marks.some((mark) => mark.band !== null && mark.spread_low === mark.spread_high)).toBe(true);
+    // A mixed area is said to vary, as its mark on the map cannot say, between the two bands
+    // the service says it spans. The words were "from band 3 to band 5", and "from" and "to"
+    // now say which way the bands of a vibe run.
+    const mixed = marks.find((mark) => nameOf(mark.area_id) === "Foxholt");
+    expect([mixed?.band, mixed?.spread_low, mixed?.spread_high]).toEqual([4, 3, 5]);
+    expect(under("Foxholt")).toBe("varies within this area, between band 3 and band 5 of 5");
+    expect(under("Foxholt")).toBe(STRIP.bands(3, 5));
+  });
+
+  test("test_coloured_by_a_vibe_the_service_calls_a_rough_guide_the_table_names_it_as_any_other_and_nothing_says_that_it_is_one", () => {
+    // The founder, who had walked the website twice: "remove the concept of rough guide, we
+    // don't want to pass this on to a user". The table named such a vibe over its column
+    // with its label. It names it by its name alone, and is handed nothing of what a
+    // service says of it: so it is held to write neither the label a service gave such a
+    // vibe nor the sentence that said why.
+    const meta = recordedAnswer("get_meta", "meta").body.data;
+    const bands = recordedAnswer("list_areas", "areas").body.data.bands;
+    const tag = meta.tags.find((one) => one.tag_id === ROUGH.tag_id);
+    const marks = bands.find((one) => one.tag_id === ROUGH.tag_id)?.marks;
+    if (tag === undefined || marks === undefined) throw new Error("the recording holds no bands for the vibe the service holds less sure");
+    const { container } = show(null, null, { tag, marks });
+
+    expect(tag.sureness).toBe("rough_guide");
+    const column = screen.getByRole("columnheader", { name: tag.label });
+    expect(column.textContent).toBe(tag.label);
+    expect(column.children).toHaveLength(0);
+    const heard = [...container.querySelectorAll("*")].flatMap((part) =>
+      ["aria-label", "aria-description", "title", "alt"].flatMap((name) => part.getAttribute(name) ?? []),
+    );
+    const all = [container.textContent ?? "", ...heard].join("\n");
+    expect(container.querySelector("[data-rough-guide]")).toBeNull();
+    expect(all.includes(ROUGH.label)).toBe(false);
+    expect(all.includes(ROUGH.why)).toBe(false);
+    expect(/rough guide|less sure/i.test(all)).toBe(false);
+    // Every area says where it sits on it all the same, as it does of any vibe.
+    const placed = screen
+      .getAllByRole("row")
+      .slice(1)
+      .map((row) => said(within(row).getAllByRole("cell")[2] as HTMLElement));
+    expect(placed).toHaveLength(areas.length);
+    expect(placed.filter((words) => words !== TABLE.notPlaced && !/^(band \d of 5|varies within this area, between band \d and band \d of 5)$/.test(words))).toEqual([]);
   });
 
   test("test_the_rows_are_in_rank_order_and_then_by_name", () => {
@@ -290,6 +336,90 @@ describe("the table of every area", () => {
       (cell) => cell.querySelector("[aria-hidden='true'][class*='cellLabel']")?.textContent ?? null,
     );
     expect(labels).toEqual([columns[0], columns[2], columns[3], columns[4], null]);
+  });
+
+  test("test_the_name_of_an_area_and_what_a_column_is_of_are_set_in_the_face_of_names", () => {
+    const NAME = "400 var(--name-1) / 1 var(--font-name)";
+    const fontOf = (selector: string) =>
+      STYLES.filter((rule) => rule.selector === selector && rule.under === null).map((rule) => [rule.sets.get("font"), rule.sets.get("font-synthesis")]);
+
+    // The name of an area, the head of a column, and what a cell is of where the rows are stacked.
+    for (const selector of [".link", ".head th", ".cellLabel"]) expect([selector, fontOf(selector)]).toEqual([selector, [[NAME, "none"]]]);
+    // A figure is read, and a sentence is: neither is set in the face of names.
+    for (const selector of [".number", ".based", ".label"]) {
+      expect(STYLES.filter((rule) => rule.selector === selector).some((rule) => /font-name/.test(rule.sets.get("font") ?? ""))).toBe(false);
+    }
+  });
+
+  test("test_the_name_of_an_area_leads_to_its_page_and_is_drawn_as_a_result_draws_the_name_of_its_area", () => {
+    // Seen side by side, on one page: the name of a result in ink with a hard line under it,
+    // and the names of the table in cobalt with a soft one.
+    const result = rulesOf(readFileSync(path.join(__dirname, "..", "ResultList", "ResultList.module.css"), "utf8"));
+    const theirs = result.find((rule) => rule.selector === ".toArea" && rule.under === null);
+    const mine = new Map(STYLES.filter((rule) => rule.selector === ".link" && rule.under === null).flatMap((rule) => [...rule.sets]));
+
+    expect(theirs).toBeDefined();
+    for (const [property, value] of theirs?.sets ?? []) expect([property, mine.get(property)]).toEqual([property, value]);
+    expect(mine.get("color")).toBe("inherit");
+  });
+
+  test("test_the_small_button_of_a_row_is_a_native_button_whose_face_is_drawn_inside_it", () => {
+    show(recordedAnswer("rank", "rank-first").body.data, "syn-n0003");
+    const chosen = screen.getByRole("button", { name: TABLE.select("Cindermoor") });
+    const other = screen.getByRole("button", { name: TABLE.select("Farrowmere") });
+
+    for (const button of [chosen, other]) {
+      expect(button.tagName).toBe("BUTTON");
+      expect(button).toHaveClass("target-min");
+      // What is seen on it is the start of its name.
+      expect(button).toHaveTextContent(TABLE.show);
+      expect(button.firstElementChild).toHaveClass("face");
+      expect(button.querySelectorAll("img, svg")).toHaveLength(0);
+    }
+    // The button of the area that is chosen is the amber one, and the others are plain.
+    expect([chosen, other].map((button) => button.style.getPropertyValue("--art"))).toEqual([
+      'url("/art/ui-button-on.png")',
+      'url("/art/ui-button.png")',
+    ]);
+    expect([chosen, other].map((button) => button.style.getPropertyValue("--art-down"))).toEqual([
+      'url("/art/ui-button-on-down.png")',
+      'url("/art/ui-button-down.png")',
+    ]);
+    // Nothing is drawn on the button itself, and nothing under a press moves it or what it holds but its words.
+    const itself = new Map(STYLES.filter((rule) => rule.selector === ".show").flatMap((rule) => [...rule.sets]));
+    expect([itself.get("padding"), itself.get("border"), itself.get("background")]).toEqual(["0", "0", "none"]);
+    const pressed = STYLES.filter((rule) => /:active/.test(rule.selector) && !/forced-colors/.test(rule.under ?? ""));
+    expect(pressed.map((rule) => [rule.selector, [...rule.sets.keys()], rule.under])).toEqual([
+      [".show:active > .face", ["border-image-source"], null],
+      [".show:active > .face > .says", ["transform"], "@media (prefers-reduced-motion: no-preference)"],
+    ]);
+  });
+
+  test("test_the_chosen_row_is_marked_inside_itself_and_takes_the_room_it_took", () => {
+    const chosen = STYLES.filter((rule) => /aria-(current|pressed)="true"/.test(rule.selector) && !/forced-colors/.test(rule.under ?? ""));
+    /** What sets the room a thing takes. A row that is chosen sets none of them. */
+    const ROOM = /^(width|height|min-.*|max-.*|padding.*|margin.*|border.*|font.*|line-height|display|position|inset.*|gap|grid.*|flex.*)$/;
+
+    expect(chosen.map((rule) => rule.selector)).toEqual(['.table tr[aria-current="true"]', '.show[aria-pressed="true"] > .face']);
+    expect(chosen.flatMap((rule) => [...rule.sets.keys()]).filter((property) => ROOM.test(property))).toEqual([]);
+    // An edge of ink, drawn inside the row, and a band of amber at its head: amber is not told from the page without it.
+    const row = chosen[0]?.sets;
+    expect([row?.get("outline"), row?.get("outline-offset")]).toEqual([
+      "var(--focus-ring) solid var(--map-line)",
+      "calc(-1 * var(--focus-ring))",
+    ]);
+    expect(row?.get("box-shadow")).toMatch(/^inset .+ var\(--chosen\)$/);
+    // Every row keeps the room of the band, so that a row does not move when it is chosen.
+    const head = STYLES.filter((rule) => /:first-child$/.test(rule.selector) && rule.under === null);
+    expect(head.map((rule) => rule.sets.get("padding-inline-start"))).toEqual(["var(--space-3)", "var(--space-3)"]);
+  });
+
+  test("test_the_style_sheet_names_no_colour_no_face_and_no_picture_of_its_own", () => {
+    const written = readFileSync(path.join(__dirname, "AreaTable.module.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+
+    expect(written.match(/#[0-9a-f]{3,8}\b|\b(rgb|hsl|oklch|lab|lch)a?\(/gi) ?? []).toEqual([]);
+    expect(written.match(/url\(/g) ?? []).toEqual([]);
+    expect(written.match(/font(-family)?:[^;]*["'][^;]*;/g) ?? []).toEqual([]);
   });
 
   test("test_the_table_has_header_cells_and_no_accessibility_fault", async () => {

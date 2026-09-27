@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { KeyboardEvent, Ref } from "react";
 
 import { MAP_CARD } from "@/content/map";
 import { FILTERED, RESULTS, UNRANKED } from "@/content/search";
@@ -12,7 +13,8 @@ import { placedOn, type Lens } from "@/lib/vibes";
 
 import { BesideName } from "../BesideName/BesideName";
 import { CompareButton } from "../CompareTray/CompareButton";
-import { RoughLabel } from "../RoughGuide/RoughGuide";
+import { Frame } from "../kit/Frame/Frame";
+import { Press } from "../kit/Press/Press";
 import styles from "./MapView.module.css";
 
 interface Props {
@@ -27,6 +29,12 @@ interface Props {
   readonly lens?: Lens | null;
   readonly onShowInList: () => void;
   readonly onClose: () => void;
+  /** The id of the card, by which the pin that opens it names it. */
+  readonly id?: string;
+  /** The card itself, for the map to give it the focus as it opens. */
+  readonly ref?: Ref<HTMLElement>;
+  /** Hears the keys from inside the card: Escape closes it. */
+  readonly onKeyDown?: (event: KeyboardEvent<HTMLElement>) => void;
 }
 
 /**
@@ -39,6 +47,14 @@ interface Props {
  * Its name is the way to the page of the area, in one press, and the area can
  * be put among those to compare from here: an area pressed on the map once
  * led nowhere.
+ *
+ * It is the box of the area in hand, so its inner rule is amber, as the pin of
+ * the area is.
+ *
+ * It can be given the focus, and is no stop of its own: the map gives it the
+ * focus as it opens of a press on the map, so that what it holds is the next
+ * stop of a keyboard. It is then heard by its name, and by what it says of the
+ * area: its name, and its rank and fit or why it has none.
  */
 export function MapCard({
   summary,
@@ -50,6 +66,9 @@ export function MapCard({
   lens = null,
   onShowInList,
   onClose,
+  id,
+  ref,
+  onKeyDown,
 }: Props) {
   const at = scores.findIndex((score) => score.area_id === summary.area_id);
   const score = scores[at];
@@ -61,10 +80,22 @@ export function MapCard({
   const why = words[left?.reason ?? apart?.reason ?? ""] ?? null;
   const placed = lens === null ? null : placedOn(lens, summary.area_id);
 
+  const said = id === undefined ? undefined : `${id}-name ${id}-says`;
+
   return (
-    <section className={styles.card} aria-label={MAP_CARD.label}>
+    <Frame
+      kind="box-on"
+      as="section"
+      ref={ref}
+      id={id}
+      className={styles.card}
+      aria-label={MAP_CARD.label}
+      aria-describedby={said}
+      tabIndex={-1}
+      onKeyDown={onKeyDown}
+    >
       <div>
-        <p className={styles.cardName}>
+        <p id={id === undefined ? undefined : `${id}-name`} className={styles.cardName}>
           {/* Which page a person reads next is told to no server ahead of time. */}
           <Link className="target-min" href={paths.area(summary)} prefetch={false}>
             {summary.name}
@@ -75,32 +106,27 @@ export function MapCard({
       </div>
       {lens !== null && placed !== null ? (
         <p>
-          {lens.tag.label}
-          <RoughLabel told={lens.rough ?? null} />: {placed}
+          {lens.tag.label}: {placed}
         </p>
       ) : null}
       {score !== undefined ? (
-        <p>
+        <p id={id === undefined ? undefined : `${id}-says`}>
           {RESULTS.rank(at + 1)}
           {emptySpec ? null : `, ${RESULTS.fit.toLowerCase()} ${RESULTS.fitOf(fitOf(score.score))}`}
         </p>
       ) : why !== null ? (
-        <p>{why}</p>
+        <p id={id === undefined ? undefined : `${id}-says`}>{why}</p>
       ) : null}
       {rests !== null ? <p className={styles.cardNote}>{rests}</p> : null}
       <div className={styles.cardActions}>
         {inList ? (
-          <button type="button" className="target" onClick={onShowInList}>
-            {MAP_CARD.showInList}
-          </button>
+          <Press onPress={onShowInList}>{MAP_CARD.showInList}</Press>
         ) : score !== undefined ? (
           <p className={styles.cardNote}>{MAP_CARD.notInList}</p>
         ) : null}
         <CompareButton area={summary} small />
-        <button type="button" className="target" onClick={onClose}>
-          {MAP_CARD.close}
-        </button>
+        <Press onPress={onClose}>{MAP_CARD.close}</Press>
       </div>
-    </section>
+    </Frame>
   );
 }
