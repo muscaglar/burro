@@ -4,6 +4,71 @@
  * larger, and nothing that holds text has a fixed height.
  */
 
+/*
+ * The two faces. Each file is the website's own, served from /fonts/, and its
+ * licence stands beside it there: the SIL Open Font License, version 1.1. No
+ * face comes from another origin, and the policy of lib/headers.ts lets none.
+ *
+ * Words are drawn at once in a face the system has, and again in ours when it
+ * arrives, so that nothing waits on a file. A file is fetched only by a page
+ * that sets a character of the range it is declared for. One file is asked
+ * for with every page, ahead of this sheet: that of the face of names which
+ * holds the letters of English. Every page sets its name board in it, and its
+ * stand-in is far wider, so a page jumped as it came. The layout asks for it.
+ *
+ * The face of a sentence is named here and in tokens.css, and nowhere else:
+ * to change it, change it in these two and in the folder of the faces.
+ *
+ * It is two files. The upright one holds every weight from 300 to 900, and is
+ * declared once, for the weights the website sets: 400 to 700. A word is
+ * drawn at the weight it is asked at, and one that is asked heavier than 700,
+ * as a heavy word inside a heavy line is, is drawn at 700. The slanted one
+ * holds one weight, and is declared for it: no slanted word is asked heavy.
+ */
+@font-face {
+  font-family: "Jersey 10";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/jersey-10-latin-ext.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Jersey 10";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/jersey-10-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Rubik";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/rubik-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Rubik";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/rubik-400-italic-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+    U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 *,
 *::before,
 *::after {
@@ -18,34 +83,110 @@ html {
   scroll-padding-top: var(--space-5);
   /*
    * What takes the focus is not left under the tray of areas to compare, which stays at the
-   * foot of the screen once an area is chosen. Measured on a phone 390 wide: 77 px high
-   * with two areas chosen, and 160 with four.
+   * foot of the screen once an area is chosen. Measured on a phone 390 wide, in the look:
+   * 94 px high where what it says takes one line, as with two areas chosen, 118 where it
+   * takes two, and 161 with four areas chosen. On a screen 1440 wide it is 96, and 148
+   * with four.
    */
   scroll-padding-bottom: calc(2 * var(--space-8) + var(--space-7));
+  /* What the browser draws of a tick, a dot and a slider is drawn in the look's colour. */
+  accent-color: var(--accent);
 }
 
 body {
+  /* The ground is laid against the body, so that it is as high as the page is. */
+  position: relative;
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
+  /* What lies under the tiles, and is the ground where no tile is drawn. */
+  background: var(--lea);
   color: var(--text);
-  font-family: var(--font);
+  font-family: var(--font-say);
   font-size: var(--size-body);
   line-height: var(--leading-text);
   /* A word too long for its line is broken, and never pushes the page wider than the screen. */
   overflow-wrap: break-word;
 }
 
+/*
+ * The ground: the meadow in tiles, from edge to edge, under everything. It is one picture
+ * of twelve tiles each way, 192 pixels of its own, drawn whole, with no pixel of it left
+ * clear. It is laid at two pixels of the screen to one of its own, and sharp. With
+ * `--ground` set to `none` nothing is laid, and the ground is the flat colour of the body.
+ *
+ * It goes with the page as the page is scrolled, as a sheet of paper does: a box and the
+ * grass round it stay together, and nothing slides under what is being read.
+ *
+ * It is drawn by an element of its own, because how a picture is drawn is handed down:
+ * said of the body, it would be said of the map too.
+ *
+ * A browser holds what is in sight where it is while what stands over it grows, and holds
+ * it by the first thing in sight. The ground is the first thing in the page and is always
+ * in sight, so the page was held by the ground, which never moves, and so by nothing: what
+ * a person was reading went down the screen as the chips over it grew. It is not what the
+ * page is held by.
+ */
+body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--ground) 0 0 / calc(var(--px-ground) * 192) calc(var(--px-ground) * 192);
+  image-rendering: pixelated;
+  pointer-events: none;
+  overflow-anchor: none;
+}
+
+/*
+ * The ground that is read on. Nothing is read on the grass: what a page says is in `main`,
+ * and `main` brings the cream it is read on, with the plain edge and the shadow of a box.
+ * It weighs nothing, so that the shell, and a page that stands boxes of its own on the
+ * grass, may say otherwise.
+ */
+:where(main) {
+  background: var(--bg);
+  border: var(--edge) solid var(--border);
+  box-shadow: var(--box-shadow);
+}
+
+/*
+ * A heading is never lighter to the eye than what it heads.
+ *
+ * The first two are names, and are set in the face of names, which is drawn in pixels. The
+ * face has one weight and stands upright: a browser that thickens or slants it smears it,
+ * so none may. It is set at one of its four sizes and never under 30 pixels: at 20 it reads
+ * as small as a sentence at 13. A part that has not been dressed asks for the size of a
+ * sentence, and in these two each of those is 30.
+ *
+ * A small heading is set in the face of a sentence, heavy, at the size it is asked for.
+ */
 h1,
 h2,
 h3,
 h4 {
   margin: 0 0 var(--space-3);
   line-height: var(--leading-heading);
-  font-weight: 650;
   text-wrap: balance;
   /* A heading is often a name, which the API gives and the website cannot shorten. */
   overflow-wrap: anywhere;
+}
+
+h1,
+h2 {
+  --size-small: var(--name-2);
+  --size-body: var(--name-2);
+  --size-lead: var(--name-2);
+  --size-h3: var(--name-2);
+
+  font-family: var(--font-name);
+  font-weight: 400;
+  font-synthesis: none;
+}
+
+h3,
+h4 {
+  font-family: var(--font-say);
+  font-weight: 700;
 }
 
 h1 {
@@ -95,19 +236,28 @@ dd {
   margin: 0 0 var(--space-3);
 }
 
+/* A link is in the colour of the look and is underlined with a hard line, so that colour is not all that says it. */
 a {
   color: var(--accent);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.15em;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
 }
 
 a:hover {
-  text-decoration-thickness: 2px;
+  text-decoration-thickness: 3px;
 }
 
+/* An id, which a person may read out. It is set in the face of a sentence, heavier than the words round it. */
 code {
   font-family: var(--font-mono);
-  font-size: 0.9375em;
+  font-weight: 700;
+}
+
+/* A rule between two parts: a hard line of ink as wide as a pixel of a drawing, with no shade under it. */
+hr {
+  margin: var(--space-5) 0;
+  border: 0;
+  border-block-start: var(--edge) solid var(--border);
 }
 
 /* Tables: header cells, and figures that line up. */
@@ -124,22 +274,25 @@ caption {
   padding-bottom: var(--space-2);
 }
 
+/* A row stands on a rule of sand, which is there for the eye to run along and says nothing. */
 th,
 td {
   text-align: left;
   vertical-align: top;
   padding: var(--space-2) var(--space-3) var(--space-2) 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--edge) solid var(--sand);
 }
 
+/* The head of a table stands on a rule in the colour of the words, as wide as a pixel of a drawing. */
 thead th {
   font-size: var(--size-small);
   color: var(--muted);
-  font-weight: 600;
+  font-weight: 700;
+  border-bottom: var(--edge) solid var(--text);
 }
 
 tbody th {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Fields and buttons take the page's font, and the size of a target. */
@@ -158,7 +311,7 @@ textarea {
   min-height: var(--target);
   padding: var(--space-2) var(--space-3);
   background: var(--bg);
-  border: 1px solid var(--border);
+  border: var(--edge) solid var(--border);
   border-radius: var(--radius);
 }
 
@@ -177,8 +330,8 @@ button[aria-disabled="true"] {
 }
 
 /*
- * Focus: a ring between two bands of the page colour, so it shows on any
- * background, the map included. It is never removed.
+ * Focus: a ring between two bands of the colour that is read on, so it shows on any
+ * ground, the grass and the map included. It is never removed.
  */
 :focus-visible {
   outline: var(--focus-ring) solid var(--focus);
@@ -241,9 +394,9 @@ button[aria-disabled="true"] {
   color: var(--muted);
 }
 
-/* A skeleton holds the place of what is coming. It does not shimmer. */
+/* A skeleton holds the place of what is coming, in the colour of a chip at rest. It does not shimmer. */
 .skeleton {
-  background: var(--surface);
+  background: var(--sand);
   border-radius: var(--radius);
   color: transparent;
 }
@@ -259,15 +412,24 @@ button[aria-disabled="true"] {
   }
 }
 
-/* With forced colours the system's own colours carry every edge and ring. */
+/* With forced colours the system's own colours carry every edge and ring, and no ground is laid. */
 @media (forced-colors: active) {
+  body::before {
+    display: none;
+  }
+
   :focus-visible {
     outline-color: Highlight;
     box-shadow: none;
   }
 
   th,
-  td {
+  td,
+  thead th {
     border-bottom-color: CanvasText;
+  }
+
+  hr {
+    border-block-start-color: CanvasText;
   }
 }

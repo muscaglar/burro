@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { preload } from "react-dom";
 
 import { Shell } from "@/components/Shell/Shell";
 import { SITE } from "@/content/site";
 import { loadMeta } from "@/lib/api/server";
+import { FACES } from "@/lib/headers";
 import { KEEP_OUT, mayBeIndexed } from "@/lib/indexing";
 
 import "@/styles/tokens.css";
@@ -27,11 +29,23 @@ export async function generateMetadata(): Promise<Metadata> {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  colorScheme: "light dark",
+  // The look is one, and has no dark colours. The browser is told so before it has read a
+  // style sheet, so that it draws nothing of its own dark and does not darken the page.
+  colorScheme: "only light",
 };
+
+/** The file of the face of names that holds the letters of English, which every page draws its name board in. */
+const FACE_OF_NAMES = `${FACES}/jersey-10-latin.woff2`;
 
 export default async function RootLayout({ children }: { readonly children: ReactNode }) {
   const { meta } = await loadMeta();
+  // A face is asked for once the style sheets have come, which is as the page is first painted.
+  // Until the face of names is in, the name board and every heading are drawn in its stand-in,
+  // which is far wider: so the links of the board stand under the name and a heading takes a
+  // line more, and the whole page jumps as the face comes. Asked for with the page, it is in
+  // before the first paint. The face of a sentence is not asked ahead: its stand-in is near it
+  // in width, so next to nothing moves as it comes, and its file is seven times the size.
+  preload(FACE_OF_NAMES, { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
   return (
     <html lang="en-GB">
       <body>

@@ -1,6 +1,6 @@
 /**
- * The contrast ratio of two colours, by the WCAG formula, and the tokens of
- * a theme as tokens.css states them.
+ * The contrast ratio of two colours, by the WCAG formula, and the tokens as
+ * tokens.css states them.
  */
 
 import { readFileSync } from "node:fs";
@@ -53,12 +53,45 @@ function blockAfter(css: string, opening: RegExp): string {
   throw new Error("tokens.css has a block that is never closed");
 }
 
-/** The tokens of the light theme and of the dark one, each whole. */
+/** What each token comes to: one that names another, as `var(--chalk)` does, takes its value. */
+function followed(found: Theme): Theme {
+  const valueOf = (value: string, seen: readonly string[] = []): string => {
+    const named = /^var\((--[a-z0-9-]+)\)$/.exec(value)?.[1];
+    if (named === undefined || seen.includes(named)) return value;
+    const next = found[named];
+    return next === undefined ? value : valueOf(next, [...seen, named]);
+  };
+  return Object.fromEntries(Object.entries(found).map(([name, value]) => [name, valueOf(value)]));
+}
+
+const withoutComments = () => readFileSync(TOKENS, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const FOR_DARK = /@media\s*\(prefers-color-scheme:\s*dark\)\s*\{/;
+
+/** The tokens as tokens.css writes them: one that names another still names it. */
+export function asWritten(): Theme {
+  return declarations(blockAfter(withoutComments(), /:root\s*\{/));
+}
+
+/** What tokens.css writes anew for a screen that is 60rem wide or wider. */
+export function writtenForAWideScreen(): Theme {
+  return declarations(blockAfter(withoutComments(), /@media\s*\(min-width:\s*60rem\)\s*\{/));
+}
+
+/** What tokens.css writes anew where the system says that movement is welcome. */
+export function writtenWhereMovementIsWelcome(): Theme {
+  return declarations(blockAfter(withoutComments(), /@media\s*\(prefers-reduced-motion:\s*no-preference\)\s*\{/));
+}
+
+/**
+ * The tokens as a page has them where the system asks for light, and where it asks for
+ * dark, each whole and each with its value. The website has one look, so the two are the
+ * same: they differ only if tokens.css is given values for dark again.
+ */
 export function themes(): { light: Theme; dark: Theme } {
-  const css = readFileSync(TOKENS, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-  const light = declarations(blockAfter(css, /:root\s*\{/));
-  const dark = declarations(blockAfter(css, /@media\s*\(prefers-color-scheme:\s*dark\)\s*\{/));
-  return { light, dark: { ...light, ...dark } };
+  const css = withoutComments();
+  const light = asWritten();
+  const dark = FOR_DARK.test(css) ? declarations(blockAfter(css, FOR_DARK)) : {};
+  return { light: followed(light), dark: followed({ ...light, ...dark }) };
 }
 
 export function isColour(value: string): boolean {
