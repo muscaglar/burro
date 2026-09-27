@@ -1,4 +1,6 @@
-# Burro's API: FastAPI over one data release held in memory. No database.
+# Burro's API: FastAPI over one data release held in memory. Its one database is the
+# file of accounts, which is on a volume and never in the image, and which nothing
+# opens unless accounts are turned on: deploy/README.md, "Turning accounts on".
 #
 # Build from the repository root, because the image takes files from three folders:
 #

@@ -40,6 +40,26 @@ kill_timeout = 10
   # BURRO_MODEL_CALLS_PER_DAY, which is 2000. Nought means that the model is
   # never called. Set one here only to change it.
 
+  # Accounts are off until they are turned on, and with them off the service
+  # opens no file and serves no route of them. deploy/README.md, "Turning
+  # accounts on", has the steps and what must be in place first. The three
+  # secrets of accounts are set with `fly secrets`, and never here. Take the
+  # marks off these, and off [mounts] below, only as those steps say.
+  #
+  # BURRO_ACCOUNTS = "off"
+  # BURRO_ACCOUNTS_DB = "/data/accounts.db"
+  # BURRO_ACCOUNTS_SITE = "https://burro-silk.vercel.app"
+  # BURRO_ACCOUNTS_SENDER = "postmark"
+  # BURRO_ACCOUNTS_SENDER_FROM = "sign-in@burro.example"
+
+# The volume the file of accounts is kept on: one volume, of one machine. A
+# volume of this name must be there before a deploy that names it, and the
+# folder is given to the user the service runs as: deploy/README.md.
+#
+# [mounts]
+#   source = "burro_accounts"
+#   destination = "/data"
+
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
